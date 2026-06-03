@@ -1,0 +1,26 @@
+{
+  "name": "market-monitor-forecast-api",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "netlify:dev": "netlify dev",
+    "dev": "node scripts/free-ports.js && npm run dev:all",
+    "dev:stop": "node scripts/free-ports.js",
+    "dev:api": "node server.js",
+    "dev:web": "npm run dev --prefix market-quotes-frontend",
+    "dev:all": "node node_modules/concurrently/dist/bin/concurrently.js -n api,web -c cyan,magenta \"npm run dev:api\" \"npm run dev:web\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express": "^4.19.0",
+    "serverless-http": "^3.2.0",
+    "yahoo-finance2": "^2.13.3"
+  }
+}

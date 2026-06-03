@@ -1,0 +1,45 @@
+# Market Monitor — deploy unico: frontend (Vite) + API Express (Netlify Functions)
+
+[build]
+  command = "npm ci && npm ci --prefix market-quotes-frontend && npm run build --prefix market-quotes-frontend"
+  publish = "market-quotes-frontend/dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Frontend: path relativi /api (stesso sito). Non impostare VITE_API_BASE su Netlify.
+  VITE_API_BASE = ""
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["express", "yahoo-finance2"]
+  included_files = ["lib/**"]
+
+[functions."api"]
+  # Piano Hobby: max 10s. Analisi/previsioni pesanti possono richiedere Pro (26s).
+  timeout = 10
+
+# API Express → function (path originale /api/... preservato)
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api"
+  status = 200
+  force = true
+
+# SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

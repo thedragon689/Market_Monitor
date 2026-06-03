@@ -1,0 +1,9 @@
+node_modules/
+market-quotes-frontend/node_modules/
+market-quotes-frontend/dist/
+dist/
+.env
+.env.local
+*.log
+.DS_Store
+.netlify/

@@ -1,0 +1,92 @@
+:root {
+  --text: #5c6478;
+  --text-h: #0f172a;
+  --bg: #f4f6fb;
+  --bg-elevated: #ffffff;
+  --border: #e2e8f0;
+  --code-bg: #eef2f9;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-soft: #eef2ff;
+  --accent-bg: rgba(79, 70, 229, 0.1);
+  --accent-border: rgba(79, 70, 229, 0.35);
+  --teal: #0d9488;
+  --teal-soft: rgba(13, 148, 136, 0.12);
+  --cat-stock: #4f46e5;
+  --cat-stock-soft: rgba(79, 70, 229, 0.1);
+  --cat-precious: #d97706;
+  --cat-precious-soft: rgba(217, 119, 6, 0.12);
+  --cat-commodity: #0d9488;
+  --cat-commodity-soft: rgba(13, 148, 136, 0.12);
+  --cat-national: #2563eb;
+  --cat-national-soft: rgba(37, 99, 235, 0.1);
+  --cat-crypto: #9333ea;
+  --cat-crypto-soft: rgba(147, 51, 234, 0.1);
+  --cta-from: #6366f1;
+  --cta-to: #0d9488;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.1);
+  --shadow-cta: 0 8px 28px rgba(79, 70, 229, 0.35);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --heading: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  font: 16px/1.55 var(--sans);
+  color-scheme: light;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #94a3b8;
+    --text-h: #f1f5f9;
+    --bg: #0b0f1a;
+    --bg-elevated: #141b2d;
+    --border: #243044;
+    --code-bg: #1a2336;
+    --accent: #818cf8;
+    --accent-hover: #a5b4fc;
+    --accent-soft: #1e1b4b;
+    --accent-bg: rgba(129, 140, 248, 0.12);
+    --accent-border: rgba(129, 140, 248, 0.35);
+    --teal: #2dd4bf;
+    --teal-soft: rgba(45, 212, 191, 0.12);
+    --cat-stock: #818cf8;
+    --cat-stock-soft: rgba(129, 140, 248, 0.12);
+    --cat-precious: #fbbf24;
+    --cat-precious-soft: rgba(251, 191, 36, 0.12);
+    --cat-commodity: #2dd4bf;
+    --cat-commodity-soft: rgba(45, 212, 191, 0.12);
+    --cat-national: #60a5fa;
+    --cat-national-soft: rgba(96, 165, 250, 0.12);
+    --cat-crypto: #c084fc;
+    --cat-crypto-soft: rgba(192, 132, 252, 0.12);
+    --shadow-cta: 0 8px 28px rgba(129, 140, 248, 0.25);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+}
