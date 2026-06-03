@@ -7,26 +7,29 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  # Frontend: path relativi /api (stesso sito). Non impostare VITE_API_BASE su Netlify.
   VITE_API_BASE = ""
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["express", "yahoo-finance2"]
-  included_files = ["lib/**"]
+  external_node_modules = [
+    "axios",
+    "cors",
+    "dotenv",
+    "express",
+    "serverless-http",
+    "yahoo-finance2",
+  ]
+  included_files = ["server.js", "lib/**"]
 
 [functions."api"]
-  # Piano Hobby: max 10s. Analisi/previsioni pesanti possono richiedere Pro (26s).
   timeout = 10
 
-# API Express → function (path originale /api/... preservato)
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api"
   status = 200
   force = true
 
-# SPA
 [[redirects]]
   from = "/*"
   to = "/index.html"

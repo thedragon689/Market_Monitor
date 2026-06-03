@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { analyzeMarket } from './lib/analyze.js';
 import { getCache, setCache } from './lib/cache.js';
 import { buildForecastResponse } from './lib/forecastApi.js';
@@ -19,8 +18,8 @@ import { computeMarketCorrelations, correlationHeatmapCells } from './lib/market
 import { loadMarketData } from './lib/yahoo.js';
 import { fetchBitcoinLiveSnapshot } from './lib/exchanges/bitcoin.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, '.env'), override: true });
+// process.cwd(): ok in locale e su Netlify (niente import.meta — esbuild lo rompe).
+dotenv.config({ path: path.join(process.cwd(), '.env'), override: true });
 
 const CACHE_TTL_MS = 10 * 60 * 1000;
 const CATALOG_CACHE_MS = 2 * 60 * 1000;
@@ -502,11 +501,8 @@ app.get('/api/analyze', async (req, res) => {
 
 export default app;
 
-const entryPath = process.argv[1]
-  ? path.resolve(process.argv[1])
-  : '';
 const isDirectRun =
-  entryPath && entryPath === path.resolve(fileURLToPath(import.meta.url));
+  process.argv[1]?.includes('server.js') && !process.env.AWS_LAMBDA_FUNCTION_NAME;
 
 if (isDirectRun) {
   const server = app.listen(PORT, () => {
