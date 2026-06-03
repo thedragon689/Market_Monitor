@@ -1,4 +1,5 @@
 import { getSymbolMeta } from '../data/symbols';
+import EmptyState from './EmptyState';
 import { changeSummary, formatPercent, formatPrice, usdToEur } from '../utils/format';
 import {
   buildDisplayPricing,
@@ -33,7 +34,14 @@ function changeForDisplay(changeUsd, display, fx) {
   return { eur, usd: changeUsd, isGram: false };
 }
 
-export default function QuotePanel({ quote, type, symbol, loading, fx }) {
+export default function QuotePanel({
+  quote,
+  type,
+  symbol,
+  loading,
+  fx,
+  onGoExplore,
+}) {
   const meta = getSymbolMeta(symbol, type);
   const live = quote?.liveExchanges;
 
@@ -50,7 +58,16 @@ export default function QuotePanel({ quote, type, symbol, loading, fx }) {
   if (!quote || quote.error) {
     return (
       <div className="quote-panel quote-panel--empty">
-        <p>{quote?.error || 'Seleziona un asset nel passo «Scegli» per vedere il prezzo aggiornato.'}</p>
+        <EmptyState
+          icon="📊"
+          title="Nessuna quotazione"
+          message={
+            quote?.error ||
+            'Seleziona un asset nel passo «Scegli» per vedere il prezzo aggiornato.'
+          }
+          actionLabel={onGoExplore ? 'Vai a Scegli' : undefined}
+          onAction={onGoExplore}
+        />
       </div>
     );
   }

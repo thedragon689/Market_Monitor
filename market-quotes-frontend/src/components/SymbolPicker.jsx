@@ -79,33 +79,24 @@ export default function SymbolPicker({
     <div className="symbol-picker">
       {showCategoryTabs && (
         <div className="symbol-picker__tabs" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={type === 'stock'}
-            className={`symbol-picker__tab ${type === 'stock' ? 'is-active' : ''}`}
-            onClick={() => onTypeChange('stock')}
-          >
-            Azioni
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={type === 'precious'}
-            className={`symbol-picker__tab ${type === 'precious' ? 'is-active' : ''}`}
-            onClick={() => onTypeChange('precious')}
-          >
-            Metalli preziosi
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={type === 'commodity'}
-            className={`symbol-picker__tab ${type === 'commodity' ? 'is-active' : ''}`}
-            onClick={() => onTypeChange('commodity')}
-          >
-            Materie prime
-          </button>
+          {[
+            { id: 'stock', label: 'Azioni' },
+            { id: 'national', label: 'Italia' },
+            { id: 'crypto', label: 'Crypto' },
+            { id: 'precious', label: 'Metalli' },
+            { id: 'commodity', label: 'Materie' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={type === tab.id}
+              className={`symbol-picker__tab ${type === tab.id ? 'is-active' : ''}`}
+              onClick={() => onTypeChange(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       )}
 

@@ -1,10 +1,12 @@
 import CategorySelector from './CategorySelector';
+import AppLogo from './AppLogo';
 import { getCategoryMeta } from '../data/categories';
 
 const VIEWS = [
   { id: 'explore', step: '1', label: 'Scegli', hint: 'Categoria e titolo' },
   { id: 'analysis', step: '2', label: 'Analizza', hint: 'Prezzo e segnali' },
-  { id: 'forecast', step: '3', label: 'Prevedi', hint: 'Scenari futuri' },
+  { id: 'advice', step: '3', label: 'Consigli', hint: 'Acquisto / vendita' },
+  { id: 'forecast', step: '4', label: 'Prevedi', hint: 'Scenari futuri' },
 ];
 
 export default function AppShell({
@@ -20,6 +22,7 @@ export default function AppShell({
   loadingForecast,
   loadingMarket,
   isLoading,
+  themeToggle,
   children,
 }) {
   const categoryMeta = getCategoryMeta(type);
@@ -28,25 +31,25 @@ export default function AppShell({
     <div className="app-shell">
       <header className="app-shell__header">
         <div className="app-shell__brand">
-          <img
-            className="app-shell__logo"
-            src="/market.png"
-            alt="Market Monitor"
-            width={44}
-            height={44}
-          />
+          <span className="app-shell__logo-wrap">
+            <AppLogo className="app-shell__logo" size={48} />
+          </span>
           <div>
             <strong className="app-shell__title">Market Monitor</strong>
             <span className="app-shell__tagline">Quotazioni · Analisi · Previsioni</span>
           </div>
+          {themeToggle}
         </div>
 
         <nav className="app-shell__nav app-shell__nav--steps" aria-label="Passaggi principali">
-          {VIEWS.map((v) => (
+          {VIEWS.map((v, i) => {
+            const viewIdx = VIEWS.findIndex((x) => x.id === view);
+            const done = i < viewIdx;
+            return (
             <button
               key={v.id}
               type="button"
-              className={`app-shell__tab ${view === v.id ? 'is-active' : ''}`}
+              className={`app-shell__tab ${view === v.id ? 'is-active' : ''} ${done ? 'is-done' : ''}`}
               onClick={() => onViewChange(v.id)}
               aria-current={view === v.id ? 'page' : undefined}
             >
@@ -54,7 +57,8 @@ export default function AppShell({
               <span className="app-shell__tab-label">{v.label}</span>
               <span className="app-shell__tab-hint">{v.hint}</span>
             </button>
-          ))}
+          );
+          })}
         </nav>
 
         <div className="app-shell__asset">

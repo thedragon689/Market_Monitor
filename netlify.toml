@@ -19,7 +19,7 @@
     "serverless-http",
     "yahoo-finance2",
   ]
-  included_files = ["server.js", "lib/**"]
+  included_files = ["server.js", "lib/**", "lib/trading/**"]
 
 [functions."api"]
   timeout = 10

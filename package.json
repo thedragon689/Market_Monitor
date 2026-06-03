@@ -10,7 +10,9 @@
     "dev:stop": "node scripts/free-ports.js",
     "dev:api": "node server.js",
     "dev:web": "npm run dev --prefix market-quotes-frontend",
-    "dev:all": "node node_modules/concurrently/dist/bin/concurrently.js -n api,web -c cyan,magenta \"npm run dev:api\" \"npm run dev:web\""
+    "dev:all": "node node_modules/concurrently/dist/bin/concurrently.js -n api,web -c cyan,magenta \"npm run dev:api\" \"npm run dev:web\"",
+    "smoke": "node scripts/smoke-health.js",
+    "smoke:prod": "node scripts/smoke-health.js https://valutazioniborsa.netlify.app"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

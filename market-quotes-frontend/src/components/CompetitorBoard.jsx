@@ -9,6 +9,7 @@ import {
   getSymbolsForType,
 } from '../data/symbols';
 import { SORT_OPTIONS, sortAssetItems } from '../utils/sortAssets';
+import { downloadCsv } from '../utils/exportCsv';
 
 function formatTablePrice(quote, meta, fx) {
   const price = formatCurrentPrice(quote, meta, fx);
@@ -162,6 +163,22 @@ export default function CompetitorBoard({
     return sortAssetItems(list, sortBy).map((i) => i.id);
   }, [type, quotesBySymbol, sortBy]);
 
+  const exportCsv = () => {
+    const ids = flatIds;
+    const headers = ['Simbolo', 'Nome', 'Prezzo', 'Var %'];
+    const rows = ids.map((id) => {
+      const meta = getSymbolMeta(id, type);
+      const q = quotesBySymbol?.[id.toUpperCase()] ?? quotesBySymbol?.[id];
+      return [
+        id,
+        meta.name,
+        q?.price ?? '',
+        q?.changePercent ?? '',
+      ];
+    });
+    downloadCsv(`confronto-${type}.csv`, headers, rows);
+  };
+
   const tableHead = (
     <thead>
       <tr>
@@ -182,16 +199,25 @@ export default function CompetitorBoard({
           <h2 className="app-section__title">{title}</h2>
           <p className="competitor-board__lead">{lead}</p>
         </div>
-        <label className="competitor-board__sort">
-          <span>Ordina</span>
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="competitor-board__toolbar">
+          <label className="competitor-board__sort">
+            <span>Ordina</span>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className="btn btn--ghost btn--small"
+            onClick={exportCsv}
+          >
+            Esporta CSV
+          </button>
+        </div>
       </div>
 
       {type === 'stock' ? (

@@ -17,6 +17,8 @@ import { buildMarketIntelligence } from './lib/intelligence/buildIntelligence.js
 import { computeMarketCorrelations, correlationHeatmapCells } from './lib/market/correlations.js';
 import { loadMarketData } from './lib/yahoo.js';
 import { fetchBitcoinLiveSnapshot } from './lib/exchanges/bitcoin.js';
+import { buildTradeAdvice } from './lib/trading/buildTradeAdvice.js';
+import { CATEGORY_SOURCES } from './lib/sources/categorySources.js';
 
 // process.cwd(): ok in locale e su Netlify (niente import.meta — esbuild lo rompe).
 dotenv.config({ path: path.join(process.cwd(), '.env'), override: true });
@@ -27,6 +29,17 @@ const CATALOG_CACHE_MS = 2 * 60 * 1000;
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+app.use((req, res, next) => {
+  if (req.path === '/api/health') {
+    res.set('Cache-Control', 'public, max-age=60');
+  } else if (req.path === '/api/catalog') {
+    res.set('Cache-Control', 'public, max-age=120');
+  } else if (req.path.startsWith('/api/correlations')) {
+    res.set('Cache-Control', 'public, max-age=300');
+  }
+  next();
+});
 
 const PORT = process.env.PORT || 4000;
 
@@ -84,7 +97,20 @@ async function loadFx() {
 }
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, service: 'market-monitor-api', version: '1.0.0' });
+  res.json({
+    ok: true,
+    service: 'market-monitor-api',
+    version: '1.2.0',
+    runtime: process.env.AWS_LAMBDA_FUNCTION_NAME ? 'netlify' : 'node',
+    features: ['multi-source', 'trade-advice', 'analysis-bundle'],
+  });
+});
+
+app.get('/api/sources', (_req, res) => {
+  res.json({
+    categories: CATEGORY_SOURCES,
+    updatedAt: new Date().toISOString(),
+  });
 });
 
 app.get('/api/catalog', async (_req, res) => {
@@ -135,6 +161,9 @@ app.get('/api/market', async (req, res) => {
       symbol,
       type,
       ...meta,
+      provider: meta.provider,
+      sources: meta.sources ?? [],
+      alternates: meta.alternates ?? [],
       fx,
       quote: enrichQuoteWithEur(baseQuote, fx),
       history,
@@ -142,7 +171,7 @@ app.get('/api/market', async (req, res) => {
       stale,
       info: meta.historyLimited
         ? 'Quotazione aggiornata (Stooq). Per lo storico completo aggiungi STOOQ_API_KEY in .env.'
-        : `Dati da ${meta.provider || 'mercato'}.`,
+        : `Dati da ${meta.provider || 'mercato'}${meta.alternates?.length ? ` (+${meta.alternates.length} fonti di confronto)` : ''}.`,
       warning:
         meta.historyLimited && !stale
           ? 'Storico limitato: aggiungi STOOQ_API_KEY (stooq.com) o riprova più tardi per Yahoo.'
@@ -497,6 +526,179 @@ app.get('/api/analyze', async (req, res) => {
   } catch (err) {
     sendError(res, err, '/api/analyze');
   }
+});
+
+/** Un round-trip: analyze + intelligence (geo incluso) — meno cold start su Netlify. */
+app.get('/api/analysis-bundle', async (req, res) => {
+  try {
+    const {
+      symbol,
+      type = 'stock',
+      days = 5,
+      window = 5,
+      method = 'all',
+    } = req.query;
+    if (!symbol) {
+      return res.status(400).json({ error: 'Parametro "symbol" richiesto' });
+    }
+
+    const horizonDays = Math.min(Math.max(Number(days) || 5, 1), 30);
+    const windowSize = Math.min(Math.max(Number(window) || 5, 2), 60);
+    const methods = String(method).toLowerCase();
+
+    const { series, meta, fromCache, stale } = await getCachedMarket(symbol, type, {
+      minPoints: 2,
+    });
+    const prices = pricesFromSeries(series);
+
+    const fx = await loadFx();
+
+    const [analysis, intelligence] = await Promise.all([
+      analyzeMarket(symbol, type, { horizonDays }),
+      prices.length >= 2
+        ? buildMarketIntelligence({
+            symbol,
+            type,
+            series,
+            prices,
+            windowSize: Math.min(windowSize, prices.length),
+            horizonDays,
+            methods,
+            includeCorrelations: true,
+          })
+        : Promise.resolve(null),
+    ]);
+
+    res.json({
+      analysis: {
+        ...analysis,
+        fx,
+        quote: enrichQuoteWithEur(analysis.quote, fx),
+        horizonDays,
+      },
+      intelligence: intelligence
+        ? { ...intelligence, fx, history: series.slice(-90), cached: fromCache, stale }
+        : null,
+      meta,
+      cached: fromCache,
+      stale,
+    });
+  } catch (err) {
+    sendError(res, err, '/api/analysis-bundle');
+  }
+});
+
+const ADVICE_CACHE_MS = 5 * 60 * 1000;
+
+app.get('/api/trade-advice', async (req, res) => {
+  try {
+    const {
+      symbol,
+      type = 'stock',
+      days = 5,
+      window = 5,
+      method = 'all',
+    } = req.query;
+    if (!symbol) {
+      return res.status(400).json({ error: 'Parametro "symbol" richiesto' });
+    }
+
+    const horizonDays = Math.min(Math.max(Number(days) || 5, 1), 30);
+    const windowSize = Math.min(Math.max(Number(window) || 5, 2), 60);
+    const methods = String(method).toLowerCase();
+    const includeForecast = ['1', 'true', 'yes'].includes(
+      String(req.query.forecast || req.query.includeForecast || '').toLowerCase()
+    );
+
+    const cacheKey = `advice:${type}:${symbol.toUpperCase()}:${horizonDays}:${includeForecast}`;
+    const cached = getCache(cacheKey);
+    if (cached) {
+      return res.json({ ...cached, cached: true });
+    }
+
+    const { series, fromCache, stale } = await getCachedMarket(symbol, type, {
+      minPoints: 2,
+    });
+    const prices = pricesFromSeries(series);
+
+    const [analysis, intelligence] = await Promise.all([
+      analyzeMarket(symbol, type, { horizonDays }),
+      prices.length >= 2
+        ? buildMarketIntelligence({
+            symbol,
+            type,
+            series,
+            prices,
+            windowSize: Math.min(windowSize, prices.length),
+            horizonDays,
+            methods,
+            includeCorrelations: true,
+          })
+        : Promise.resolve(null),
+    ]);
+
+    let forecastPayload = null;
+    if (includeForecast && prices.length >= 2) {
+      const effectiveWindow = Math.min(windowSize, prices.length);
+      const baseForecast = buildForecastResponse(prices, {
+        windowSize: effectiveWindow,
+        horizonDays,
+        methods: method === 'both' ? 'both' : methods,
+      });
+      try {
+        const geo = await buildGeopoliticalForecast({
+          symbol,
+          type,
+          series,
+          prices,
+          windowSize: effectiveWindow,
+          horizonDays,
+          methods,
+        });
+        forecastPayload = { ...baseForecast, ...geo, geopolitical: geo };
+      } catch {
+        forecastPayload = baseForecast;
+      }
+    }
+
+    const fx = await loadFx();
+    const advice = buildTradeAdvice({
+      symbol,
+      type,
+      analysis: {
+        ...analysis,
+        quote: enrichQuoteWithEur(analysis.quote, fx),
+      },
+      intelligence,
+      forecast: forecastPayload,
+      horizonDays,
+    });
+
+    const body = {
+      advice,
+      analysis: {
+        indicators: analysis.indicators,
+        quote: enrichQuoteWithEur(analysis.quote, fx),
+      },
+      fx,
+      hasForecast: Boolean(forecastPayload),
+      cached: fromCache,
+      stale,
+    };
+
+    setCache(cacheKey, body, ADVICE_CACHE_MS);
+    res.json({ ...body, cached: false });
+  } catch (err) {
+    sendError(res, err, '/api/trade-advice');
+  }
+});
+
+app.use('/api', (req, res) => {
+  res.status(404).json({
+    error: `Endpoint non trovato: ${req.method} ${req.originalUrl}`,
+    hint:
+      'Controlla deploy Netlify (Functions) o avvia API locale (npm run dev:api). Route: /api/health, /api/market, /api/trade-advice, /api/analysis-bundle, /api/sources.',
+  });
 });
 
 export default app;

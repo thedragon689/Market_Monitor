@@ -1,20 +1,33 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import './App.css';
 import './responsive.css';
+import './ui-polish.css';
 import AppShell from './components/AppShell';
 import StepIntro from './components/StepIntro';
+import AppToolbar from './components/AppToolbar';
+import TradeAdvice from './components/TradeAdvice';
+import DataSources from './components/DataSources';
 import HelpLegend from './components/HelpLegend';
 import PanelChoices from './components/PanelChoices';
 import ViewFooter from './components/ViewFooter';
+import Watchlist from './components/Watchlist';
+import ThemeToggle from './components/ThemeToggle';
+import IntelligentAlerts from './components/IntelligentAlerts';
 import {
   ANALYSIS_PANEL_OPTIONS,
   CATALOG_SCOPE_OPTIONS,
   EXPLORE_PANEL_OPTIONS,
   FORECAST_PANEL_OPTIONS,
-  defaultPanelSet,
 } from './data/viewChoices';
 import ForecastCards from './components/ForecastCards';
-import ForecastChart from './components/ForecastChart';
 import ForecastControls from './components/ForecastControls';
 import HistoryChart from './components/HistoryChart';
 import QuotePanel from './components/QuotePanel';
@@ -25,25 +38,40 @@ import { catalogToQuoteMap } from './utils/catalogPrice';
 import { getCategoryMeta } from './data/categories';
 import TechnicalIndicators from './components/TechnicalIndicators';
 import GeopoliticalNews from './components/GeopoliticalNews';
-import GeopoliticalImpactChart from './components/GeopoliticalImpactChart';
 import GeopoliticalSummary from './components/GeopoliticalSummary';
-import AdvancedDashboard from './components/AdvancedDashboard';
 import MarketCorrelations from './components/MarketCorrelations';
-import { useBtcLiveQuote } from './hooks/useBtcLiveQuote';
+import { useCryptoLiveQuote } from './hooks/useCryptoLiveQuote';
 import { API_BASE } from './config/api';
+import { apiFetch } from './utils/apiFetch';
+import { savePersistedState } from './utils/persist';
+import { syncUrlState } from './utils/urlState';
+import { resolveInitialAppState } from './utils/initAppState';
 import {
   getSymbolMeta,
   getSymbolsForType,
   symbolIdsForType,
 } from './data/symbols';
 
+const AdvancedDashboard = lazy(() => import('./components/AdvancedDashboard'));
+const ForecastChart = lazy(() => import('./components/ForecastChart'));
+const GeopoliticalImpactChart = lazy(
+  () => import('./components/GeopoliticalImpactChart')
+);
+
+const INIT = resolveInitialAppState();
+
+function PanelFallback() {
+  return <p className="app__panel-loading">Caricamento sezione…</p>;
+}
+
 export default function App() {
-  const [view, setView] = useState('explore');
-  const [type, setType] = useState('stock');
-  const [symbol, setSymbol] = useState('AAPL');
-  const [windowN, setWindowN] = useState(5);
-  const [horizonDays, setHorizonDays] = useState(5);
-  const [forecastMethod, setForecastMethod] = useState('both');
+  const [view, setView] = useState(INIT.view);
+  const [type, setType] = useState(INIT.type);
+  const [symbol, setSymbol] = useState(INIT.symbol);
+  const [windowN, setWindowN] = useState(INIT.windowN);
+  const [horizonDays, setHorizonDays] = useState(INIT.horizonDays);
+  const [forecastMethod, setForecastMethod] = useState(INIT.forecastMethod);
+  const [theme, setTheme] = useState(INIT.theme);
 
   const [quote, setQuote] = useState(null);
   const [history, setHistory] = useState([]);
@@ -67,26 +95,33 @@ export default function App() {
   const [catalogSummary, setCatalogSummary] = useState(null);
   const [catalogUpdatedAt, setCatalogUpdatedAt] = useState(null);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
-  const [explorePanels, setExplorePanels] = useState(
-    defaultPanelSet(EXPLORE_PANEL_OPTIONS, ['quick', 'catalog', 'compare'])
-  );
-  const [catalogScope, setCatalogScope] = useState(['category']);
-  const [analysisPanels, setAnalysisPanels] = useState(
-    defaultPanelSet(ANALYSIS_PANEL_OPTIONS, ['indicators', 'correlations', 'geo'])
-  );
-  const [forecastPanels, setForecastPanels] = useState(
-    defaultPanelSet(FORECAST_PANEL_OPTIONS, ['params', 'geo'])
-  );
+  const [explorePanels, setExplorePanels] = useState(INIT.explorePanels);
+  const [catalogScope, setCatalogScope] = useState(INIT.catalogScope);
+  const [analysisPanels, setAnalysisPanels] = useState(INIT.analysisPanels);
+  const [forecastPanels, setForecastPanels] = useState(INIT.forecastPanels);
+  const [marketMeta, setMarketMeta] = useState(null);
+  const [categorySources, setCategorySources] = useState(null);
+  const [tradeAdvice, setTradeAdvice] = useState(null);
+  const [loadingTradeAdvice, setLoadingTradeAdvice] = useState(false);
+  const [adviceHasForecast, setAdviceHasForecast] = useState(false);
 
   const fetchGen = useRef(0);
   const pendingForecast = useRef(false);
 
+  const loadCategorySources = useCallback(async () => {
+    try {
+      const { data } = await apiFetch(`${API_BASE}/api/sources`, { optional: true });
+      if (data?.categories) setCategorySources(data.categories);
+    } catch {
+      /* opzionale */
+    }
+  }, []);
+
   const loadCatalog = useCallback(async () => {
     try {
       setLoadingCatalog(true);
-      const res = await fetch(`${API_BASE}/api/catalog`);
-      const data = await res.json();
-      if (!res.ok) return;
+      const { data } = await apiFetch(`${API_BASE}/api/catalog`, { optional: true });
+      if (!data) return;
       setCatalog(data.catalog ?? null);
       setCatalogSummary(data.summary ?? null);
       setCatalogUpdatedAt(data.updatedAt ?? null);
@@ -99,6 +134,26 @@ export default function App() {
       /* catalog opzionale */
     } finally {
       setLoadingCatalog(false);
+    }
+  }, []);
+
+  const applyIntelligence = useCallback((data) => {
+    if (!data) return;
+    setIntelligence(data);
+    if (data.geopolitical || data.news || data.alerts) {
+      setGeopolitical((g) => ({
+        ...(g || {}),
+        news: data.news ?? g?.news,
+        alerts: data.alerts ?? g?.alerts,
+        geopoliticalIndex: data.geopolitical?.index ?? g?.geopoliticalIndex,
+        impactScore: data.geopolitical?.impactScore ?? g?.impactScore,
+        sentiment: data.geopolitical?.sentiment ?? g?.sentiment,
+        impactSeries: data.geopolitical?.impactSeries ?? g?.impactSeries,
+        sentimentTimeline:
+          data.geopolitical?.sentimentTimeline ?? g?.sentimentTimeline,
+        combinedForecast: data.hybrid?.combined ?? g?.combinedForecast,
+        combined: data.hybrid ?? g?.combined,
+      }));
     }
   }, []);
 
@@ -153,45 +208,37 @@ export default function App() {
           method: forecastMethod === 'both' ? 'all' : forecastMethod,
           correlations: 'true',
         });
-        const res = await fetch(`${API_BASE}/api/intelligence?${params}`);
-        const data = await res.json();
-        if (!res.ok) return;
-        setIntelligence(data);
-        if (data.geopolitical || data.news) {
-          setGeopolitical((g) => ({
-            ...(g || {}),
-            news: data.news ?? g?.news,
-            geopoliticalIndex: data.geopolitical?.index ?? g?.geopoliticalIndex,
-            impactScore: data.geopolitical?.impactScore ?? g?.impactScore,
-            sentiment: data.geopolitical?.sentiment ?? g?.sentiment,
-            impactSeries: data.geopolitical?.impactSeries ?? g?.impactSeries,
-            sentimentTimeline: data.geopolitical?.sentimentTimeline ?? g?.sentimentTimeline,
-            combinedForecast: data.hybrid?.combined ?? g?.combinedForecast,
-            combined: data.hybrid ?? g?.combined,
-          }));
-        }
+        const { data } = await apiFetch(
+          `${API_BASE}/api/intelligence?${params}`,
+          { optional: true }
+        );
+        applyIntelligence(data);
       } catch {
         setIntelligence(null);
       } finally {
         setLoadingIntelligence(false);
       }
     },
-    [horizonDays, windowN, forecastMethod]
+    [horizonDays, windowN, forecastMethod, applyIntelligence]
   );
 
   const loadGeoNews = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/geopolitical/news?limit=30`);
-      const data = await res.json();
-      if (res.ok) setGeoNews(data);
+      const { data } = await apiFetch(
+        `${API_BASE}/api/geopolitical/news?limit=30`,
+        { optional: true }
+      );
+      if (data) setGeoNews(data);
     } catch {
       /* opzionale */
     }
   }, []);
 
-  const loadGeopoliticalAnalysis = useCallback(
-    async (sym, marketType) => {
+  const loadAnalysisBundle = useCallback(
+    async (sym, marketType, rate) => {
       try {
+        setLoadingAnalysis(true);
+        setLoadingIntelligence(true);
         setLoadingGeo(true);
         const params = new URLSearchParams({
           symbol: sym,
@@ -200,32 +247,38 @@ export default function App() {
           window: String(windowN),
           method: forecastMethod === 'both' ? 'all' : forecastMethod,
         });
-        const res = await fetch(`${API_BASE}/api/geopolitical/forecast?${params}`);
-        const data = await res.json();
-        if (!res.ok) return;
-        setGeopolitical((prev) => ({
-          ...(prev || {}),
-          ...data,
-          news: data.news ?? prev?.news,
-        }));
+        const { data } = await apiFetch(
+          `${API_BASE}/api/analysis-bundle?${params}`,
+          { optional: true }
+        );
+        if (!data) return;
+        if (data.analysis) {
+          setAnalysis(data.analysis);
+          if (data.analysis.fx?.eurUsd) setFx(data.analysis.fx);
+          else if (rate?.eurUsd) setFx(rate);
+        }
+        applyIntelligence(data.intelligence);
       } catch {
-        /* analisi geo opzionale */
+        setAnalysis(null);
+        setIntelligence(null);
       } finally {
+        setLoadingAnalysis(false);
+        setLoadingIntelligence(false);
         setLoadingGeo(false);
       }
     },
-    [horizonDays, windowN, forecastMethod]
+    [horizonDays, windowN, forecastMethod, applyIntelligence]
   );
 
   const loadCompetitorQuotes = useCallback(async (marketType, rate) => {
     const ids = symbolIdsForType(marketType);
     try {
       setLoadingCompetitors(true);
-      const res = await fetch(
-        `${API_BASE}/api/quotes?symbols=${encodeURIComponent(ids.join(','))}&type=${marketType}`
+      const { data } = await apiFetch(
+        `${API_BASE}/api/quotes?symbols=${encodeURIComponent(ids.join(','))}&type=${marketType}`,
+        { optional: true }
       );
-      const data = await res.json();
-      if (!res.ok) return;
+      if (!data) return;
 
       const map = {};
       for (const q of data.results || []) {
@@ -242,27 +295,6 @@ export default function App() {
     }
   }, []);
 
-  const loadAnalysis = useCallback(
-    async (sym, marketType, rate) => {
-      try {
-        setLoadingAnalysis(true);
-        const res = await fetch(
-          `${API_BASE}/api/analyze?symbol=${encodeURIComponent(sym)}&type=${marketType}&days=${horizonDays}`
-        );
-        const data = await res.json();
-        if (!res.ok) return;
-        setAnalysis(data);
-        if (data.fx?.eurUsd) setFx(data.fx);
-        else if (rate?.eurUsd) setFx(rate);
-      } catch {
-        setAnalysis(null);
-      } finally {
-        setLoadingAnalysis(false);
-      }
-    },
-    [horizonDays]
-  );
-
   const loadMarketData = useCallback(async () => {
     const gen = ++fetchGen.current;
     try {
@@ -270,18 +302,22 @@ export default function App() {
       setError(null);
       setWarning(null);
 
-      const res = await fetch(
+      const { data } = await apiFetch(
         `${API_BASE}/api/market?symbol=${encodeURIComponent(symbol)}&type=${type}&limit=90`
       );
-      const data = await res.json();
       if (gen !== fetchGen.current) return;
-
-      if (!res.ok) throw new Error(data.error || 'Errore nel caricamento dati');
 
       const meta = getSymbolMeta(symbol, type);
       const raw = data.quote;
       if (data.fx?.eurUsd) setFx(data.fx);
       const nextFx = data.fx?.eurUsd ? data.fx : null;
+
+      setMarketMeta({
+        provider: data.provider,
+        sources: data.sources,
+        alternates: data.alternates,
+        proxy: data.proxy,
+      });
 
       if (!raw?.price) {
         setQuote({ error: 'Prezzo non disponibile al momento.' });
@@ -291,6 +327,7 @@ export default function App() {
           ...raw,
           unit: meta.unit,
           proxy: data.proxy || raw.proxy,
+          provider: data.provider,
         });
         setHistory(data.history ?? []);
       }
@@ -298,10 +335,8 @@ export default function App() {
       if (data.warning) setWarning(data.warning);
       else if (data.info) setWarning(data.info);
 
-      loadCompetitorQuotes(type, nextFx);
-      loadAnalysis(symbol, type, nextFx);
-      loadIntelligence(symbol, type);
-      loadGeopoliticalAnalysis(symbol, type);
+      loadAnalysisBundle(symbol, type, nextFx);
+      window.setTimeout(() => loadCompetitorQuotes(type, nextFx), 50);
     } catch (e) {
       if (gen !== fetchGen.current) return;
       setError(e.message);
@@ -310,7 +345,35 @@ export default function App() {
     } finally {
       if (gen === fetchGen.current) setLoadingMarket(false);
     }
-  }, [symbol, type, loadCompetitorQuotes, loadAnalysis, loadIntelligence, loadGeopoliticalAnalysis]);
+  }, [symbol, type, loadCompetitorQuotes, loadAnalysisBundle]);
+
+  const loadTradeAdvice = useCallback(
+    async (withForecast = false) => {
+      try {
+        setLoadingTradeAdvice(true);
+        setError(null);
+        const params = new URLSearchParams({
+          symbol,
+          type,
+          days: String(horizonDays),
+          window: String(windowN),
+          method: forecastMethod === 'both' ? 'all' : forecastMethod,
+        });
+        if (withForecast) params.set('includeForecast', 'true');
+
+        const { data } = await apiFetch(`${API_BASE}/api/trade-advice?${params}`);
+        setTradeAdvice(data.advice ?? null);
+        setAdviceHasForecast(Boolean(data.hasForecast));
+        if (data.fx?.eurUsd) setFx(data.fx);
+      } catch (e) {
+        setTradeAdvice(null);
+        setError(e.message);
+      } finally {
+        setLoadingTradeAdvice(false);
+      }
+    },
+    [symbol, type, horizonDays, windowN, forecastMethod]
+  );
 
   const loadForecast = useCallback(async () => {
     try {
@@ -325,12 +388,7 @@ export default function App() {
         method: forecastMethod,
         geo: 'true',
       });
-      const res = await fetch(`${API_BASE}/api/forecast?${params}`);
-      const data = await res.json();
-      if (!res.ok) {
-        const hint = data.hint ? ` ${data.hint}` : '';
-        throw new Error((data.error || 'Errore nel calcolo previsione') + hint);
-      }
+      const { data } = await apiFetch(`${API_BASE}/api/forecast?${params}`);
       setView('forecast');
       setForecast(data);
       setGeopolitical((prev) => ({
@@ -385,18 +443,37 @@ export default function App() {
     [requestForecast, type]
   );
 
-  const handleViewChange = useCallback((nextView) => {
-    setView(nextView);
-    if (
-      nextView === 'forecast' &&
-      !forecast &&
-      !loadingForecast &&
-      quote?.price &&
-      !quote?.error
-    ) {
-      loadForecast();
+  const handleViewChange = useCallback(
+    (nextView) => {
+      setView(nextView);
+      if (nextView === 'advice' && quote?.price && !quote?.error) {
+        loadTradeAdvice(Boolean(forecast));
+      }
+      if (
+        nextView === 'forecast' &&
+        !forecast &&
+        !loadingForecast &&
+        quote?.price &&
+        !quote?.error
+      ) {
+        loadForecast();
+      }
+    },
+    [
+      forecast,
+      loadingForecast,
+      quote,
+      loadForecast,
+      loadTradeAdvice,
+    ]
+  );
+
+  const goAdvice = useCallback(() => {
+    setView('advice');
+    if (quote?.price && !quote?.error) {
+      loadTradeAdvice(Boolean(forecast));
     }
-  }, [forecast, loadingForecast, quote, loadForecast]);
+  }, [quote, forecast, loadTradeAdvice]);
 
   const goForecast = useCallback(() => {
     setView('forecast');
@@ -404,10 +481,58 @@ export default function App() {
   }, [loadForecast]);
 
   useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
+
+  useEffect(() => {
+    savePersistedState({
+      view,
+      type,
+      symbol,
+      windowN,
+      horizonDays,
+      forecastMethod,
+      theme,
+      explorePanels,
+      catalogScope,
+      analysisPanels,
+      forecastPanels,
+    });
+    syncUrlState({
+      view,
+      type,
+      symbol,
+      windowN,
+      horizonDays,
+      forecastMethod,
+    });
+  }, [
+    view,
+    type,
+    symbol,
+    windowN,
+    horizonDays,
+    forecastMethod,
+    theme,
+    explorePanels,
+    catalogScope,
+    analysisPanels,
+    forecastPanels,
+  ]);
+
+  useEffect(() => {
+    loadCategorySources();
     loadCatalog();
     loadMarketData();
     loadGeoNews();
-  }, [loadCatalog, loadMarketData, loadGeoNews]);
+  }, [loadCategorySources, loadCatalog, loadMarketData, loadGeoNews]);
+
+  useEffect(() => {
+    if (view !== 'advice') return;
+    if (!quote?.price || quote?.error) return;
+    loadTradeAdvice(Boolean(forecast));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ricarica consiglio su asset/parametri
+  }, [view, symbol, type, horizonDays, windowN, forecastMethod, forecast]);
 
   useEffect(() => {
     if (!pendingForecast.current) return;
@@ -434,35 +559,53 @@ export default function App() {
 
   const meta = getSymbolMeta(symbol, type);
   const categoryMeta = getCategoryMeta(type);
-  const isBtc = type === 'crypto' && symbol.toUpperCase() === 'BTC-USD';
-  const btcLive = useBtcLiveQuote(isBtc);
+  const liveCryptoId =
+    type === 'crypto' && ['BTC-USD', 'ETH-USD'].includes(symbol.toUpperCase())
+      ? symbol.toUpperCase()
+      : null;
+  const cryptoLive = useCryptoLiveQuote(liveCryptoId, Boolean(liveCryptoId));
 
   const displayQuote = useMemo(() => {
     if (!quote) return quote;
-    const livePrice = btcLive.binance?.price ?? btcLive.kraken?.price;
+    const livePrice = cryptoLive.binance?.price ?? cryptoLive.kraken?.price;
     const merged = livePrice
       ? {
           ...quote,
           price: livePrice,
           priceUsd: livePrice,
-          changePercent: btcLive.binance?.changePercent ?? quote.changePercent,
-          source: btcLive.binance ? 'binance-ws' : quote.source,
+          changePercent:
+            cryptoLive.binance?.changePercent ?? quote.changePercent,
+          source: cryptoLive.binance ? 'binance-ws' : quote.source,
         }
       : quote;
 
-    if (!btcLive.binance && !btcLive.kraken) return merged;
+    if (!cryptoLive.binance && !cryptoLive.kraken) return merged;
 
     return {
       ...merged,
       liveExchanges: {
-        binance: btcLive.binance,
-        kraken: btcLive.kraken,
-        status: btcLive.status,
+        binance: cryptoLive.binance,
+        kraken: cryptoLive.kraken,
+        status: cryptoLive.status,
       },
     };
-  }, [quote, btcLive]);
+  }, [quote, cryptoLive]);
 
   const isLoading = loadingMarket || loadingForecast || loadingIntelligence;
+
+  const shareState = useMemo(
+    () => ({
+      view,
+      type,
+      symbol,
+      windowN,
+      horizonDays,
+      forecastMethod,
+    }),
+    [view, type, symbol, windowN, horizonDays, forecastMethod]
+  );
+
+  const quoteReady = Boolean(quote?.price && !quote?.error);
 
   const geoForNews = useMemo(() => {
     const base = geopolitical ?? geoNews;
@@ -504,8 +647,14 @@ export default function App() {
         loadingForecast={loadingForecast}
         loadingMarket={loadingMarket}
         isLoading={isLoading}
+        themeToggle={<ThemeToggle theme={theme} onChange={setTheme} />}
       >
-        <StepIntro view={view} />
+        <StepIntro view={view} onViewChange={handleViewChange} />
+        <AppToolbar
+          shareState={shareState}
+          loadingMarket={loadingMarket}
+          quoteReady={quoteReady}
+        />
         {alerts}
 
         {view === 'explore' && (
@@ -548,6 +697,19 @@ export default function App() {
           </>
         )}
 
+        {view === 'advice' && (
+          <div className="view-panel view-panel--advice">
+            <TradeAdvice
+              advice={tradeAdvice}
+              quote={quote}
+              loading={loadingTradeAdvice || loadingMarket}
+              hasForecast={adviceHasForecast}
+              onEnableForecast={() => loadTradeAdvice(true)}
+              loadingForecast={loadingTradeAdvice}
+            />
+          </div>
+        )}
+
         {view === 'forecast' && (
           <>
             <PanelChoices
@@ -564,6 +726,14 @@ export default function App() {
 
         {view === 'explore' && (
           <div className="view-panel view-panel--explore">
+            <Watchlist
+              symbol={symbol}
+              type={type}
+              onSelect={handleSelectAsset}
+              quotesBySymbol={quotesBySymbol}
+              fx={fx}
+            />
+
             {explorePanels.includes('quick') && (
               <section className="app-card app-card--picker">
                 <h3 className="view-panel__subtitle">Selezione rapida</h3>
@@ -574,6 +744,7 @@ export default function App() {
                   onSymbolChange={handleSymbolChange}
                   quotesBySymbol={quotesBySymbol}
                   fx={fx}
+                  showCategoryTabs
                 />
               </section>
             )}
@@ -616,6 +787,14 @@ export default function App() {
 
         {view === 'analysis' && (
           <div className="view-panel view-panel--analysis">
+            <DataSources
+              type={type}
+              provider={marketMeta?.provider}
+              sources={marketMeta?.sources}
+              alternates={marketMeta?.alternates}
+              categoryConfig={categorySources?.[type]}
+            />
+
             <div className="app__grid app__grid--top">
               <section className="app-card">
                 <h3 className="view-panel__subtitle">Quotazione live</h3>
@@ -625,6 +804,7 @@ export default function App() {
                   symbol={symbol}
                   loading={loadingMarket}
                   fx={fx}
+                  onGoExplore={() => handleViewChange('explore')}
                 />
               </section>
               <section className="app-card app-card--chart">
@@ -637,7 +817,15 @@ export default function App() {
               </section>
             </div>
 
-            <div className="view-panel__actions">
+            <div className="view-panel__actions view-panel__actions--dual">
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={goAdvice}
+                disabled={loadingTradeAdvice || loadingMarket || !quote?.price || quote?.error}
+              >
+                {loadingTradeAdvice ? 'Consiglio…' : 'Consigli acquisto / vendita →'}
+              </button>
               <button
                 type="button"
                 className="btn btn--cta"
@@ -647,6 +835,8 @@ export default function App() {
                 {loadingForecast ? 'Calcolo…' : 'Calcola previsione →'}
               </button>
             </div>
+
+            <IntelligentAlerts alerts={intelligence?.alerts} />
 
             {analysisPanels.includes('indicators') && (
               <section className="app-card">
@@ -689,23 +879,27 @@ export default function App() {
             {analysisPanels.includes('geo') && (
               <section className="app-card app-card--geo">
                 <h3 className="view-panel__subtitle">Contesto globale</h3>
-                <AdvancedDashboard
-                  intelligence={intelligence}
-                  loading={loadingIntelligence || loadingForecast}
-                />
+                <Suspense fallback={<PanelFallback />}>
+                  <AdvancedDashboard
+                    intelligence={intelligence}
+                    loading={loadingIntelligence || loadingForecast}
+                  />
+                </Suspense>
                 <GeopoliticalSummary
                   geo={geopolitical}
                   fx={fx}
                   meta={meta}
                   loading={geoLoading}
                 />
-                <GeopoliticalImpactChart
-                  geo={geopolitical}
-                  history={history}
-                  fx={fx}
-                  meta={meta}
-                  loading={geoLoading || loadingMarket}
-                />
+                <Suspense fallback={<PanelFallback />}>
+                  <GeopoliticalImpactChart
+                    geo={geopolitical}
+                    history={history}
+                    fx={fx}
+                    meta={meta}
+                    loading={geoLoading || loadingMarket}
+                  />
+                </Suspense>
                 <h3 className="app__subsection-title">Notizie dal mondo</h3>
                 <GeopoliticalNews geo={geoForNews} loading={geoLoading && !geoForNews?.news?.length} />
               </section>
@@ -736,16 +930,18 @@ export default function App() {
             )}
 
             <section className="app-card">
-              <ForecastChart
-                history={history}
-                forecast={forecast}
-                loading={loadingForecast}
-                fx={fx}
-                type={type}
-                symbol={symbol}
-                onForecast={goForecast}
-                forecastLoading={loadingForecast || loadingMarket}
-              />
+              <Suspense fallback={<PanelFallback />}>
+                <ForecastChart
+                  history={history}
+                  forecast={forecast}
+                  loading={loadingForecast}
+                  fx={fx}
+                  type={type}
+                  symbol={symbol}
+                  onForecast={goForecast}
+                  forecastLoading={loadingForecast || loadingMarket}
+                />
+              </Suspense>
               <ForecastCards
                 forecast={forecast}
                 loading={loadingForecast}
@@ -764,13 +960,15 @@ export default function App() {
                   meta={meta}
                   loading={loadingForecast}
                 />
-                <GeopoliticalImpactChart
-                  geo={geopolitical}
-                  history={history}
-                  fx={fx}
-                  meta={meta}
-                  loading={loadingForecast || loadingMarket}
-                />
+                <Suspense fallback={<PanelFallback />}>
+                  <GeopoliticalImpactChart
+                    geo={geopolitical}
+                    history={history}
+                    fx={fx}
+                    meta={meta}
+                    loading={loadingForecast || loadingMarket}
+                  />
+                </Suspense>
               </section>
             )}
           </div>

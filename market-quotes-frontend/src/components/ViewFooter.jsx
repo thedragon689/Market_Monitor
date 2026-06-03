@@ -20,19 +20,41 @@ export default function ViewFooter({
 
   if (view === 'analysis') {
     return (
-      <div className="view-footer view-footer--cta">
-        <div>
-          <strong>Pronto per la previsione?</strong>
-          <p>Calcola scenari futuri per {assetName} con un click.</p>
-        </div>
+      <div className="view-footer view-footer--split">
+        <button type="button" className="btn btn--ghost" onClick={() => onViewChange('explore')}>
+          ← Cambia asset
+        </button>
         <button
           type="button"
           className="btn btn--cta"
-          onClick={onForecast}
-          disabled={loadingForecast || loadingMarket}
+          onClick={() => onViewChange('advice')}
         >
-          {loadingForecast ? 'Calcolo…' : 'Calcola previsione'}
+          Vedi consigli →
         </button>
+      </div>
+    );
+  }
+
+  if (view === 'advice') {
+    return (
+      <div className="view-footer view-footer--cta">
+        <div>
+          <strong>Approfondisci lo scenario</strong>
+          <p>Calcola la previsione dettagliata per {assetName}.</p>
+        </div>
+        <div className="view-footer__nav">
+          <button type="button" className="btn btn--ghost" onClick={() => onViewChange('analysis')}>
+            ← Analisi
+          </button>
+          <button
+            type="button"
+            className="btn btn--cta"
+            onClick={onForecast}
+            disabled={loadingForecast || loadingMarket}
+          >
+            {loadingForecast ? 'Calcolo…' : 'Calcola previsione'}
+          </button>
+        </div>
       </div>
     );
   }
