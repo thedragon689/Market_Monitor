@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import CategorySelector from './CategorySelector';
 import AppLogo from './AppLogo';
+import AssetSwitcher from './AssetSwitcher';
 import BottomNavIcon from './BottomNavIcon';
 import Breadcrumbs from './Breadcrumbs';
 import QuickNav from './QuickNav';
+import MobileNavDrawer from './MobileNavDrawer';
 import { getCategoryMeta } from '../data/categories';
 import { APP_VIEWS, getViewIndex } from '../data/views';
 
@@ -24,8 +27,11 @@ export default function AppShell({
   onQuickNav,
   onGoInfo,
   onInternalSection,
+  onSymbolChange,
+  dataFreshKey = 0,
   children,
 }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const categoryMeta = getCategoryMeta(type);
   const viewIdx = getViewIndex(view);
 
@@ -45,8 +51,17 @@ export default function AppShell({
 
   return (
     <div className="app-shell">
-      <header className="app-shell__header">
+      <header className="app-shell__header app-shell__header--sticky">
         <div className="app-shell__brand">
+          <button
+            type="button"
+            className="app-shell__menu-btn"
+            aria-label="Apri menu"
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen(true)}
+          >
+            ☰
+          </button>
           <span className="app-shell__logo-wrap">
             <AppLogo className="app-shell__logo" size={56} theme={theme} />
           </span>
@@ -79,32 +94,41 @@ export default function AppShell({
           })}
         </nav>
 
-        <div className="app-shell__asset">
-          <div className="app-shell__asset-info">
-            <span className={`app-shell__asset-cat app-shell__asset-cat--${type}`}>
-              {categoryMeta.label}
-            </span>
-            <strong>{assetName}</strong>
-            <code>{symbol}</code>
-          </div>
-          <div className="app-shell__asset-actions">
-            <button
-              type="button"
-              className="btn btn--ghost btn--compact"
-              onClick={onRefresh}
-              disabled={loadingMarket}
-              aria-label="Aggiorna dati"
-            >
-              ↻
-            </button>
-            <button
-              type="button"
-              className="btn btn--cta btn--compact app-shell__forecast-shortcut"
-              onClick={onGoForecast}
-              disabled={loadingForecast || loadingMarket}
-            >
-              {loadingForecast ? '…' : 'Prevedi'}
-            </button>
+        <div className={`app-shell__asset ${dataFreshKey ? 'app-shell__asset--fresh' : ''}`}>
+          <AssetSwitcher
+            type={type}
+            symbol={symbol}
+            onTypeChange={onTypeChange}
+            onSymbolChange={onSymbolChange}
+            disabled={loadingMarket}
+          />
+          <div className="app-shell__asset-strip">
+            <div className="app-shell__asset-info">
+              <span className={`app-shell__asset-cat app-shell__asset-cat--${type}`}>
+                {categoryMeta.label}
+              </span>
+              <strong>{assetName}</strong>
+              <code>{symbol}</code>
+            </div>
+            <div className="app-shell__asset-actions">
+              <button
+                type="button"
+                className="btn btn--ghost btn--compact"
+                onClick={onRefresh}
+                disabled={loadingMarket}
+                aria-label="Aggiorna dati"
+              >
+                ↻
+              </button>
+              <button
+                type="button"
+                className="btn btn--cta btn--compact app-shell__forecast-shortcut"
+                onClick={onGoForecast}
+                disabled={loadingForecast || loadingMarket}
+              >
+                {loadingForecast ? '…' : 'Prevedi'}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -157,6 +181,15 @@ export default function AppShell({
           );
         })}
       </nav>
+
+      <MobileNavDrawer
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        view={view}
+        type={type}
+        onViewChange={onViewChange}
+        onTypeChange={onTypeChange}
+      />
     </div>
   );
 }

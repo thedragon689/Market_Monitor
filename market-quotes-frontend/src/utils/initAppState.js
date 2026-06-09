@@ -4,6 +4,7 @@ import {
   FORECAST_PANEL_OPTIONS,
   defaultPanelSet,
 } from '../data/viewChoices';
+import { normalizeTimeframe } from '../data/chartTimeframes';
 import { getDefaultState, loadPersistedState } from './persist';
 import { parseUrlState } from './urlState';
 
@@ -34,8 +35,9 @@ export function resolveInitialAppState() {
     horizonDays: url.horizonDays ?? stored.horizonDays ?? defaults.horizonDays,
     forecastMethod:
       url.forecastMethod ?? stored.forecastMethod ?? defaults.forecastMethod,
-    historyTimeframe:
-      url.historyTimeframe ?? stored.historyTimeframe ?? defaults.historyTimeframe,
+    historyTimeframe: normalizeTimeframe(
+      url.historyTimeframe ?? stored.historyTimeframe ?? defaults.historyTimeframe
+    ),
     theme: stored.theme ?? defaults.theme,
     explorePanels,
     catalogScope: stored.catalogScope ?? defaults.catalogScope,

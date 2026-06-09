@@ -1,0 +1,489 @@
+/* Terminal dashboard — layout denso stile Bloomberg, palette Market Monitor */
+
+.app--terminal {
+  --app-max: none;
+  --terminal-bg: color-mix(in srgb, var(--bg) 92%, #000);
+  --terminal-panel: var(--bg-elevated);
+  --terminal-border: var(--border);
+  --terminal-muted: var(--text-muted);
+  --terminal-grid: color-mix(in srgb, var(--border) 65%, transparent);
+  --terminal-hover: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  max-width: none;
+  padding: 0 0.5rem 5rem;
+}
+
+.app--terminal .step-intro,
+.app--terminal .panel-choices,
+.app--terminal .app-shell__categories,
+.app--terminal .quick-nav,
+.app--terminal .breadcrumbs,
+.app--terminal .app-toolbar {
+  display: none !important;
+}
+
+.app--terminal .app-shell__header {
+  border-radius: 0;
+  margin: 0 -0.5rem;
+  border-left: none;
+  border-right: none;
+}
+
+/* ── Dashboard shell ── */
+.terminal-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: calc(100vh - 12rem);
+  background: var(--terminal-bg);
+  border: 1px solid var(--terminal-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.terminal-dashboard__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--terminal-border);
+  background: var(--terminal-panel);
+}
+
+.terminal-search {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: min(100%, 280px);
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--terminal-border);
+  border-radius: 8px;
+  background: var(--code-bg);
+}
+
+.terminal-search__icon {
+  color: var(--terminal-muted);
+  font-size: 0.95rem;
+}
+
+.terminal-search__input {
+  flex: 1;
+  min-height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--text-h);
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.terminal-search__input::placeholder {
+  color: var(--terminal-muted);
+}
+
+.terminal-btn {
+  min-height: 40px;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--terminal-border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-h);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.terminal-btn:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: var(--accent-soft);
+}
+
+/* ── 3-column grid + side rails ── */
+.terminal-dashboard__layout {
+  display: grid;
+  grid-template-columns: 36px minmax(220px, 1fr) minmax(280px, 1.35fr) minmax(220px, 1fr) 36px;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+.terminal-dashboard__col {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  border-right: 1px solid var(--terminal-border);
+  overflow-y: auto;
+  max-height: calc(100vh - 10rem);
+}
+
+.terminal-dashboard__col--center {
+  border-right: 1px solid var(--terminal-border);
+}
+
+.terminal-dashboard__col--right {
+  border-right: none;
+}
+
+.terminal-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.25rem;
+  background: color-mix(in srgb, var(--bg-elevated) 88%, var(--accent) 4%);
+  border-right: 1px solid var(--terminal-border);
+}
+
+.terminal-rail--right {
+  border-right: none;
+  border-left: 1px solid var(--terminal-border);
+}
+
+.terminal-rail__btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--terminal-muted);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.terminal-rail__btn:hover,
+.terminal-rail__btn.is-active {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--accent);
+}
+
+/* ── Widget panels ── */
+.terminal-widget {
+  border-bottom: 1px solid var(--terminal-border);
+  background: var(--terminal-panel);
+}
+
+.terminal-widget__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  border-bottom: 1px solid var(--terminal-border);
+  background: color-mix(in srgb, var(--code-bg) 70%, var(--terminal-panel));
+}
+
+.terminal-widget__title {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-h);
+}
+
+.terminal-widget__body {
+  padding: 0;
+}
+
+/* ── Data tables ── */
+.terminal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.terminal-table thead th {
+  padding: 0.3rem 0.45rem;
+  border-bottom: 1px solid var(--terminal-border);
+  text-align: left;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--terminal-muted);
+  background: color-mix(in srgb, var(--code-bg) 50%, transparent);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.terminal-table__num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.terminal-table__chk {
+  width: 28px;
+  text-align: center;
+}
+
+.terminal-table__row td {
+  padding: 0.28rem 0.45rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--terminal-border) 55%, transparent);
+  vertical-align: middle;
+}
+
+.terminal-table__row:hover td {
+  background: var(--terminal-hover);
+}
+
+.terminal-table__row.is-charted td {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.terminal-table__row.is-muted {
+  opacity: 0.55;
+}
+
+.terminal-table__name {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--text-h);
+  font-size: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.terminal-table__name:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.terminal-table__num--up {
+  color: var(--up);
+  font-weight: 700;
+}
+
+.terminal-table__num--down {
+  color: var(--down);
+  font-weight: 700;
+}
+
+.terminal-table__num--neutral {
+  color: var(--terminal-muted);
+}
+
+.terminal-table__empty,
+.terminal-table--loading {
+  padding: 0.65rem;
+  font-size: 0.78rem;
+  color: var(--terminal-muted);
+}
+
+.terminal-table input[type='checkbox'] {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* ── Performance chart ── */
+.terminal-chart {
+  padding: 0.45rem 0.5rem 0.65rem;
+}
+
+.terminal-chart__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+}
+
+.terminal-chart__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--terminal-muted);
+}
+
+.terminal-chart__empty {
+  margin: 0;
+  padding: 1.5rem 0.5rem;
+  font-size: 0.8rem;
+  color: var(--terminal-muted);
+  text-align: center;
+}
+
+.terminal-chart__loading {
+  height: 220px;
+  margin: 0.5rem;
+  border-radius: 8px;
+}
+
+.terminal-chart-tip {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--terminal-border);
+  border-radius: 8px;
+  background: var(--terminal-panel);
+  font-size: 0.75rem;
+  box-shadow: var(--shadow-md);
+}
+
+.terminal-chart-tip__date {
+  margin: 0 0 0.25rem;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.terminal-chart-tip p {
+  margin: 0.1rem 0;
+}
+
+/* ── News feed ── */
+.terminal-news {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.terminal-news__item {
+  padding: 0.4rem 0.55rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--terminal-border) 50%, transparent);
+}
+
+.terminal-news__item:hover {
+  background: var(--terminal-hover);
+}
+
+.terminal-news__meta {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.65rem;
+  color: var(--terminal-muted);
+}
+
+.terminal-news__source {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.terminal-news__title {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--text-h);
+}
+
+.terminal-news__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.terminal-news__title a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.terminal-news__empty,
+.terminal-news--loading {
+  padding: 0.65rem;
+  font-size: 0.78rem;
+  color: var(--terminal-muted);
+}
+
+/* ── Heatmap ── */
+.terminal-heatmap {
+  padding: 0.45rem 0.55rem 0.65rem;
+}
+
+.terminal-heatmap__caption {
+  margin: 0 0 0.4rem;
+  font-size: 0.68rem;
+  color: var(--terminal-muted);
+}
+
+.terminal-heatmap__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+}
+
+.terminal-heatmap__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0.35rem;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: var(--code-bg);
+  transition: transform 0.1s ease;
+}
+
+.terminal-heatmap__cell:hover {
+  transform: scale(1.03);
+}
+
+.terminal-heatmap__cell--up {
+  background: color-mix(in srgb, var(--up) 22%, var(--code-bg));
+  color: var(--up);
+}
+
+.terminal-heatmap__cell--down {
+  background: color-mix(in srgb, var(--down) 22%, var(--code-bg));
+  color: var(--down);
+}
+
+.terminal-heatmap__cell--neutral {
+  color: var(--terminal-muted);
+}
+
+.terminal-heatmap__cell-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.terminal-heatmap__cell-val {
+  font-size: 0.78rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .terminal-dashboard__layout {
+    grid-template-columns: 32px 1fr 1fr 32px;
+  }
+
+  .terminal-dashboard__col--left {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .app--terminal {
+    padding: 0 0 4.5rem;
+  }
+
+  .terminal-dashboard__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .terminal-rail {
+    display: none;
+  }
+
+  .terminal-dashboard__col {
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--terminal-border);
+  }
+
+  .terminal-dashboard__col--left {
+    display: flex;
+  }
+}

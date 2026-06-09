@@ -12,6 +12,7 @@ import './responsive.css';
 import './ui-polish.css';
 import './fintech-polish.css';
 import './mobile-etoro.css';
+import './dashboard-terminal.css';
 import AppShell from './components/AppShell';
 import StepIntro from './components/StepIntro';
 import AppToolbar from './components/AppToolbar';
@@ -20,13 +21,10 @@ import DataSources from './components/DataSources';
 import HelpLegend from './components/HelpLegend';
 import PanelChoices from './components/PanelChoices';
 import ViewFooter from './components/ViewFooter';
-import Watchlist from './components/Watchlist';
 import ThemeToggle from './components/ThemeToggle';
 import IntelligentAlerts from './components/IntelligentAlerts';
 import {
   ANALYSIS_PANEL_OPTIONS,
-  CATALOG_SCOPE_OPTIONS,
-  EXPLORE_PANEL_OPTIONS,
   FORECAST_PANEL_OPTIONS,
 } from './data/viewChoices';
 import ForecastCards from './components/ForecastCards';
@@ -34,10 +32,9 @@ import ForecastControls from './components/ForecastControls';
 import HistoryChart from './components/HistoryChart';
 import QuotePanel from './components/QuotePanel';
 import TrustFooter from './components/TrustFooter';
-import { sliceHistoryByTimeframe } from './data/chartTimeframes';
+import { normalizeTimeframe, sliceHistoryByTimeframe } from './data/chartTimeframes';
+import TerminalDashboard from './components/terminal/TerminalDashboard';
 import CompetitorBoard from './components/CompetitorBoard';
-import MarketCatalog from './components/MarketCatalog';
-import SymbolPicker from './components/SymbolPicker';
 import { catalogToQuoteMap } from './utils/catalogPrice';
 import { getCategoryMeta } from './data/categories';
 import TechnicalIndicators from './components/TechnicalIndicators';
@@ -79,8 +76,16 @@ export default function App() {
   const [windowN, setWindowN] = useState(INIT.windowN);
   const [horizonDays, setHorizonDays] = useState(INIT.horizonDays);
   const [forecastMethod, setForecastMethod] = useState(INIT.forecastMethod);
-  const [historyTimeframe, setHistoryTimeframe] = useState(INIT.historyTimeframe);
+  const [historyTimeframe, setHistoryTimeframe] = useState(
+    normalizeTimeframe(INIT.historyTimeframe)
+  );
   const [showChartIndicators, setShowChartIndicators] = useState(true);
+  const [chartOverlays, setChartOverlays] = useState({
+    ema20: true,
+    ema50: false,
+    sma20: false,
+  });
+  const [dataFreshKey, setDataFreshKey] = useState(0);
   const [theme, setTheme] = useState(INIT.theme);
 
   const [quote, setQuote] = useState(null);
@@ -374,6 +379,7 @@ export default function App() {
           provider: data.provider,
         });
         setHistory(data.history ?? []);
+        setDataFreshKey((k) => k + 1);
       }
 
       if (data.warning) setWarning(data.warning);
@@ -704,13 +710,12 @@ export default function App() {
   );
 
   const isMobile = useMobileLayout();
-  const showAllCatalog = catalogScope[0] === 'all';
-  const showExploreLegend = explorePanels.includes('legend');
+  const isTerminalExplore = view === 'explore' && !isMobile;
   const showAnalysisLegend = analysisPanels.includes('legend');
   const showForecastLegend = forecastPanels.includes('legend');
 
   return (
-    <div className="app">
+    <div className={`app ${isTerminalExplore ? 'app--terminal' : ''}`}>
       <AppShell
         view={view}
         onViewChange={handleViewChange}
@@ -729,8 +734,10 @@ export default function App() {
         onQuickNav={handleQuickNav}
         onGoInfo={handleGoInfo}
         onInternalSection={handleInternalSection}
+        onSymbolChange={handleSymbolChange}
+        dataFreshKey={dataFreshKey}
       >
-        {!(isMobile && view === 'explore') && <StepIntro view={view} />}
+        {!(isMobile && view === 'explore') && !isTerminalExplore && <StepIntro view={view} />}
         <AppToolbar
           shareState={shareState}
           loadingMarket={loadingMarket}
@@ -738,30 +745,6 @@ export default function App() {
         />
         {alerts}
 
-        {view === 'explore' && !isMobile && (
-          <>
-            <PanelChoices
-              label="Cosa mostrare in questo passo"
-              hint="Attiva o disattiva le sezioni sotto"
-              options={EXPLORE_PANEL_OPTIONS}
-              selected={explorePanels}
-              onChange={setExplorePanels}
-            />
-            {explorePanels.includes('catalog') && (
-              <PanelChoices
-                label="Ambito catalogo"
-                options={CATALOG_SCOPE_OPTIONS}
-                selected={catalogScope}
-                onChange={setCatalogScope}
-                multiple={false}
-                className="panel-choices--sub"
-              />
-            )}
-            {showExploreLegend && (
-              <HelpLegend view={view} compact forceOpen />
-            )}
-          </>
-        )}
 
         {view === 'analysis' && !isMobile && (
           <>
@@ -821,67 +804,20 @@ export default function App() {
           />
         )}
 
-        {view === 'explore' && !isMobile && (
-          <div className="view-panel view-panel--explore">
-            <Watchlist
-              symbol={symbol}
-              type={type}
-              onSelect={handleSelectAsset}
-              quotesBySymbol={quotesBySymbol}
-              fx={fx}
-            />
-
-            <div className="view-panel__explore-stack">
-              {explorePanels.includes('quick') && (
-                <section className="app-card app-card--picker">
-                  <h3 className="view-panel__subtitle">Selezione rapida</h3>
-                  <SymbolPicker
-                    type={type}
-                    symbol={symbol}
-                    onTypeChange={handleTypeChange}
-                    onSymbolChange={handleSymbolChange}
-                    quotesBySymbol={quotesBySymbol}
-                    fx={fx}
-                    showCategoryTabs
-                  />
-                </section>
-              )}
-
-              {explorePanels.includes('catalog') && (
-                <section className="app-card app-card--catalog">
-                  <h3 className="view-panel__subtitle">Catalogo · {categoryMeta.label}</h3>
-                  <MarketCatalog
-                    catalog={catalog}
-                    summary={catalogSummary}
-                    updatedAt={catalogUpdatedAt}
-                    loading={loadingCatalog}
-                    selectedType={type}
-                    selectedSymbol={symbol}
-                    onSelectAsset={handleSelectAsset}
-                    onForecast={handleAssetForecast}
-                    fx={fx}
-                    forecastLoading={loadingForecast || loadingMarket}
-                    showAllCategories={showAllCatalog}
-                  />
-                </section>
-              )}
-            </div>
-
-            {explorePanels.includes('compare') && (
-              <section className="app-card app-card--flush">
-                <CompetitorBoard
-                  type={type}
-                  selectedSymbol={symbol}
-                  quotesBySymbol={quotesBySymbol}
-                  loading={loadingCompetitors || loadingMarket || loadingCatalog}
-                  fx={fx}
-                  onSelect={handleSymbolChange}
-                  onForecast={handleCompetitorForecast}
-                  forecastLoading={loadingForecast || loadingMarket}
-                />
-              </section>
-            )}
-          </div>
+        {isTerminalExplore && (
+          <TerminalDashboard
+            catalog={catalog}
+            loadingCatalog={loadingCatalog}
+            fx={fx}
+            geoNews={geoForNews}
+            loadingGeo={geoLoading}
+            onSelectAsset={handleSelectAsset}
+            onRefresh={refreshAll}
+            loadingMarket={loadingMarket}
+            timeframe={historyTimeframe}
+            onTimeframeChange={setHistoryTimeframe}
+            onTypeChange={handleTypeChange}
+          />
         )}
 
         {view === 'analysis' && (
@@ -902,19 +838,10 @@ export default function App() {
                 symbol={symbol}
                 loading={loadingMarket}
                 fx={fx}
+                freshKey={dataFreshKey}
                 onGoExplore={() => handleViewChange('explore')}
               />
               <div className="asset-dashboard__chart">
-                <div className="asset-dashboard__chart-tools">
-                  <label className="chart-toggle">
-                    <input
-                      type="checkbox"
-                      checked={showChartIndicators}
-                      onChange={(e) => setShowChartIndicators(e.target.checked)}
-                    />
-                    RSI nel grafico
-                  </label>
-                </div>
                 <HistoryChart
                   history={chartHistory}
                   title={`Andamento · ${meta.name}`}
@@ -928,6 +855,8 @@ export default function App() {
                   onTimeframeChange={setHistoryTimeframe}
                   showIndicators={showChartIndicators}
                   analysis={analysis}
+                  chartOverlays={chartOverlays}
+                  onChartOverlaysChange={setChartOverlays}
                 />
               </div>
             </section>

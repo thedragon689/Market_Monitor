@@ -41,6 +41,13 @@ export const ETF_SYMBOLS = [
   { ...share, id: 'USO', name: 'United States Oil', hint: 'Petrolio WTI', sector: 'Energy' },
   { ...share, id: 'XLE', name: 'Energy Select SPDR', hint: 'Settore energia', sector: 'Energy' },
   { ...share, id: 'XLK', name: 'Technology Select SPDR', hint: 'Settore tech', sector: 'Tech' },
+  { ...share, id: 'XLF', name: 'Financial Select SPDR', hint: 'Settore finanziario', sector: 'Financial' },
+  { ...share, id: 'XLV', name: 'Health Care Select SPDR', hint: 'Sanità', sector: 'Health' },
+  { ...share, id: 'XLI', name: 'Industrial Select SPDR', hint: 'Industriale', sector: 'Industrial' },
+  { ...share, id: 'XLP', name: 'Consumer Staples SPDR', hint: 'Beni prima necessità', sector: 'Staples' },
+  { ...share, id: 'XLY', name: 'Consumer Disc. SPDR', hint: 'Beni discrezionali', sector: 'Consumer' },
+  { ...share, id: 'XLB', name: 'Materials Select SPDR', hint: 'Materie prime', sector: 'Materials' },
+  { ...share, id: 'XLU', name: 'Utilities Select SPDR', hint: 'Utility', sector: 'Utilities' },
 ];
 
 export const VOLATILITY_SYMBOLS = [

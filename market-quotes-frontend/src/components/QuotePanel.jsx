@@ -42,6 +42,7 @@ export default function QuotePanel({
   fx,
   onGoExplore,
   variant = 'default',
+  freshKey = 0,
 }) {
   const meta = getSymbolMeta(symbol, type);
   const live = quote?.liveExchanges;
@@ -143,32 +144,55 @@ export default function QuotePanel({
       )}
 
       {isHero && (
-        <dl className="quote-panel__stats">
+        <div key={freshKey} className="quote-stat-cards quote-stat-cards--pulse">
+          {quote.changePercent != null && (
+            <div className={`quote-stat-card quote-stat-card--${summary.tone}`}>
+              <span className="quote-stat-card__icon" aria-hidden>📈</span>
+              <div>
+                <p className="quote-stat-card__label">Variazione</p>
+                <p className="quote-stat-card__value">{formatPercent(quote.changePercent)}</p>
+              </div>
+            </div>
+          )}
           {quote.volume != null && (
-            <>
-              <dt>Volume</dt>
-              <dd>{Number(quote.volume).toLocaleString('it-IT')}</dd>
-            </>
+            <div className="quote-stat-card">
+              <span className="quote-stat-card__icon" aria-hidden>📊</span>
+              <div>
+                <p className="quote-stat-card__label">Volume</p>
+                <p className="quote-stat-card__value">
+                  {Number(quote.volume).toLocaleString('it-IT')}
+                </p>
+              </div>
+            </div>
           )}
           {quote.high != null && (
-            <>
-              <dt>Max giorno</dt>
-              <dd>{formatPrice(quote.high, 'USD')}</dd>
-            </>
+            <div className="quote-stat-card">
+              <span className="quote-stat-card__icon" aria-hidden>⬆</span>
+              <div>
+                <p className="quote-stat-card__label">Max giorno</p>
+                <p className="quote-stat-card__value">{formatPrice(quote.high, 'USD')}</p>
+              </div>
+            </div>
           )}
           {quote.low != null && (
-            <>
-              <dt>Min giorno</dt>
-              <dd>{formatPrice(quote.low, 'USD')}</dd>
-            </>
+            <div className="quote-stat-card">
+              <span className="quote-stat-card__icon" aria-hidden>⬇</span>
+              <div>
+                <p className="quote-stat-card__label">Min giorno</p>
+                <p className="quote-stat-card__value">{formatPrice(quote.low, 'USD')}</p>
+              </div>
+            </div>
           )}
           {quote.asOf && (
-            <>
-              <dt>Aggiornato</dt>
-              <dd>{quote.asOf}</dd>
-            </>
+            <div className="quote-stat-card quote-stat-card--muted">
+              <span className="quote-stat-card__icon" aria-hidden>🕐</span>
+              <div>
+                <p className="quote-stat-card__label">Aggiornato</p>
+                <p className="quote-stat-card__value">{quote.asOf}</p>
+              </div>
+            </div>
           )}
-        </dl>
+        </div>
       )}
 
       <details className="quote-panel__more">

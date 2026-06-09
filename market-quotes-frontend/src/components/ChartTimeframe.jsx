@@ -11,7 +11,7 @@ export default function ChartTimeframe({ value, onChange, disabled }) {
           onClick={() => onChange?.(tf.id)}
           disabled={disabled}
           aria-pressed={value === tf.id}
-          title={`Ultimi ${tf.days} giorni`}
+          title={tf.hint ?? `Ultimi ${tf.days} giorni`}
         >
           {tf.label}
         </button>

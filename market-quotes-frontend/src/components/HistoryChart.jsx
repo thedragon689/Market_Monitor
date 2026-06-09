@@ -1,16 +1,20 @@
 import { useMemo } from 'react';
 import {
   Area,
-  AreaChart,
+  Brush,
   CartesianGrid,
+  ComposedChart,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
 import ChartTimeframe from './ChartTimeframe';
+import ChartOverlayToggles from './ChartOverlayToggles';
 import { formatShortDate } from '../utils/format';
 import { chartAxisHint, chartYDomain, formatChartYTick, toDisplayPrice } from '../utils/chartAxis';
+import { enrichChartWithOverlays } from '../utils/chartIndicators';
 import { inferNativeCurrency } from '../utils/nativeCurrency';
 import { formatForecastDual } from '../utils/pricing';
 
@@ -44,6 +48,15 @@ function ChartTooltip({ active, payload, fx, meta, rawByDate, currency, prevByDa
           {deltaPct}% vs giorno precedente
         </p>
       )}
+      {point.ema20 != null && (
+        <p className="chart-tooltip__overlay">EMA 20: {Number(point.ema20).toFixed(2)}</p>
+      )}
+      {point.ema50 != null && (
+        <p className="chart-tooltip__overlay">EMA 50: {Number(point.ema50).toFixed(2)}</p>
+      )}
+      {point.sma20 != null && (
+        <p className="chart-tooltip__overlay">SMA 20: {Number(point.sma20).toFixed(2)}</p>
+      )}
     </div>
   );
 }
@@ -61,8 +74,11 @@ export default function HistoryChart({
   onTimeframeChange,
   showIndicators = false,
   analysis,
+  chartOverlays,
+  onChartOverlaysChange,
 }) {
   const currency = inferNativeCurrency(type, quote, symbol);
+  const overlays = chartOverlays ?? { ema20: true, ema50: false, sma20: false };
 
   const { data, rawByDate, prevByDate } = useMemo(() => {
     if (!history?.length) {
@@ -79,8 +95,9 @@ export default function HistoryChart({
         display: toDisplayPrice(p.price, fx, meta, currency),
       };
     });
-    return { data: rows, rawByDate: rawMap, prevByDate: prevMap };
-  }, [history, fx, meta, currency, analysis]);
+    const enriched = enrichChartWithOverlays(rows, overlays, fx, meta, currency);
+    return { data: enriched, rawByDate: rawMap, prevByDate: prevMap };
+  }, [history, fx, meta, currency, overlays]);
 
   if (loading) {
     return (
@@ -120,20 +137,29 @@ export default function HistoryChart({
             )}
           </p>
         </div>
-        {timeframe && onTimeframeChange && (
-          <ChartTimeframe
-            value={timeframe}
-            onChange={onTimeframeChange}
-            disabled={loading}
-          />
-        )}
+        <div className="chart-card__controls">
+          {onChartOverlaysChange && (
+            <ChartOverlayToggles
+              value={overlays}
+              onChange={onChartOverlaysChange}
+              disabled={loading}
+            />
+          )}
+          {timeframe && onTimeframeChange && (
+            <ChartTimeframe
+              value={timeframe}
+              onChange={onTimeframeChange}
+              disabled={loading}
+            />
+          )}
+        </div>
       </div>
-      <ResponsiveContainer width="100%" height={300}>
-        <AreaChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+      <ResponsiveContainer width="100%" height={320}>
+        <ComposedChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}>
           <defs>
             <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={`var(--chart-line-${tone})`} stopOpacity={0.35} />
-              <stop offset="100%" stopColor={`var(--chart-line-${tone})`} stopOpacity={0.02} />
+              <stop offset="0%" stopColor={`var(--chart-line-${tone})`} stopOpacity={0.38} />
+              <stop offset="100%" stopColor={`var(--chart-line-${tone})`} stopOpacity={0.03} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
@@ -167,14 +193,63 @@ export default function HistoryChart({
             type="monotone"
             dataKey="display"
             stroke={`var(--chart-line-${tone})`}
-            strokeWidth={3}
+            strokeWidth={4}
             fill="url(#priceGradient)"
             dot={false}
-            activeDot={{ r: 5, fill: `var(--chart-line-${tone})`, stroke: 'var(--bg-elevated)', strokeWidth: 2 }}
+            activeDot={{
+              r: 6,
+              fill: `var(--chart-line-${tone})`,
+              stroke: 'var(--bg-elevated)',
+              strokeWidth: 2,
+            }}
             isAnimationActive={false}
           />
-        </AreaChart>
+          {overlays.ema20 && (
+            <Line
+              type="monotone"
+              dataKey="ema20"
+              stroke="var(--chart-ema20)"
+              strokeWidth={2}
+              dot={false}
+              isAnimationActive={false}
+              connectNulls
+            />
+          )}
+          {overlays.ema50 && (
+            <Line
+              type="monotone"
+              dataKey="ema50"
+              stroke="var(--chart-ema50)"
+              strokeWidth={2}
+              dot={false}
+              isAnimationActive={false}
+              connectNulls
+            />
+          )}
+          {overlays.sma20 && (
+            <Line
+              type="monotone"
+              dataKey="sma20"
+              stroke="var(--chart-sma20)"
+              strokeWidth={2}
+              strokeDasharray="4 3"
+              dot={false}
+              isAnimationActive={false}
+              connectNulls
+            />
+          )}
+          {data.length > 14 && (
+            <Brush
+              dataKey="label"
+              height={30}
+              stroke="var(--accent)"
+              fill="var(--surface)"
+              travellerWidth={12}
+            />
+          )}
+        </ComposedChart>
       </ResponsiveContainer>
+      <p className="chart-card__zoom-hint">Trascina la barra sotto il grafico per zoom e pan</p>
     </div>
   );
 }

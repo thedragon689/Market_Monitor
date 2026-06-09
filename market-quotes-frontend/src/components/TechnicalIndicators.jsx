@@ -24,7 +24,13 @@ export default function TechnicalIndicators({ analysis, loading, fx, type, symbo
   const ind = analysis?.indicators;
 
   if (loading && !ind) {
-    return <p className="indicators-panel__loading">Calcolo indicatori…</p>;
+    return (
+      <div className="indicators-panel indicators-panel--loading">
+        <div className="skeleton skeleton--line" />
+        <div className="skeleton skeleton--line" />
+        <div className="skeleton skeleton--line" />
+      </div>
+    );
   }
 
   if (!ind) {

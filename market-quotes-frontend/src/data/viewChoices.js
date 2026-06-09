@@ -1,6 +1,7 @@
 /** Opzioni pannello per ogni passo del flusso UX. */
 
 export const EXPLORE_PANEL_OPTIONS = [
+  { id: 'overview', label: 'Panoramica', hint: 'Overview categorie' },
   { id: 'quick', label: 'Selezione rapida', hint: 'Chip asset' },
   { id: 'catalog', label: 'Catalogo', hint: 'Griglia prezzi' },
   { id: 'compare', label: 'Confronto', hint: 'Tabella categoria' },
