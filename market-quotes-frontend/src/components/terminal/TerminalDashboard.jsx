@@ -4,9 +4,13 @@ import TerminalDataTable from './TerminalDataTable';
 import TerminalPerformanceChart from './TerminalPerformanceChart';
 import TerminalNewsFeed from './TerminalNewsFeed';
 import TerminalHeatmap from './TerminalHeatmap';
+import TerminalStatusBar from './TerminalStatusBar';
+import TerminalChartLegend from './TerminalChartLegend';
+import TerminalTopMovers from './TerminalTopMovers';
 import { useCompareHistories } from '../../hooks/useCompareHistories';
 import {
   DEFAULT_CHART_PICKS,
+  TERMINAL_CENTER_PANELS,
   TERMINAL_CHART_COLORS,
   TERMINAL_LEFT_PANELS,
   TERMINAL_RAIL_LEFT,
@@ -38,8 +42,15 @@ function pickWithColors(picks) {
   }));
 }
 
+function countQuoted(summary) {
+  if (!summary) return null;
+  return Object.values(summary).reduce((n, s) => n + (s?.quoted ?? 0), 0);
+}
+
 export default function TerminalDashboard({
   catalog,
+  catalogSummary,
+  catalogUpdatedAt,
   loadingCatalog,
   fx,
   geoNews,
@@ -50,6 +61,7 @@ export default function TerminalDashboard({
   timeframe,
   onTimeframeChange,
   onTypeChange,
+  selectedSymbol,
 }) {
   const [search, setSearch] = useState('');
   const [chartPicks, setChartPicks] = useState(DEFAULT_CHART_PICKS);
@@ -62,6 +74,7 @@ export default function TerminalDashboard({
   );
 
   const articles = geoNews?.news ?? geoNews?.articles ?? [];
+  const quotedTotal = countQuoted(catalogSummary);
 
   const filterSearch = useCallback(
     (items) => {
@@ -77,6 +90,11 @@ export default function TerminalDashboard({
     [search]
   );
 
+  const scrollToPanel = (panelId) => {
+    const el = document.getElementById(`terminal-panel-${panelId}`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const handleToggleChart = useCallback((asset) => {
     setChartPicks((prev) => {
       const key = asset.id.toUpperCase();
@@ -87,11 +105,19 @@ export default function TerminalDashboard({
     });
   }, []);
 
+  const handleRemoveChart = useCallback((id) => {
+    setChartPicks((prev) => prev.filter((p) => p.id.toUpperCase() !== id.toUpperCase()));
+  }, []);
+
   const handleRail = (id, side) => {
     setActiveRail(id);
+    scrollToPanel(id);
     if (side === 'right' && id === 'crypto') onTypeChange?.('crypto');
     if (side === 'right' && id === 'forex') onTypeChange?.('forex');
     if (side === 'right' && id === 'commodities') onTypeChange?.('commodity');
+    if (side === 'left' && id === 'indices') onTypeChange?.('index');
+    if (side === 'left' && id === 'sectors') onTypeChange?.('etf');
+    if (side === 'left' && id === 'rates') onTypeChange?.('rates');
   };
 
   const leftPanels = TERMINAL_LEFT_PANELS.map((panel) => ({
@@ -104,12 +130,30 @@ export default function TerminalDashboard({
     items: filterSearch(enrichCatalogItems(catalog, panel)),
   }));
 
-  const cryptoItems = filterSearch(
-    (catalog?.crypto || []).map((i) => ({ ...i, assetType: 'crypto' }))
-  );
+  const centerPanels = TERMINAL_CENTER_PANELS.map((panel) => ({
+    panel,
+    items: filterSearch(enrichCatalogItems(catalog, panel)),
+  }));
+
+  const tableProps = {
+    loading: loadingCatalog && !catalog,
+    chartPicks,
+    onToggleChart: handleToggleChart,
+    onSelectRow: onSelectAsset,
+    selectedSymbol,
+    fx,
+  };
 
   return (
     <div className="terminal-dashboard">
+      <TerminalStatusBar
+        summary={catalogSummary}
+        updatedAt={catalogUpdatedAt}
+        fx={fx}
+        quotedTotal={quotedTotal}
+        loading={loadingCatalog && !catalog}
+      />
+
       <div className="terminal-dashboard__toolbar">
         <label className="terminal-search">
           <span className="terminal-search__icon" aria-hidden>
@@ -118,12 +162,17 @@ export default function TerminalDashboard({
           <input
             type="search"
             className="terminal-search__input"
-            placeholder="Cerca nome, ticker o categoria…"
+            placeholder="Cerca ticker, nome o categoria…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </label>
         <div className="terminal-dashboard__toolbar-actions">
+          {selectedSymbol && (
+            <span className="terminal-dashboard__active-asset">
+              Attivo: <code>{selectedSymbol}</code>
+            </span>
+          )}
           <button
             type="button"
             className="terminal-btn"
@@ -143,6 +192,7 @@ export default function TerminalDashboard({
               type="button"
               className={`terminal-rail__btn ${activeRail === r.id ? 'is-active' : ''}`}
               title={r.label}
+              aria-label={r.label}
               onClick={() => handleRail(r.id, 'left')}
             >
               <span aria-hidden>{r.icon}</span>
@@ -152,25 +202,28 @@ export default function TerminalDashboard({
 
         <div className="terminal-dashboard__col terminal-dashboard__col--left">
           {leftPanels.map(({ panel, items }) => (
-            <TerminalWidget key={panel.id} title={panel.title}>
-              <TerminalDataTable
-                items={items}
-                loading={loadingCatalog}
-                chartPicks={chartPicks}
-                onToggleChart={handleToggleChart}
-                onSelectRow={onSelectAsset}
-                fx={fx}
-              />
+            <TerminalWidget key={panel.id} title={panel.title} panelId={panel.id}>
+              <TerminalDataTable items={items} {...tableProps} />
             </TerminalWidget>
           ))}
         </div>
 
         <div className="terminal-dashboard__col terminal-dashboard__col--center">
-          <TerminalWidget title="Notizie di mercato">
+          <TerminalWidget title="Top movers" panelId="movers">
+            <TerminalTopMovers
+              catalog={catalog}
+              fx={fx}
+              loading={loadingCatalog && !catalog}
+              onSelect={onSelectAsset}
+            />
+          </TerminalWidget>
+
+          <TerminalWidget title="Notizie di mercato" panelId="news">
             <TerminalNewsFeed articles={articles} loading={loadingGeo} />
           </TerminalWidget>
 
-          <TerminalWidget title="Performance comparata">
+          <TerminalWidget title="Performance comparata" panelId="chart">
+            <TerminalChartLegend picks={coloredPicks} onRemove={handleRemoveChart} />
             <TerminalPerformanceChart
               chartData={chartData}
               seriesById={seriesById}
@@ -180,52 +233,34 @@ export default function TerminalDashboard({
             />
           </TerminalWidget>
 
-          <TerminalWidget title="Heatmap settori">
-            <TerminalHeatmap catalog={catalog} fx={fx} />
+          <TerminalWidget title="Heatmap settori USA" panelId="heatmap">
+            <TerminalHeatmap catalog={catalog} fx={fx} onSelect={onSelectAsset} />
           </TerminalWidget>
 
-          <TerminalWidget title="Tassi · rendimenti">
+          <TerminalWidget title="Tassi · rendimenti" panelId="rates">
             <TerminalDataTable
               items={enrichCatalogItems(catalog, {
                 catalogKey: 'rates',
                 assetType: 'rates',
               })}
-              loading={loadingCatalog}
-              chartPicks={chartPicks}
-              onToggleChart={handleToggleChart}
-              onSelectRow={onSelectAsset}
-              fx={fx}
-              maxRows={8}
+              {...tableProps}
+              maxRows={10}
             />
           </TerminalWidget>
+
+          {centerPanels.map(({ panel, items }) => (
+            <TerminalWidget key={panel.id} title={panel.title} panelId={panel.id}>
+              <TerminalDataTable items={items} {...tableProps} maxRows={8} compact />
+            </TerminalWidget>
+          ))}
         </div>
 
         <div className="terminal-dashboard__col terminal-dashboard__col--right">
           {rightPanels.map(({ panel, items }) => (
-            <TerminalWidget key={panel.id} title={panel.title}>
-              <TerminalDataTable
-                items={items}
-                loading={loadingCatalog}
-                chartPicks={chartPicks}
-                onToggleChart={handleToggleChart}
-                onSelectRow={onSelectAsset}
-                fx={fx}
-              />
+            <TerminalWidget key={panel.id} title={panel.title} panelId={panel.id}>
+              <TerminalDataTable items={items} {...tableProps} />
             </TerminalWidget>
           ))}
-
-          {activeRail === 'crypto' && (
-            <TerminalWidget title="Crypto">
-              <TerminalDataTable
-                items={cryptoItems}
-                loading={loadingCatalog}
-                chartPicks={chartPicks}
-                onToggleChart={handleToggleChart}
-                onSelectRow={onSelectAsset}
-                fx={fx}
-              />
-            </TerminalWidget>
-          )}
         </div>
 
         <aside className="terminal-rail terminal-rail--right" aria-label="Collegamenti rapidi">
@@ -235,6 +270,7 @@ export default function TerminalDashboard({
               type="button"
               className={`terminal-rail__btn ${activeRail === r.id ? 'is-active' : ''}`}
               title={r.label}
+              aria-label={r.label}
               onClick={() => handleRail(r.id, 'right')}
             >
               <span aria-hidden>{r.icon}</span>

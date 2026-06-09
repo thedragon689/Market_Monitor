@@ -3,7 +3,10 @@ import { getCategoryMeta } from '../data/categories';
 import { getSymbolsForType } from '../data/symbols';
 import { changeTone, formatChangeBadge, formatCurrentPrice } from '../utils/catalogPrice';
 import MobileAssetHero from './MobileAssetHero';
+import MobileCategoryBar from './MobileCategoryBar';
+import MobileMarketStrip from './MobileMarketStrip';
 import Watchlist from './Watchlist';
+import TerminalTopMovers from './terminal/TerminalTopMovers';
 
 const STOCK_REGIONS = [
   { id: 'all', label: 'Tutti' },
@@ -69,6 +72,8 @@ export default function MobileExploreHub({
   type,
   symbol,
   catalog,
+  catalogSummary,
+  catalogUpdatedAt,
   quote,
   fx,
   loadingCatalog,
@@ -77,6 +82,9 @@ export default function MobileExploreHub({
   onSelectAsset,
   onAnalyze,
   onWatchlistSelect,
+  onTypeChange,
+  onRefresh,
+  onForecast,
 }) {
   const [query, setQuery] = useState('');
   const [region, setRegion] = useState('all');
@@ -105,6 +113,19 @@ export default function MobileExploreHub({
 
   return (
     <div className="mobile-explore">
+      <MobileMarketStrip
+        summary={catalogSummary}
+        fx={fx}
+        updatedAt={catalogUpdatedAt}
+        loading={loadingCatalog}
+      />
+
+      <MobileCategoryBar
+        type={type}
+        onTypeChange={onTypeChange}
+        summary={catalogSummary}
+      />
+
       <MobileAssetHero
         type={type}
         symbol={symbol}
@@ -112,6 +133,7 @@ export default function MobileExploreHub({
         fx={fx}
         loading={loadingMarket}
         onAnalyze={onAnalyze}
+        onForecast={onForecast}
       />
 
       <div className="mobile-explore__search-wrap">
@@ -153,6 +175,16 @@ export default function MobileExploreHub({
         </div>
       )}
 
+      <section className="mobile-explore__movers app-card">
+        <h3 className="mobile-explore__section-title">Movers del giorno</h3>
+        <TerminalTopMovers
+          catalog={catalog}
+          fx={fx}
+          loading={loadingCatalog}
+          onSelect={onSelectAsset}
+        />
+      </section>
+
       <Watchlist
         symbol={symbol}
         type={type}
@@ -166,6 +198,15 @@ export default function MobileExploreHub({
         <span className="mobile-explore__list-count">
           {loadingCatalog ? '…' : `${items.length} titoli`}
         </span>
+        <button
+          type="button"
+          className="mobile-explore__refresh"
+          onClick={onRefresh}
+          disabled={loadingMarket || loadingCatalog}
+          aria-label="Aggiorna quotazioni"
+        >
+          ↻
+        </button>
       </div>
 
       <div className="mobile-explore__list" role="list">

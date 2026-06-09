@@ -40,6 +40,12 @@ export const TERMINAL_RIGHT_PANELS = [
     assetType: 'forex',
   },
   {
+    id: 'crypto',
+    title: 'Crypto',
+    catalogKey: 'crypto',
+    assetType: 'crypto',
+  },
+  {
     id: 'global',
     title: 'Mercati globali',
     catalogKey: 'index',
@@ -51,6 +57,27 @@ export const TERMINAL_RIGHT_PANELS = [
     title: 'Materie prime',
     catalogKey: 'commodity',
     assetType: 'commodity',
+  },
+  {
+    id: 'precious',
+    title: 'Metalli preziosi',
+    catalogKey: 'precious',
+    assetType: 'precious',
+  },
+];
+
+export const TERMINAL_CENTER_PANELS = [
+  {
+    id: 'macro',
+    title: 'Macro · dollaro · inflazione',
+    catalogKey: 'macro',
+    assetType: 'macro',
+  },
+  {
+    id: 'sentiment',
+    title: 'Sentiment · volatilità',
+    catalogKey: 'sentiment',
+    assetType: 'sentiment',
   },
 ];
 

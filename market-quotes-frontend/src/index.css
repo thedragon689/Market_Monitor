@@ -70,12 +70,15 @@
 
 @media (prefers-color-scheme: dark) {
   html:not([data-theme='light']) {
-    --text: #94a3b8;
-    --text-h: #f1f5f9;
-    --bg: #0b0f1a;
-    --bg-elevated: #141b2d;
-    --border: #243044;
-    --code-bg: #1a2336;
+    --text: #c8d3e4;
+    --text-h: #f8fafc;
+    --text-muted: #9fb0c8;
+    --text-subtle: #7d8fa8;
+    --bg: #090d16;
+    --bg-elevated: #161e32;
+    --border: #3a4d6b;
+    --border-subtle: #2a3852;
+    --code-bg: #1a2540;
     --accent: #818cf8;
     --accent-hover: #a5b4fc;
     --accent-soft: #252d52;
@@ -181,6 +184,22 @@ html[data-theme='light'] {
   --choice-ring: color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme='light']) .app {
+    --text-muted: #9fb0c8;
+    --surface: #161e32;
+    --surface-elevated: #1e2a45;
+    --chart-grid: rgba(159, 176, 200, 0.22);
+    --chart-ema20: #fbbf24;
+    --chart-ema50: #c4b5fd;
+    --chart-sma20: #38bdf8;
+    --chart-line-up: #4ade80;
+    --chart-line-down: #fb7185;
+    --up: #4ade80;
+    --down: #fb7185;
+  }
+}
+
 html[data-theme='light'] .app {
   --chart-line: #6366f1;
   --chart-fill: #6366f1;
@@ -198,12 +217,15 @@ html[data-theme='light'] .app {
 
 html[data-theme='dark'] {
   color-scheme: dark;
-  --text: #94a3b8;
-  --text-h: #f1f5f9;
-  --bg: #0b0f1a;
-  --bg-elevated: #141b2d;
-  --border: #243044;
-  --code-bg: #1a2336;
+  --text: #c8d3e4;
+  --text-h: #f8fafc;
+  --text-muted: #9fb0c8;
+  --text-subtle: #7d8fa8;
+  --bg: #090d16;
+  --bg-elevated: #161e32;
+  --border: #3a4d6b;
+  --border-subtle: #2a3852;
+  --code-bg: #1a2540;
   --accent: #818cf8;
   --accent-hover: #a5b4fc;
   --accent-soft: #252d52;
@@ -252,16 +274,25 @@ html[data-theme='dark'] {
 }
 
 html[data-theme='dark'] .app {
+  --text-muted: #9fb0c8;
+  --surface: #161e32;
+  --surface-elevated: #1e2a45;
   --chart-line: #a5b4fc;
   --chart-fill: #818cf8;
-  --chart-sma: #34d399;
-  --chart-linear: #fbbf24;
-  --chart-arima: #a78bfa;
-  --chart-lstm: #f472b6;
-  --chart-log: #2dd4bf;
-  --chart-prophet: #818cf8;
-  --chart-sma-soft: color-mix(in srgb, var(--chart-sma) 22%, transparent);
-  --chart-linear-soft: color-mix(in srgb, var(--chart-linear) 22%, transparent);
-  --up: #34d399;
+  --chart-sma: #4ade80;
+  --chart-linear: #fcd34d;
+  --chart-arima: #c4b5fd;
+  --chart-lstm: #f9a8d4;
+  --chart-log: #5eead4;
+  --chart-prophet: #a5b4fc;
+  --chart-sma-soft: color-mix(in srgb, var(--chart-sma) 28%, transparent);
+  --chart-linear-soft: color-mix(in srgb, var(--chart-linear) 28%, transparent);
+  --chart-grid: rgba(159, 176, 200, 0.22);
+  --chart-ema20: #fbbf24;
+  --chart-ema50: #c4b5fd;
+  --chart-sma20: #38bdf8;
+  --chart-line-up: #4ade80;
+  --chart-line-down: #fb7185;
+  --up: #4ade80;
   --down: #fb7185;
 }

@@ -1,0 +1,322 @@
+/**
+ * Dark theme — leggibilità e contrasto globali (desktop + mobile).
+ * Caricato dopo gli altri fogli; usa html[data-theme='dark'].
+ */
+
+html[data-theme='dark'] {
+  --focus-ring: rgba(129, 140, 248, 0.55);
+}
+
+html[data-theme='dark'] body {
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(99, 102, 241, 0.08), transparent),
+    var(--bg);
+}
+
+/* ── Tipografia ── */
+html[data-theme='dark'] .app {
+  color: var(--text);
+}
+
+html[data-theme='dark'] .view-panel__subtitle,
+html[data-theme='dark'] .app-section__title,
+html[data-theme='dark'] .chart-card__title {
+  color: var(--text-h);
+}
+
+html[data-theme='dark'] .step-intro__lead,
+html[data-theme='dark'] .breadcrumbs__current,
+html[data-theme='dark'] .data-sources__item.is-skip .data-sources__status {
+  color: var(--text-muted);
+}
+
+/* ── Card e superfici ── */
+html[data-theme='dark'] .app-card,
+html[data-theme='dark'] .app-shell__header,
+html[data-theme='dark'] .view-fallback {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme='dark'] .app-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+html[data-theme='dark'] .quote-panel--hero .quote-panel__title,
+html[data-theme='dark'] .quote-panel__price {
+  color: var(--text-h);
+}
+
+/* ── Navigazione ── */
+html[data-theme='dark'] .quick-nav {
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  border-bottom-color: var(--border);
+}
+
+html[data-theme='dark'] .quick-nav__btn {
+  background: var(--code-bg);
+  color: var(--text-muted);
+  border-color: var(--border-subtle);
+}
+
+html[data-theme='dark'] .quick-nav__btn.is-active {
+  color: var(--accent-hover);
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+html[data-theme='dark'] .breadcrumbs__link {
+  color: var(--accent-hover);
+}
+
+html[data-theme='dark'] .app-shell__bottom-nav {
+  background: color-mix(in srgb, var(--bg-elevated) 96%, transparent);
+  border-top-color: var(--border);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.45);
+}
+
+html[data-theme='dark'] .app-shell__bottom-tab {
+  color: var(--text-muted);
+}
+
+html[data-theme='dark'] .app-shell__bottom-tab.is-active {
+  color: var(--accent-hover);
+}
+
+/* ── Grafici ── */
+html[data-theme='dark'] .chart-card {
+  background: var(--surface);
+}
+
+html[data-theme='dark'] .chart-card__subtitle,
+html[data-theme='dark'] .chart-toggle {
+  color: var(--text-muted);
+}
+
+html[data-theme='dark'] .chart-tooltip,
+html[data-theme='dark'] .terminal-chart-tip {
+  background: var(--surface-elevated);
+  border-color: var(--border);
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+}
+
+html[data-theme='dark'] .chart-tooltip__date,
+html[data-theme='dark'] .terminal-chart-tip__date {
+  color: var(--text-h);
+}
+
+html[data-theme='dark'] .chart-tooltip__price strong,
+html[data-theme='dark'] .chart-tooltip__row {
+  color: var(--text-h);
+}
+
+html[data-theme='dark'] .chart-tooltip__usd {
+  color: var(--text-muted);
+}
+
+html[data-theme='dark'] .chart-timeframe {
+  background: var(--code-bg);
+  border: 1px solid var(--border-subtle);
+}
+
+html[data-theme='dark'] .chart-timeframe__btn.is-active {
+  background: var(--surface-elevated);
+  color: var(--text-h);
+}
+
+html[data-theme='dark'] .chart-overlay-toggles__btn.is-active {
+  color: var(--text-h);
+}
+
+html[data-theme='dark'] .recharts-cartesian-grid-horizontal line,
+html[data-theme='dark'] .recharts-cartesian-grid-vertical line {
+  stroke: var(--chart-grid);
+}
+
+html[data-theme='dark'] .recharts-legend-item-text {
+  color: var(--text-muted) !important;
+}
+
+/* ── Terminal dashboard ── */
+html[data-theme='dark'] .app--terminal {
+  --terminal-bg: #0a0e18;
+  --terminal-panel: #151d31;
+  --terminal-border: #3a4d6b;
+  --terminal-muted: #9fb0c8;
+  --terminal-grid: rgba(159, 176, 200, 0.2);
+  --terminal-hover: color-mix(in srgb, var(--accent) 14%, var(--terminal-panel));
+}
+
+html[data-theme='dark'] .terminal-widget__head {
+  background: color-mix(in srgb, var(--code-bg) 80%, var(--terminal-panel));
+}
+
+html[data-theme='dark'] .terminal-widget__title,
+html[data-theme='dark'] .terminal-table__name {
+  color: var(--text-h);
+}
+
+html[data-theme='dark'] .terminal-table thead th {
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--code-bg) 90%, var(--terminal-panel));
+}
+
+html[data-theme='dark'] .terminal-table__price,
+html[data-theme='dark'] .terminal-status__time,
+html[data-theme='dark'] .terminal-status__fx {
+  color: var(--text-h);
+}
+
+html[data-theme='dark'] .terminal-search {
+  background: var(--code-bg);
+  border-color: var(--border);
+}
+
+html[data-theme='dark'] .terminal-search__input {
+  color: var(--text-h);
+}
+
+html[data-theme='dark'] .terminal-legend__name {
+  color: var(--text-h);
+}
+
+html[data-theme='dark'] .terminal-news__title,
+html[data-theme='dark'] .terminal-news__title a {
+  color: var(--text-h);
+}
+
+html[data-theme='dark'] .terminal-movers__main span {
+  color: var(--text-muted);
+}
+
+/* ── Form e input ── */
+html[data-theme='dark'] input,
+html[data-theme='dark'] select,
+html[data-theme='dark'] textarea,
+html[data-theme='dark'] .asset-switcher__select,
+html[data-theme='dark'] .terminal-btn {
+  background: var(--code-bg);
+  border-color: var(--border);
+  color: var(--text-h);
+}
+
+html[data-theme='dark'] input::placeholder,
+html[data-theme='dark'] textarea::placeholder {
+  color: var(--text-subtle);
+}
+
+html[data-theme='dark'] input:focus-visible,
+html[data-theme='dark'] select:focus-visible,
+html[data-theme='dark'] textarea:focus-visible,
+html[data-theme='dark'] button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ── Skeleton loading ── */
+html[data-theme='dark'] .skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--code-bg) 0%,
+    color-mix(in srgb, var(--border) 55%, var(--code-bg)) 50%,
+    var(--code-bg) 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* ── Mobile dark ── */
+@media (max-width: 899px) {
+  html[data-theme='dark'] .mobile-hero,
+  html[data-theme='dark'] .mobile-explore__search-wrap,
+  html[data-theme='dark'] .mobile-cat-bar__btn,
+  html[data-theme='dark'] .mobile-market-strip,
+  html[data-theme='dark'] .mobile-asset-row,
+  html[data-theme='dark'] .mobile-sticky-actions {
+    background: var(--surface);
+    border-color: var(--border);
+  }
+
+  html[data-theme='dark'] .mobile-hero__name,
+  html[data-theme='dark'] .mobile-asset-row__name,
+  html[data-theme='dark'] .mobile-asset-row__price {
+    color: var(--text-h);
+  }
+
+  html[data-theme='dark'] .mobile-hero__meta,
+  html[data-theme='dark'] .mobile-asset-row__code,
+  html[data-theme='dark'] .mobile-explore__list-count {
+    color: var(--text-muted);
+  }
+
+  html[data-theme='dark'] .mobile-cat-bar__btn.is-active {
+    color: var(--up);
+    border-color: color-mix(in srgb, var(--up) 55%, var(--border));
+    background: color-mix(in srgb, var(--up) 12%, var(--surface));
+  }
+
+  html[data-theme='dark'] .mobile-explore__movers .terminal-movers__chg--up {
+    color: var(--up);
+  }
+
+  html[data-theme='dark'] .mobile-explore__movers .terminal-movers__chg--down {
+    color: var(--down);
+  }
+
+  html[data-theme='dark'] .symbol-picker__grid,
+  html[data-theme='dark'] .watchlist {
+    background: var(--surface);
+    border-color: var(--border);
+  }
+}
+
+/* ── Tabelle e dati ── */
+html[data-theme='dark'] .competitor-table__row:hover,
+html[data-theme='dark'] .catalog-card:hover,
+html[data-theme='dark'] .data-sources__item.is-ok {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+html[data-theme='dark'] .indicator-row dt {
+  color: var(--text-muted);
+}
+
+html[data-theme='dark'] .indicator-row dd {
+  color: var(--text-h);
+}
+
+/* ── Alert e trust ── */
+html[data-theme='dark'] .app__warning {
+  background: color-mix(in srgb, #fbbf24 12%, var(--surface));
+  border-color: color-mix(in srgb, #fbbf24 35%, var(--border));
+  color: #fde68a;
+}
+
+html[data-theme='dark'] .trust-footer {
+  background: color-mix(in srgb, var(--bg) 88%, var(--surface));
+  border-top-color: var(--border);
+}
+
+html[data-theme='dark'] .trust-footer__legal,
+html[data-theme='dark'] .trust-footer__copy {
+  color: var(--text-muted);
+}
+
+/* prefers-color-scheme fallback (prima del toggle JS) */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme='light']) body {
+    background:
+      radial-gradient(ellipse 120% 80% at 50% -20%, rgba(99, 102, 241, 0.08), transparent),
+      var(--bg);
+  }
+
+  html:not([data-theme='light']) .app {
+    --text-muted: #9fb0c8;
+    --surface: #161e32;
+    --surface-elevated: #1e2a45;
+    --chart-grid: rgba(159, 176, 200, 0.22);
+    --up: #4ade80;
+    --down: #fb7185;
+  }
+}

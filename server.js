@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
-import { analyzeMarket } from './lib/analyze.js';
-import { getCache, setCache } from './lib/cache.js';
+import { analyzeFromMarket, analyzeMarket } from './lib/analyze.js';
+import { getCache, getCacheEntry, refreshCache, setCache } from './lib/cache.js';
 import { buildForecastResponse } from './lib/forecastApi.js';
 import { getEurUsdRate } from './lib/fx.js';
 import { enrichQuoteWithEur } from './lib/quoteEnrich.js';
@@ -39,6 +39,16 @@ app.use((req, res, next) => {
     res.set('Cache-Control', 'public, max-age=120');
   } else if (req.path.startsWith('/api/correlations')) {
     res.set('Cache-Control', 'public, max-age=300');
+  } else if (
+    req.path === '/api/market' ||
+    req.path === '/api/market/batch' ||
+    req.path === '/api/bootstrap' ||
+    req.path === '/api/quotes' ||
+    req.path === '/api/history'
+  ) {
+    res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=120');
+  } else if (req.path === '/api/analysis-bundle') {
+    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
   }
   next();
 });
@@ -74,19 +84,71 @@ function quoteFromSeries(series, symbol, extra = {}) {
   };
 }
 
-async function getCachedMarket(symbol, type, { minPoints = 0 } = {}) {
+async function getCachedMarket(symbol, type, { minPoints = 0, allowStale = true } = {}) {
   const cacheKey = `market:${type}:${symbol.toUpperCase()}`;
-  const cached = getCache(cacheKey);
-  const cachedPoints = cached?.series?.length ?? 0;
-  const cacheUsable = cached && (!minPoints || cachedPoints >= minPoints);
+  const entry = getCacheEntry(cacheKey);
+  const cachedPoints = entry?.data?.series?.length ?? 0;
+  const cacheUsable =
+    entry?.data && (!minPoints || cachedPoints >= minPoints);
 
-  if (cacheUsable) {
-    return { ...cached, fromCache: true, stale: false };
+  if (cacheUsable && !entry.stale) {
+    return { ...entry.data, fromCache: true, stale: false };
+  }
+
+  if (cacheUsable && entry.stale && allowStale) {
+    refreshCache(cacheKey, () => loadMarketData(symbol, type), CACHE_TTL_MS).catch(
+      () => {}
+    );
+    return { ...entry.data, fromCache: true, stale: true };
   }
 
   const payload = await loadMarketData(symbol, type);
   setCache(cacheKey, payload, CACHE_TTL_MS);
   return { ...payload, fromCache: false, stale: false };
+}
+
+async function getOrBuildCatalog() {
+  const cached = getCache('full_catalog');
+  if (cached) return { ...cached, cached: true };
+
+  const payload = await buildFullCatalog({
+    getCachedMarket,
+    loadFx,
+  });
+  setCache('full_catalog', payload, CATALOG_CACHE_MS);
+  return { ...payload, cached: false };
+}
+
+function buildMarketResponse(symbol, type, limit, { series, quote, meta, fromCache, stale }) {
+  const maxPoints = Math.min(Math.max(Number(limit) || 90, 10), 120);
+  const history = series.slice(-maxPoints);
+  const baseQuote =
+    quote ||
+    quoteFromSeries(history, symbol, {
+      provider: meta.provider,
+      type,
+      currency: quote?.currency,
+    });
+
+  return {
+    symbol,
+    type,
+    ...meta,
+    provider: meta.provider,
+    sources: meta.sources ?? [],
+    alternates: meta.alternates ?? [],
+    quote: baseQuote,
+    history,
+    cached: fromCache,
+    stale,
+    info: meta.historyLimited
+      ? 'Quotazione aggiornata (Stooq). Per lo storico completo aggiungi STOOQ_API_KEY in .env.'
+      : `Dati da ${meta.provider || 'mercato'}${meta.alternates?.length ? ` (+${meta.alternates.length} fonti di confronto)` : ''}.`,
+    warning:
+      meta.historyLimited && !stale
+        ? 'Storico limitato: aggiungi STOOQ_API_KEY (stooq.com) o riprova più tardi per Yahoo.'
+        : undefined,
+  };
 }
 
 function sendError(res, err, context) {
@@ -109,7 +171,7 @@ app.get('/api/health', (_req, res) => {
     service: 'market-monitor-api',
     version: '1.2.0',
     runtime: process.env.AWS_LAMBDA_FUNCTION_NAME ? 'netlify' : 'node',
-    features: ['multi-source', 'trade-advice', 'analysis-bundle'],
+    features: ['multi-source', 'trade-advice', 'analysis-bundle', 'bootstrap', 'market-batch'],
   });
 });
 
@@ -122,19 +184,42 @@ app.get('/api/sources', (_req, res) => {
 
 app.get('/api/catalog', async (_req, res) => {
   try {
-    const cached = getCache('full_catalog');
-    if (cached) {
-      return res.json({ ...cached, cached: true });
-    }
-
-    const payload = await buildFullCatalog({
-      getCachedMarket,
-      loadFx,
-    });
-    setCache('full_catalog', payload, CATALOG_CACHE_MS);
-    res.json({ ...payload, cached: false });
+    const payload = await getOrBuildCatalog();
+    res.json(payload);
   } catch (err) {
     sendError(res, err, '/api/catalog');
+  }
+});
+
+/** Catalog + mercato corrente in un round-trip (meno latenza al primo paint). */
+app.get('/api/bootstrap', async (req, res) => {
+  try {
+    const { symbol, type = 'stock', limit = 120 } = req.query;
+
+    const [catalogPayload, marketPayload, fx] = await Promise.all([
+      getOrBuildCatalog(),
+      symbol
+        ? getCachedMarket(symbol, type).then((payload) =>
+            buildMarketResponse(symbol, type, limit, payload)
+          )
+        : Promise.resolve(null),
+      loadFx(),
+    ]);
+
+    if (marketPayload?.quote) {
+      marketPayload.quote = enrichQuoteWithEur(marketPayload.quote, fx);
+    }
+
+    res.json({
+      catalog: catalogPayload.catalog,
+      summary: catalogPayload.summary,
+      updatedAt: catalogPayload.updatedAt,
+      catalogCached: catalogPayload.cached,
+      market: marketPayload,
+      fx,
+    });
+  } catch (err) {
+    sendError(res, err, '/api/bootstrap');
   }
 });
 
@@ -157,41 +242,58 @@ app.get('/api/market', async (req, res) => {
       return res.status(400).json({ error: 'Parametro "symbol" richiesto' });
     }
 
-    const maxPoints = Math.min(Math.max(Number(limit) || 90, 10), 120);
-    const { series, quote, meta, fromCache, stale } = await getCachedMarket(symbol, type);
-
-    const history = series.slice(-maxPoints);
+    const payload = await getCachedMarket(symbol, type);
+    const body = buildMarketResponse(symbol, type, limit, payload);
     const fx = await loadFx();
-    const baseQuote =
-      quote ||
-      quoteFromSeries(history, symbol, {
-        provider: meta.provider,
-        type,
-        currency: quote?.currency,
-      });
-
     res.json({
-      symbol,
-      type,
-      ...meta,
-      provider: meta.provider,
-      sources: meta.sources ?? [],
-      alternates: meta.alternates ?? [],
+      ...body,
       fx,
-      quote: enrichQuoteWithEur(baseQuote, fx),
-      history,
-      cached: fromCache,
-      stale,
-      info: meta.historyLimited
-        ? 'Quotazione aggiornata (Stooq). Per lo storico completo aggiungi STOOQ_API_KEY in .env.'
-        : `Dati da ${meta.provider || 'mercato'}${meta.alternates?.length ? ` (+${meta.alternates.length} fonti di confronto)` : ''}.`,
-      warning:
-        meta.historyLimited && !stale
-          ? 'Storico limitato: aggiungi STOOQ_API_KEY (stooq.com) o riprova più tardi per Yahoo.'
-          : undefined,
+      quote: enrichQuoteWithEur(body.quote, fx),
     });
   } catch (err) {
     sendError(res, err, '/api/market');
+  }
+});
+
+/** Storici multi-asset in una richiesta (dashboard confronto). */
+app.get('/api/market/batch', async (req, res) => {
+  try {
+    const raw = String(req.query.items || '').trim();
+    if (!raw) {
+      return res.status(400).json({ error: 'Parametro "items" richiesto (es. stock:AAPL,index:^GSPC)' });
+    }
+
+    const limit = req.query.limit ?? 120;
+    const pairs = raw
+      .split(',')
+      .map((chunk) => chunk.trim())
+      .filter(Boolean)
+      .map((chunk) => {
+        const sep = chunk.indexOf(':');
+        if (sep === -1) return { type: 'stock', symbol: chunk };
+        return {
+          type: chunk.slice(0, sep).trim() || 'stock',
+          symbol: chunk.slice(sep + 1).trim(),
+        };
+      })
+      .filter((p) => p.symbol)
+      .slice(0, 12);
+
+    const fx = await loadFx();
+    const results = await Promise.all(
+      pairs.map(async ({ symbol, type }) => {
+        const payload = await getCachedMarket(symbol, type);
+        const body = buildMarketResponse(symbol, type, limit, payload);
+        return {
+          ...body,
+          quote: enrichQuoteWithEur(body.quote, fx),
+        };
+      })
+    );
+
+    res.json({ results, fx });
+  } catch (err) {
+    sendError(res, err, '/api/market/batch');
   }
 });
 
@@ -631,15 +733,20 @@ app.get('/api/analysis-bundle', async (req, res) => {
     const windowSize = Math.min(Math.max(Number(window) || 5, 2), 60);
     const methods = String(method).toLowerCase();
 
-    const { series, meta, fromCache, stale } = await getCachedMarket(symbol, type, {
+    const marketPayload = await getCachedMarket(symbol, type, {
       minPoints: 2,
     });
+    const { series, meta, fromCache, stale } = marketPayload;
     const prices = pricesFromSeries(series);
 
     const fx = await loadFx();
 
     const [analysis, intelligence] = await Promise.all([
-      analyzeMarket(symbol, type, { horizonDays }),
+      analyzeFromMarket(marketPayload, symbol, type, {
+        horizonDays,
+        skipExtraHistory: prices.length >= 14,
+        skipLiveQuote: Boolean(marketPayload.quote?.price),
+      }),
       prices.length >= 2
         ? buildMarketIntelligence({
             symbol,
@@ -701,13 +808,18 @@ app.get('/api/trade-advice', async (req, res) => {
       return res.json({ ...cached, cached: true });
     }
 
-    const { series, fromCache, stale } = await getCachedMarket(symbol, type, {
+    const marketPayload = await getCachedMarket(symbol, type, {
       minPoints: 2,
     });
+    const { series, fromCache, stale } = marketPayload;
     const prices = pricesFromSeries(series);
 
     const [analysis, intelligence] = await Promise.all([
-      analyzeMarket(symbol, type, { horizonDays }),
+      analyzeFromMarket(marketPayload, symbol, type, {
+        horizonDays,
+        skipExtraHistory: prices.length >= 14,
+        skipLiveQuote: Boolean(marketPayload.quote?.price),
+      }),
       prices.length >= 2
         ? buildMarketIntelligence({
             symbol,

@@ -8,6 +8,7 @@ export default function MobileAssetHero({
   fx,
   loading,
   onAnalyze,
+  onForecast,
 }) {
   const meta = getSymbolMeta(symbol, type);
   const q = quote?.error ? null : quote;
@@ -41,14 +42,26 @@ export default function MobileAssetHero({
         {chg != null && (
           <span className={`mobile-hero__chg mobile-hero__chg--${tone}`}>{chg}</span>
         )}
-        <button
-          type="button"
-          className="btn btn--primary mobile-hero__cta"
-          onClick={onAnalyze}
-          disabled={loading && !q?.price}
-        >
-          Analizza
-        </button>
+        <div className="mobile-hero__actions">
+          <button
+            type="button"
+            className="btn btn--primary mobile-hero__cta"
+            onClick={onAnalyze}
+            disabled={loading && !q?.price}
+          >
+            Analizza
+          </button>
+          {onForecast && (
+            <button
+              type="button"
+              className="btn btn--ghost mobile-hero__cta-secondary"
+              onClick={onForecast}
+              disabled={loading && !q?.price}
+            >
+              Prevedi
+            </button>
+          )}
+        </div>
       </div>
     </section>
   );

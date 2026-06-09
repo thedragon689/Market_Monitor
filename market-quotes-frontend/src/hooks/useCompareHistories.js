@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { API_BASE } from '../config/api';
-import { apiFetch } from '../utils/apiFetch';
+import { fetchMarketBatch } from '../utils/fetchMarket';
 import { getTimeframeDays } from '../data/chartTimeframes';
 
 function normalizeSeries(history) {
@@ -32,32 +31,28 @@ export function useCompareHistories(picks, timeframeId) {
     (async () => {
       setLoading(true);
       const next = {};
+      const limit = Math.max(days, 30);
 
-      await Promise.all(
-        picks.map(async (pick, idx) => {
-          try {
-            const params = new URLSearchParams({
-              symbol: pick.id,
-              type: pick.type,
-              limit: String(Math.max(days, 30)),
-            });
-            const { data } = await apiFetch(
-              `${API_BASE}/api/market?${params}`,
-              { optional: true }
-            );
-            if (cancelled || !data?.history?.length) return;
-            const sliced = data.history.slice(-days);
-            next[pick.id] = {
-              name: pick.name || pick.id,
-              color: pick.color,
-              points: normalizeSeries(sliced),
-              idx,
-            };
-          } catch {
-            /* skip asset */
-          }
-        })
-      );
+      try {
+        const { results } = await fetchMarketBatch(picks, { limit });
+        if (cancelled) return;
+
+        results.forEach((row, idx) => {
+          const pick = picks.find(
+            (p) => p.id.toUpperCase() === String(row.symbol).toUpperCase()
+          );
+          if (!row?.history?.length || !pick) return;
+          const sliced = row.history.slice(-days);
+          next[pick.id] = {
+            name: pick.name || pick.id,
+            color: pick.color,
+            points: normalizeSeries(sliced),
+            idx,
+          };
+        });
+      } catch {
+        /* skip batch */
+      }
 
       if (!cancelled) {
         setSeriesById(next);

@@ -54,19 +54,19 @@ export default function TerminalPerformanceChart({
           Seleziona asset dalle tabelle (checkbox) per confrontare le performance.
         </p>
       ) : (
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={300} className="terminal-chart__canvas">
           <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="2 4" stroke="var(--terminal-grid)" vertical={false} />
             <XAxis
               dataKey="date"
               tickFormatter={formatShortDate}
-              tick={{ fill: 'var(--terminal-muted)', fontSize: 10 }}
+              tick={{ fill: 'var(--terminal-muted)', fontSize: 12 }}
               tickLine={false}
               axisLine={false}
               minTickGap={36}
             />
             <YAxis
-              tick={{ fill: 'var(--terminal-muted)', fontSize: 10 }}
+              tick={{ fill: 'var(--terminal-muted)', fontSize: 12 }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(v) => `${v >= 0 ? '+' : ''}${v}%`}
@@ -84,7 +84,7 @@ export default function TerminalPerformanceChart({
                 dataKey={id}
                 name={id}
                 stroke={seriesById[id].color}
-                strokeWidth={2.5}
+                strokeWidth={3}
                 dot={false}
                 isAnimationActive={false}
                 connectNulls

@@ -12,4 +12,33 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) {
+            return 'vendor-recharts';
+          }
+          if (
+            id.includes('node_modules/react-dom') ||
+            id.includes('node_modules/react/') ||
+            id.includes('node_modules/scheduler')
+          ) {
+            return 'vendor-react';
+          }
+          if (id.includes('/components/terminal/')) {
+            return 'view-terminal';
+          }
+          if (
+            id.includes('/components/ForecastChart') ||
+            id.includes('/components/HistoryChart') ||
+            id.includes('/components/GeopoliticalImpactChart')
+          ) {
+            return 'view-charts';
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
 })
