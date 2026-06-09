@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import { getSymbolMeta } from '../data/symbols';
+import { changeTone, formatChangeBadge, formatCurrentPrice } from '../utils/catalogPrice';
 
 const KEY = 'market-monitor-watchlist-v1';
 const MAX = 12;
@@ -99,6 +101,10 @@ export default function Watchlist({
           const q =
             quotesBySymbol?.[item.id.toUpperCase()] ??
             quotesBySymbol?.[item.id];
+          const meta = getSymbolMeta(item.id, item.type);
+          const price = formatCurrentPrice(q, meta, fx);
+          const chg = formatChangeBadge(q);
+          const tone = changeTone(q?.changePercent);
           return (
             <li key={`${item.type}-${item.id}`} className="watchlist__item">
               <button
@@ -106,9 +112,18 @@ export default function Watchlist({
                 className="watchlist__pick"
                 onClick={() => onSelect(item.id, item.type)}
               >
-                <span className="watchlist__code">{item.id}</span>
-                <span className="watchlist__price">
-                  {q?.price != null ? Number(q.price).toFixed(2) : '—'}
+                <span className="watchlist__avatar" aria-hidden>
+                  {meta.name.charAt(0).toUpperCase()}
+                </span>
+                <span className="watchlist__main">
+                  <span className="watchlist__name">{meta.name}</span>
+                  <span className="watchlist__code">{item.id}</span>
+                </span>
+                <span className="watchlist__quote">
+                  <span className="watchlist__price">{price.primary}</span>
+                  {chg != null && (
+                    <span className={`watchlist__chg watchlist__chg--${tone}`}>{chg}</span>
+                  )}
                 </span>
               </button>
               <button

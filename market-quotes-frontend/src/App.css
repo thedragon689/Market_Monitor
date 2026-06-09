@@ -3564,14 +3564,83 @@ html[data-theme='dark'] .app__error {
   cursor: pointer;
   text-align: left;
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 1;
+}
+
+.watchlist__avatar {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.watchlist__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.05rem;
+}
+
+.watchlist__name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-h);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .watchlist__code {
   font-family: var(--mono);
   font-weight: 600;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.watchlist__quote {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.12rem;
+  flex-shrink: 0;
+}
+
+.watchlist__price {
   font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.watchlist__chg {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.12rem 0.35rem;
+  border-radius: 5px;
+}
+
+.watchlist__chg--up {
+  background: color-mix(in srgb, var(--up) 14%, transparent);
+  color: var(--up);
+}
+
+.watchlist__chg--down {
+  background: color-mix(in srgb, var(--down) 14%, transparent);
+  color: var(--down);
+}
+
+.watchlist__chg--neutral {
+  color: var(--text-muted);
 }
 
 .watchlist__remove {

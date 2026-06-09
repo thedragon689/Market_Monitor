@@ -448,18 +448,374 @@
     border-bottom: none;
   }
 
+  .watchlist {
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background: var(--bg-elevated);
+    border: none;
+  }
+
+  .watchlist__head {
+    margin-bottom: 0.5rem;
+  }
+
+  .watchlist__title {
+    font-size: 0.92rem;
+    font-weight: 800;
+  }
+
   .watchlist__pick {
     flex: 1;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.65rem;
-    padding: 0.85rem 1rem;
+    padding: 0.85rem 0.25rem;
     background: transparent;
   }
 
-  .watchlist__code {
+  .watchlist__avatar {
+    width: 2.35rem;
+    height: 2.35rem;
+    background: var(--etoro-green-soft);
+    color: var(--etoro-green);
+  }
+
+  /* ── Discover hub (eToro) ── */
+  .mobile-explore {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: -0.15rem;
+  }
+
+  .mobile-hero {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: var(--radius-xl);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-md);
+  }
+
+  .mobile-hero__avatar {
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 800;
+    background: var(--etoro-green);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(19, 198, 54, 0.35);
+  }
+
+  .mobile-hero__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .mobile-hero__name {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-h);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-hero__meta {
+    margin: 0.1rem 0 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  .mobile-hero__meta code {
+    font-size: 0.68rem;
+    padding: 0.08rem 0.3rem;
+    border-radius: 4px;
+    background: var(--code-bg);
+  }
+
+  .mobile-hero__price {
+    margin: 0.25rem 0 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-h);
+    letter-spacing: -0.02em;
+  }
+
+  .mobile-hero__unit {
+    font-size: 0.65em;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-left: 0.15rem;
+  }
+
+  .mobile-hero__loading {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .mobile-hero__side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.45rem;
+    flex-shrink: 0;
+  }
+
+  .mobile-hero__chg {
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.2rem 0.45rem;
+    border-radius: 6px;
+  }
+
+  .mobile-hero__chg--up {
+    background: var(--etoro-green-soft);
+    color: var(--etoro-green);
+  }
+
+  .mobile-hero__chg--down {
+    background: var(--etoro-red-soft);
+    color: var(--etoro-red);
+  }
+
+  .mobile-hero__cta {
+    min-height: 2.35rem !important;
+    padding: 0.4rem 0.85rem !important;
+    font-size: 0.82rem !important;
+    box-shadow: 0 4px 12px rgba(19, 198, 54, 0.3);
+  }
+
+  .mobile-explore__search-wrap {
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 7.5rem);
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: 999px;
+    background: var(--bg-elevated);
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .mobile-explore__search-icon {
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    line-height: 1;
+  }
+
+  .mobile-explore__search {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    font: inherit;
+    font-size: 0.92rem;
+    color: var(--text-h);
+    outline: none;
+  }
+
+  .mobile-explore__search::placeholder {
+    color: var(--text-muted);
+  }
+
+  .mobile-explore__search-clear {
+    flex-shrink: 0;
+    width: 1.65rem;
+    height: 1.65rem;
+    border: none;
+    border-radius: 50%;
+    background: var(--code-bg);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .mobile-explore__filters {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.35rem;
+    padding-bottom: 0.1rem;
+    scrollbar-width: none;
+  }
+
+  .mobile-explore__filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-explore__filter {
+    flex: 0 0 auto;
+    padding: 0.38rem 0.85rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--border);
+    background: var(--bg-elevated);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .mobile-explore__filter.is-active {
+    background: var(--etoro-green);
+    border-color: var(--etoro-green);
+    color: #fff;
+  }
+
+  .mobile-explore__list-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.15rem 0.1rem 0;
+  }
+
+  .mobile-explore__list-title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-h);
+  }
+
+  .mobile-explore__list-count {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .mobile-explore__list {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .mobile-asset-row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-asset-row:last-child {
+    border-bottom: none;
+  }
+
+  .mobile-asset-row.is-selected {
+    background: var(--etoro-green-soft);
+    box-shadow: inset 3px 0 0 var(--etoro-green);
+  }
+
+  .mobile-asset-row:active {
+    background: color-mix(in srgb, var(--etoro-green) 8%, var(--bg-elevated));
+  }
+
+  .mobile-asset-row__avatar {
+    flex-shrink: 0;
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 0.9rem;
-    min-width: 3.5rem;
+    font-weight: 800;
+    background: color-mix(in srgb, var(--accent) 12%, var(--bg-elevated));
+    color: var(--accent);
+  }
+
+  .mobile-asset-row__main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.08rem;
+  }
+
+  .mobile-asset-row__name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-h);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-asset-row__code {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  .mobile-asset-row__quote {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+    flex-shrink: 0;
+  }
+
+  .mobile-asset-row__price {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--text-h);
+  }
+
+  .mobile-asset-row__unit {
+    font-size: 0.72em;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .mobile-asset-row__chg {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.15rem 0.38rem;
+    border-radius: 5px;
+  }
+
+  .mobile-asset-row__chg--up {
+    background: var(--etoro-green-soft);
+    color: var(--etoro-green);
+  }
+
+  .mobile-asset-row__chg--down {
+    background: var(--etoro-red-soft);
+    color: var(--etoro-red);
+  }
+
+  .mobile-asset-row__chg--neutral {
+    color: var(--text-muted);
+  }
+
+  .mobile-explore__empty {
+    margin: 0;
+    padding: 1.25rem 1rem;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    text-align: center;
   }
 
   /* ── Symbol picker → lista watchlist ── */
@@ -708,6 +1064,7 @@
   }
 
   /* ── Footer: solo CTA avanti (nav indietro = bottom bar) ── */
+  .view-footer--explore,
   .view-footer--analysis,
   .view-footer--forecast {
     display: none;

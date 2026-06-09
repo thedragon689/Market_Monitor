@@ -47,6 +47,8 @@ import { apiFetch } from './utils/apiFetch';
 import { savePersistedState } from './utils/persist';
 import { syncUrlState } from './utils/urlState';
 import { resolveInitialAppState } from './utils/initAppState';
+import { useMobileLayout } from './hooks/useMobileLayout';
+import MobileExploreHub from './components/MobileExploreHub';
 import {
   getSymbolMeta,
   getSymbolsForType,
@@ -628,6 +630,7 @@ export default function App() {
     </div>
   );
 
+  const isMobile = useMobileLayout();
   const showAllCatalog = catalogScope[0] === 'all';
   const showExploreLegend = explorePanels.includes('legend');
   const showAnalysisLegend = analysisPanels.includes('legend');
@@ -650,7 +653,7 @@ export default function App() {
         isLoading={isLoading}
         themeToggle={<ThemeToggle theme={theme} onChange={setTheme} />}
       >
-        <StepIntro view={view} />
+        {!(isMobile && view === 'explore') && <StepIntro view={view} />}
         <AppToolbar
           shareState={shareState}
           loadingMarket={loadingMarket}
@@ -658,7 +661,7 @@ export default function App() {
         />
         {alerts}
 
-        {view === 'explore' && (
+        {view === 'explore' && !isMobile && (
           <>
             <PanelChoices
               label="Cosa mostrare in questo passo"
@@ -683,7 +686,7 @@ export default function App() {
           </>
         )}
 
-        {view === 'analysis' && (
+        {view === 'analysis' && !isMobile && (
           <>
             <PanelChoices
               label="Sezioni di analisi"
@@ -711,7 +714,7 @@ export default function App() {
           </div>
         )}
 
-        {view === 'forecast' && (
+        {view === 'forecast' && !isMobile && (
           <>
             <PanelChoices
               label="Contenuti previsione"
@@ -725,7 +728,23 @@ export default function App() {
           </>
         )}
 
-        {view === 'explore' && (
+        {view === 'explore' && isMobile && (
+          <MobileExploreHub
+            type={type}
+            symbol={symbol}
+            catalog={catalog}
+            quote={displayQuote}
+            fx={fx}
+            loadingCatalog={loadingCatalog}
+            loadingMarket={loadingMarket}
+            quotesBySymbol={quotesBySymbol}
+            onSelectAsset={handleSelectAsset}
+            onAnalyze={() => handleViewChange('analysis')}
+            onWatchlistSelect={handleSelectAsset}
+          />
+        )}
+
+        {view === 'explore' && !isMobile && (
           <div className="view-panel view-panel--explore">
             <Watchlist
               symbol={symbol}
