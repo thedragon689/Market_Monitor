@@ -84,16 +84,33 @@
   }
 
   .app-shell__logo-wrap {
-    padding: 0.1rem;
-    border-radius: 11px;
-    box-shadow: none;
-    background: transparent;
+    padding: 0.12rem;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent) 35%, var(--border)),
+      0 4px 12px color-mix(in srgb, var(--accent) 24%, transparent);
   }
 
-  .app-shell__logo {
-    width: 2.35rem;
-    height: 2.35rem;
-    border-radius: 9px;
+  .app-shell__logo,
+  .app-logo {
+    width: 2.85rem;
+    height: 2.85rem;
+    border-radius: 10px;
+  }
+
+  html[data-theme='light'] .app-shell__logo-wrap {
+    background: #fff;
+    box-shadow:
+      0 0 0 1px #c7d2e4,
+      0 4px 12px rgba(99, 102, 241, 0.18);
+  }
+
+  html[data-theme='dark'] .app-shell__logo-wrap {
+    background: color-mix(in srgb, #1a2238 92%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent) 50%, #6366f1),
+      0 0 14px rgba(99, 102, 241, 0.35);
   }
 
   .app-shell__title {

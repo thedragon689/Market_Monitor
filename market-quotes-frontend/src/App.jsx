@@ -724,6 +724,7 @@ export default function App() {
         loadingForecast={loadingForecast}
         loadingMarket={loadingMarket}
         isLoading={isLoading}
+        theme={theme}
         themeToggle={<ThemeToggle theme={theme} onChange={setTheme} />}
         onQuickNav={handleQuickNav}
         onGoInfo={handleGoInfo}

@@ -20,6 +20,7 @@ export default function AppShell({
   loadingMarket,
   isLoading,
   themeToggle,
+  theme = 'dark',
   onQuickNav,
   onGoInfo,
   onInternalSection,
@@ -47,7 +48,7 @@ export default function AppShell({
       <header className="app-shell__header">
         <div className="app-shell__brand">
           <span className="app-shell__logo-wrap">
-            <AppLogo className="app-shell__logo" size={48} />
+            <AppLogo className="app-shell__logo" size={56} theme={theme} />
           </span>
           <div>
             <strong className="app-shell__title">Market Monitor</strong>
