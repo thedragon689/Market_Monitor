@@ -7,22 +7,31 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { formatPrice, formatPriceWithEur, formatShortDate, usdToEur } from '../utils/format';
+import { formatShortDate } from '../utils/format';
+import { chartAxisHint, chartYDomain, formatChartYTick, toDisplayPrice } from '../utils/chartAxis';
+import { formatForecastDual } from '../utils/pricing';
 
-function ChartTooltip({ active, payload, fx }) {
+function ChartTooltip({ active, payload, fx, meta, rawByDate }) {
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
+  const raw = rawByDate?.[point.date];
+  const dual =
+    raw != null && fx?.eurUsd && meta
+      ? formatForecastDual(raw, fx, meta)
+      : { primary: point.display?.toFixed?.(2) ?? point.display, secondary: null };
+
   return (
     <div className="chart-tooltip">
       <p className="chart-tooltip__date">{formatShortDate(point.date)}</p>
       <p className="chart-tooltip__price">
-        {fx?.eurUsd ? formatPriceWithEur(point.price, fx.eurUsd) : formatPrice(point.price, 'USD')}
+        <strong>{dual.primary}</strong>
+        {dual.secondary && <span className="chart-tooltip__usd"> ({dual.secondary})</span>}
       </p>
     </div>
   );
 }
 
-export default function HistoryChart({ history, title, loading, fx }) {
+export default function HistoryChart({ history, title, loading, fx, meta }) {
   if (loading) {
     return (
       <div className="chart-card chart-card--loading">
@@ -40,16 +49,25 @@ export default function HistoryChart({ history, title, loading, fx }) {
     );
   }
 
-  const data = history.map((p) => ({ ...p, label: formatShortDate(p.date) }));
-  const min = Math.min(...data.map((d) => d.price));
-  const max = Math.max(...data.map((d) => d.price));
-  const padding = (max - min) * 0.08 || max * 0.02;
+  const rawByDate = {};
+  const data = history.map((p) => {
+    rawByDate[p.date] = p.price;
+    return {
+      ...p,
+      label: formatShortDate(p.date),
+      display: toDisplayPrice(p.price, fx, meta),
+    };
+  });
+
+  const values = data.map((d) => d.display).filter((v) => v != null);
+  const [yMin, yMax] = chartYDomain(values, 0.08);
+  const isGram = meta?.pricingKind === 'perGramTroy' || meta?.pricingKind === 'perGramLb';
 
   return (
     <div className="chart-card">
       <h3 className="chart-card__title">{title}</h3>
       <p className="chart-card__subtitle">
-        Andamento degli ultimi {data.length} giorni — più alto = più costoso
+        {chartAxisHint(fx, meta)} · ultimi {data.length} giorni
       </p>
       <ResponsiveContainer width="100%" height={280}>
         <AreaChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
@@ -68,24 +86,23 @@ export default function HistoryChart({ history, title, loading, fx }) {
             minTickGap={28}
           />
           <YAxis
-            domain={[min - padding, max + padding]}
+            domain={[yMin, yMax]}
             tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(v) =>
-              fx?.eurUsd ? `€${(usdToEur(v, fx.eurUsd) ?? 0).toFixed(0)}` : `$${v.toFixed(0)}`
-            }
-            width={64}
+            tickFormatter={(v) => formatChartYTick(v, fx, meta)}
+            width={isGram ? 88 : 64}
           />
-          <Tooltip content={<ChartTooltip fx={fx} />} />
+          <Tooltip content={<ChartTooltip fx={fx} meta={meta} rawByDate={rawByDate} />} />
           <Area
-            type="monotone"
-            dataKey="price"
+            type="linear"
+            dataKey="display"
             stroke="var(--chart-line)"
             strokeWidth={2}
             fill="url(#priceGradient)"
             dot={false}
             activeDot={{ r: 4, fill: 'var(--chart-line)' }}
+            isAnimationActive={false}
           />
         </AreaChart>
       </ResponsiveContainer>

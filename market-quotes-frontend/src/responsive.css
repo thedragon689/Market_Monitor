@@ -1,6 +1,6 @@
 /**
  * Layout responsive — mobile-first, tablet, desktop, wide.
- * Breakpoints: sm 480 · md 640 · lg 900 · xl 1200
+ * Breakpoints: sm 480 · md 640 · lg 900 · xl 1200 · xxl 1400 · 2xl 1600
  */
 
 /* ── Base & safe area ── */
@@ -9,11 +9,20 @@
   --bp-md: 640px;
   --bp-lg: 900px;
   --bp-xl: 1200px;
+  --bp-xxl: 1400px;
+  --bp-2xl: 1600px;
   --app-max: 1180px;
-  --app-max-xl: 1280px;
+  --app-max-lg: 1240px;
+  --app-max-xl: 1320px;
+  --app-max-xxl: 1440px;
+  --app-max-wide: 1560px;
   --gutter: 1rem;
   --gutter-lg: 1.5rem;
+  --gutter-xl: 2rem;
   --touch-min: 44px;
+  --chart-h: 280px;
+  --chart-h-lg: 320px;
+  --chart-h-xl: 360px;
 }
 
 @supports (padding: max(0px)) {
@@ -38,82 +47,79 @@
 
 @media (min-width: 1200px) {
   .app {
-    max-width: var(--app-max-xl);
+    --app-max: var(--app-max-lg);
     padding-left: max(var(--gutter-lg), env(safe-area-inset-left, 0px));
     padding-right: max(var(--gutter-lg), env(safe-area-inset-right, 0px));
   }
 }
 
-/* ── App shell header ── */
-@media (max-width: 899px) {
-  .app-shell__nav--steps .app-shell__tab {
-    min-width: 0;
-    flex: 1 1 22%;
-  }
-
-  .app-shell__tab-hint {
-    display: none;
-  }
-
-  .app-shell__header {
-    padding: 0.75rem 0.85rem;
-    gap: 0.65rem;
-  }
-
-  .app-shell__brand {
-    width: 100%;
-  }
-
-  .app-shell__nav {
-    width: 100%;
-    order: 2;
-  }
-
-  .app-shell__tab {
-    align-items: center;
-    text-align: center;
-    padding: 0.55rem 0.4rem;
-    min-height: var(--touch-min);
-  }
-
-  .app-shell__tab-label {
-    font-size: 0.82rem;
-  }
-
-  .app-shell__asset {
-    width: 100%;
-    order: 3;
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .app-shell__asset-info {
-    justify-content: flex-start;
-  }
-
-  .app-shell__asset-actions {
-    width: 100%;
-    justify-content: stretch;
-  }
-
-  .app-shell__asset-actions .btn {
-    flex: 1;
-    min-height: var(--touch-min);
-    justify-content: center;
-  }
-
-  .app-shell__categories {
-    margin-top: 0;
+@media (min-width: 1280px) {
+  .app {
+    --app-max: var(--app-max-xl);
   }
 }
 
-@media (min-width: 900px) and (max-width: 1099px) {
+@media (min-width: 1400px) {
+  .app {
+    --app-max: var(--app-max-xxl);
+    --chart-h: var(--chart-h-lg);
+    padding-left: max(var(--gutter-xl), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--gutter-xl), env(safe-area-inset-right, 0px));
+  }
+}
+
+@media (min-width: 1600px) {
+  .app {
+    --app-max: var(--app-max-wide);
+    --chart-h: var(--chart-h-xl);
+  }
+}
+
+/* Shell mobile ≤899px: vedi mobile-etoro.css */
+
+@media (min-width: 900px) and (max-width: 1279px) {
   .app-shell__tab {
-    padding: 0.45rem 0.5rem;
+    padding: 0.45rem 0.55rem;
   }
 
   .app-shell__tab-hint {
     display: none;
+  }
+
+  .app-shell__tab-label {
+    font-size: 0.84rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .app-shell__header {
+    padding: 0.9rem 1.15rem;
+    gap: 1.15rem;
+  }
+
+  .app-shell__tab {
+    padding: 0.55rem 0.75rem;
+  }
+
+  .app-shell__tab-hint {
+    display: block;
+  }
+
+  .app-shell__nav {
+    gap: 0.45rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  .app-shell__header {
+    grid-template-columns: minmax(220px, auto) minmax(0, 1fr) minmax(200px, auto);
+  }
+
+  .app-shell__asset-info strong {
+    max-width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
@@ -157,14 +163,6 @@
 
 /* ── Step intro & panels ── */
 @media (max-width: 639px) {
-  .step-intro {
-    padding: 0.85rem 1rem;
-  }
-
-  .step-intro__title {
-    font-size: 1.1rem;
-  }
-
   .view-panel__subtitle {
     font-size: 0.88rem;
   }
@@ -196,34 +194,7 @@
   }
 }
 
-/* Footer CTAs */
-@media (max-width: 639px) {
-  .view-footer {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: center;
-  }
-
-  .view-footer--cta > div,
-  .view-footer--split .view-footer__nav {
-    width: 100%;
-  }
-
-  .view-footer--cta .btn,
-  .view-footer--split > .btn {
-    width: 100%;
-    min-height: var(--touch-min);
-  }
-
-  .view-footer__nav {
-    flex-direction: column;
-  }
-
-  .view-footer__nav .btn {
-    width: 100%;
-    min-height: var(--touch-min);
-  }
-}
+/* Footer mobile: vedi mobile-etoro.css */
 
 /* ── Analysis grid (quote + chart) ── */
 @media (max-width: 899px) {
@@ -521,6 +492,27 @@
   }
 }
 
+/* Griglie condivise */
+.app__grid--explore,
+.app__grid--duo,
+.app__grid--forecast {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.app__grid--explore:empty,
+.app__grid--duo:empty {
+  display: none;
+}
+
+.app-card--forecast-split {
+  padding: 1.15rem 1.25rem;
+}
+
+.app__grid--forecast .forecast-cards {
+  margin-top: 0;
+}
+
 @media (min-width: 900px) {
   .forecast-controls__params {
     display: grid;
@@ -532,6 +524,10 @@
     gap: 1.15rem;
   }
 
+  .view-panel {
+    gap: 1.15rem;
+  }
+
   .view-footer {
     position: relative;
   }
@@ -539,15 +535,190 @@
   .category-selector--cards .category-selector__grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
+
+  .app__grid--explore {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .app__grid--explore > :only-child {
+    grid-column: 1 / -1;
+  }
+
+  .app__grid--duo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .app__grid--duo > :only-child {
+    grid-column: 1 / -1;
+  }
+
+  .app__grid--top {
+    grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.4fr);
+    align-items: start;
+  }
+}
+
+@media (min-width: 1100px) {
+  .app__grid--top {
+    grid-template-columns: minmax(300px, 0.95fr) minmax(380px, 1.35fr);
+    gap: 1.5rem;
+  }
+
+  .view-panel__actions--dual {
+    justify-content: flex-start;
+  }
+
+  .view-panel__actions--dual .btn {
+    flex: 0 1 auto;
+    min-width: 12rem;
+  }
 }
 
 @media (min-width: 1200px) {
   .app__grid--top {
-    grid-template-columns: minmax(320px, 1fr) minmax(400px, 1.5fr);
+    grid-template-columns: minmax(320px, 1fr) minmax(420px, 1.55fr);
+    gap: 1.65rem;
+  }
+
+  .app__grid--forecast {
+    grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr);
+    align-items: start;
+    gap: 1.5rem;
   }
 
   .step-intro__title {
     font-size: 1.35rem;
+  }
+
+  .forecast-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .indicators-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .trade-advice__strength {
+    max-width: 36rem;
+  }
+
+  .symbol-picker__grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    max-height: 320px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .category-selector--compact .category-selector__grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .category-selector--bar .category-selector__grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .forecast-controls__main {
+    flex-wrap: nowrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  .forecast-controls__actions {
+    flex-shrink: 0;
+  }
+}
+
+@media (min-width: 1400px) {
+  .app__grid--top {
+    grid-template-columns: minmax(340px, 1fr) minmax(480px, 1.75fr);
+  }
+
+  .app__grid--explore {
+    gap: 1.5rem;
+  }
+
+  .adv-dash__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .geo-summary__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .trade-advice__pillar-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .view-panel--advice .trade-advice {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 1.25rem 1.5rem;
+    align-items: start;
+  }
+
+  .view-panel--advice .trade-advice__verdict,
+  .view-panel--advice .trade-advice__strength,
+  .view-panel--advice .trade-advice__boost {
+    grid-column: 1;
+  }
+
+  .view-panel--advice .trade-advice__pillars,
+  .view-panel--advice .trade-advice__reasons {
+    grid-column: 2;
+  }
+
+  .view-panel--advice .trade-advice__details-wrap,
+  .view-panel--advice .trade-advice__disclaimer {
+    grid-column: 1 / -1;
+  }
+
+  .market-catalog__grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+@media (min-width: 1600px) {
+  .app__grid--top {
+    grid-template-columns: minmax(360px, 1fr) minmax(520px, 2fr);
+  }
+
+  .app__grid--forecast {
+    grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  }
+
+  .app__grid--duo {
+    gap: 1.65rem;
+  }
+
+  .view-panel {
+    gap: 1.35rem;
+  }
+
+  .competitor-board__wrap {
+    overflow-x: visible;
+  }
+
+  .competitor-table {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* Altezza grafici scalabile su desktop */
+.chart-card .recharts-responsive-container {
+  min-height: var(--chart-h);
+}
+
+@media (min-width: 900px) {
+  .chart-card .recharts-responsive-container {
+    height: var(--chart-h) !important;
+  }
+
+  .geo-chart .recharts-responsive-container {
+    height: calc(var(--chart-h) + 40px) !important;
   }
 }
 

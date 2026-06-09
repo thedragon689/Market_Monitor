@@ -10,6 +10,7 @@ import {
 import './App.css';
 import './responsive.css';
 import './ui-polish.css';
+import './mobile-etoro.css';
 import AppShell from './components/AppShell';
 import StepIntro from './components/StepIntro';
 import AppToolbar from './components/AppToolbar';
@@ -649,7 +650,7 @@ export default function App() {
         isLoading={isLoading}
         themeToggle={<ThemeToggle theme={theme} onChange={setTheme} />}
       >
-        <StepIntro view={view} onViewChange={handleViewChange} />
+        <StepIntro view={view} />
         <AppToolbar
           shareState={shareState}
           loadingMarket={loadingMarket}
@@ -734,39 +735,41 @@ export default function App() {
               fx={fx}
             />
 
-            {explorePanels.includes('quick') && (
-              <section className="app-card app-card--picker">
-                <h3 className="view-panel__subtitle">Selezione rapida</h3>
-                <SymbolPicker
-                  type={type}
-                  symbol={symbol}
-                  onTypeChange={handleTypeChange}
-                  onSymbolChange={handleSymbolChange}
-                  quotesBySymbol={quotesBySymbol}
-                  fx={fx}
-                  showCategoryTabs
-                />
-              </section>
-            )}
+            <div className="app__grid app__grid--explore">
+              {explorePanels.includes('quick') && (
+                <section className="app-card app-card--picker">
+                  <h3 className="view-panel__subtitle">Selezione rapida</h3>
+                  <SymbolPicker
+                    type={type}
+                    symbol={symbol}
+                    onTypeChange={handleTypeChange}
+                    onSymbolChange={handleSymbolChange}
+                    quotesBySymbol={quotesBySymbol}
+                    fx={fx}
+                    showCategoryTabs
+                  />
+                </section>
+              )}
 
-            {explorePanels.includes('catalog') && (
-              <section className="app-card app-card--catalog">
-                <h3 className="view-panel__subtitle">Catalogo · {categoryMeta.label}</h3>
-                <MarketCatalog
-                  catalog={catalog}
-                  summary={catalogSummary}
-                  updatedAt={catalogUpdatedAt}
-                  loading={loadingCatalog}
-                  selectedType={type}
-                  selectedSymbol={symbol}
-                  onSelectAsset={handleSelectAsset}
-                  onForecast={handleAssetForecast}
-                  fx={fx}
-                  forecastLoading={loadingForecast || loadingMarket}
-                  showAllCategories={showAllCatalog}
-                />
-              </section>
-            )}
+              {explorePanels.includes('catalog') && (
+                <section className="app-card app-card--catalog">
+                  <h3 className="view-panel__subtitle">Catalogo · {categoryMeta.label}</h3>
+                  <MarketCatalog
+                    catalog={catalog}
+                    summary={catalogSummary}
+                    updatedAt={catalogUpdatedAt}
+                    loading={loadingCatalog}
+                    selectedType={type}
+                    selectedSymbol={symbol}
+                    onSelectAsset={handleSelectAsset}
+                    onForecast={handleAssetForecast}
+                    fx={fx}
+                    forecastLoading={loadingForecast || loadingMarket}
+                    showAllCategories={showAllCatalog}
+                  />
+                </section>
+              )}
+            </div>
 
             {explorePanels.includes('compare') && (
               <section className="app-card app-card--flush">
@@ -813,6 +816,7 @@ export default function App() {
                   title={`Andamento · ${meta.name}`}
                   loading={loadingMarket}
                   fx={fx}
+                  meta={meta}
                 />
               </section>
             </div>
@@ -838,27 +842,32 @@ export default function App() {
 
             <IntelligentAlerts alerts={intelligence?.alerts} />
 
-            {analysisPanels.includes('indicators') && (
-              <section className="app-card">
-                <h3 className="view-panel__subtitle">Indicatori tecnici</h3>
-                <TechnicalIndicators
-                  analysis={analysis}
-                  loading={loadingAnalysis || loadingMarket}
-                  fx={fx}
-                  type={type}
-                  symbol={symbol}
-                />
-              </section>
-            )}
+            {(analysisPanels.includes('indicators') ||
+              analysisPanels.includes('correlations')) && (
+              <div className="app__grid app__grid--duo">
+                {analysisPanels.includes('indicators') && (
+                  <section className="app-card">
+                    <h3 className="view-panel__subtitle">Indicatori tecnici</h3>
+                    <TechnicalIndicators
+                      analysis={analysis}
+                      loading={loadingAnalysis || loadingMarket}
+                      fx={fx}
+                      type={type}
+                      symbol={symbol}
+                    />
+                  </section>
+                )}
 
-            {analysisPanels.includes('correlations') && (
-              <section className="app-card app-card--correlations">
-                <h3 className="view-panel__subtitle">Correlazioni · {meta.name}</h3>
-                <MarketCorrelations
-                  intelligence={intelligence}
-                  loading={loadingIntelligence || loadingMarket}
-                />
-              </section>
+                {analysisPanels.includes('correlations') && (
+                  <section className="app-card app-card--correlations">
+                    <h3 className="view-panel__subtitle">Correlazioni · {meta.name}</h3>
+                    <MarketCorrelations
+                      intelligence={intelligence}
+                      loading={loadingIntelligence || loadingMarket}
+                    />
+                  </section>
+                )}
+              </div>
             )}
 
             {analysisPanels.includes('compare') && (
@@ -929,26 +938,28 @@ export default function App() {
               />
             )}
 
-            <section className="app-card">
-              <Suspense fallback={<PanelFallback />}>
-                <ForecastChart
-                  history={history}
+            <section className="app-card app-card--forecast-split">
+              <div className="app__grid app__grid--forecast">
+                <Suspense fallback={<PanelFallback />}>
+                  <ForecastChart
+                    history={history}
+                    forecast={forecast}
+                    loading={loadingForecast}
+                    fx={fx}
+                    type={type}
+                    symbol={symbol}
+                    onForecast={goForecast}
+                    forecastLoading={loadingForecast || loadingMarket}
+                  />
+                </Suspense>
+                <ForecastCards
                   forecast={forecast}
                   loading={loadingForecast}
                   fx={fx}
                   type={type}
                   symbol={symbol}
-                  onForecast={goForecast}
-                  forecastLoading={loadingForecast || loadingMarket}
                 />
-              </Suspense>
-              <ForecastCards
-                forecast={forecast}
-                loading={loadingForecast}
-                fx={fx}
-                type={type}
-                symbol={symbol}
-              />
+              </div>
             </section>
 
             {forecastPanels.includes('geo') && (

@@ -1,4 +1,6 @@
-const VALID_VIEWS = new Set(['explore', 'analysis', 'advice', 'forecast']);
+import { VIEW_IDS } from '../data/views.js';
+
+const VALID_VIEWS = new Set(VIEW_IDS);
 const VALID_TYPES = new Set(['stock', 'national', 'crypto', 'precious', 'commodity']);
 
 export function parseUrlState(search) {

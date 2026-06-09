@@ -1,4 +1,4 @@
-/* UI polish — stepper, toolbar, empty states, focus, footer sticky */
+/* UI polish — toolbar, empty states, focus */
 
 .app-shell__tab.is-done:not(.is-active) {
   border-color: color-mix(in srgb, var(--teal) 35%, var(--border));
@@ -6,101 +6,6 @@
 
 .app-shell__tab.is-done:not(.is-active) .app-shell__tab-step {
   color: var(--teal);
-}
-
-/* Step progress */
-.step-progress {
-  margin: 0 0 0.85rem;
-}
-
-.step-progress__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  gap: 0;
-}
-
-.step-progress__item {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-}
-
-.step-progress__item:last-child {
-  flex: 0 0 auto;
-}
-
-.step-progress__btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  padding: 0.25rem 0.35rem;
-  color: var(--text-muted);
-  font-family: inherit;
-  font-size: 0.72rem;
-  font-weight: 600;
-  width: 100%;
-}
-
-.step-progress__btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: var(--radius-sm);
-}
-
-.step-progress__dot {
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border: 2px solid var(--border);
-  background: var(--bg-elevated);
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
-}
-
-.step-progress__item.is-active .step-progress__dot {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 0 0 3px var(--accent-bg);
-}
-
-.step-progress__item.is-done .step-progress__dot {
-  border-color: var(--teal);
-  background: var(--teal-soft);
-  color: var(--teal);
-}
-
-.step-progress__item.is-active .step-progress__label {
-  color: var(--text-h);
-}
-
-.step-progress__line {
-  flex: 1;
-  height: 2px;
-  min-width: 0.5rem;
-  margin: 0 0.15rem;
-  margin-bottom: 1.1rem;
-  background: var(--border);
-  border-radius: 1px;
-}
-
-.step-progress__item.is-done .step-progress__line {
-  background: linear-gradient(90deg, var(--teal), var(--border));
 }
 
 /* Toolbar */
@@ -224,23 +129,7 @@
   outline-offset: 2px;
 }
 
-/* Footer sticky mobile */
-@media (max-width: 639px) {
-  .view-footer {
-    position: sticky;
-    bottom: 0;
-    z-index: 20;
-    margin-top: 1rem;
-    padding: 0.85rem;
-    background: color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter: blur(8px);
-    border-top: 1px solid var(--border);
-    border-radius: var(--radius-md) var(--radius-md) 0 0;
-    box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.08);
-  }
-}
-
-/* Step intro + progress bundle */
+/* Step intro */
 .step-intro-block {
   margin-bottom: 0.5rem;
 }
@@ -1051,20 +940,6 @@ html[data-theme='dark'] .category-card__check {
   background: color-mix(in srgb, var(--cat-accent, var(--accent)) 18%, transparent);
 }
 
-html[data-theme='dark'] .step-progress__dot {
-  background: var(--choice-idle-bg);
-  border-color: var(--choice-idle-border);
-}
-
-html[data-theme='dark'] .step-progress__item.is-active .step-progress__dot {
-  box-shadow: 0 0 0 3px var(--accent-bg), 0 0 12px rgba(129, 140, 248, 0.35);
-}
-
-html[data-theme='dark'] .step-progress__item.is-done .step-progress__dot {
-  background: color-mix(in srgb, var(--teal) 20%, var(--choice-idle-bg));
-  color: var(--teal);
-}
-
 html[data-theme='dark'] .data-sources__item.is-primary {
   background: color-mix(in srgb, var(--teal) 16%, var(--choice-idle-bg));
   border-color: color-mix(in srgb, var(--teal) 40%, var(--border));
@@ -1090,4 +965,143 @@ html[data-theme='dark'] .competitor-table__row.is-selected {
   html:not([data-theme='light']) .category-card {
     background: var(--choice-idle-bg, var(--code-bg));
   }
+}
+
+/* ── Light mode: scelte, card, consigli ── */
+html[data-theme='light'] .app-shell__header {
+  background: color-mix(in srgb, var(--bg-elevated) 98%, var(--bg));
+  box-shadow: var(--shadow-md);
+}
+
+html[data-theme='light'] .app-shell__tab {
+  background: var(--choice-idle-bg);
+  border-color: var(--choice-idle-border);
+}
+
+html[data-theme='light'] .app-shell__tab.is-active {
+  background: var(--choice-active-bg);
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px var(--choice-ring),
+    var(--shadow-sm);
+}
+
+html[data-theme='light'] .app-shell__tab.is-active .app-shell__tab-label {
+  color: var(--choice-active-fg);
+}
+
+html[data-theme='light'] .panel-choices {
+  background: var(--bg-elevated);
+  border-color: var(--choice-track-border);
+}
+
+html[data-theme='light'] .panel-choices__chip {
+  background: var(--choice-idle-bg);
+  border-color: var(--choice-idle-border);
+}
+
+html[data-theme='light'] .panel-choices__chip.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-border);
+}
+
+html[data-theme='light'] .panel-choices__chip.is-active .panel-choices__chip-label {
+  color: var(--accent-hover);
+}
+
+html[data-theme='light'] .symbol-picker__tabs,
+html[data-theme='light'] .app-section__type-tabs,
+html[data-theme='light'] .market-catalog__tabs {
+  background: var(--choice-track);
+  border-color: var(--choice-track-border);
+}
+
+html[data-theme='light'] .symbol-picker__tab.is-active,
+html[data-theme='light'] .app-section__type-tab.is-active,
+html[data-theme='light'] .market-catalog__tab.is-active {
+  background: #fff;
+  color: var(--accent);
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.08),
+    0 0 0 1px var(--accent-border);
+}
+
+html[data-theme='light'] .symbol-picker__filter {
+  background: var(--choice-idle-bg);
+  border-color: var(--choice-idle-border);
+  color: var(--choice-muted-fg);
+}
+
+html[data-theme='light'] .symbol-picker__filter.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--choice-active-fg);
+}
+
+html[data-theme='light'] .symbol-chip {
+  background: var(--choice-idle-bg);
+  border-color: var(--choice-idle-border);
+  box-shadow: var(--shadow-sm);
+}
+
+html[data-theme='light'] .symbol-chip.is-selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px var(--accent-border),
+    var(--shadow-sm);
+}
+
+html[data-theme='light'] .category-card {
+  background: var(--choice-idle-bg);
+  border-color: var(--choice-idle-border);
+  box-shadow: var(--shadow-sm);
+}
+
+html[data-theme='light'] .category-card.is-active {
+  background: var(--cat-soft, var(--accent-soft));
+  border-color: var(--cat-accent, var(--accent));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--cat-accent, var(--accent)) 30%, transparent),
+    var(--shadow-md);
+}
+
+html[data-theme='light'] .category-card.is-active .category-card__label {
+  color: var(--choice-active-fg);
+}
+
+html[data-theme='light'] .trade-advice__verdict--hold {
+  background: var(--accent-soft);
+}
+
+html[data-theme='light'] .trade-advice__reason {
+  background: var(--code-bg);
+}
+
+html[data-theme='light'] .data-sources__item.is-primary {
+  background: var(--teal-soft);
+}
+
+html[data-theme='light'] .theme-toggle {
+  background: var(--choice-idle-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+html[data-theme='light'] .app-shell__logo-wrap {
+  background: #fff;
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 4px 14px rgba(99, 102, 241, 0.16);
+}
+
+html[data-theme='light'] .competitor-table__row.is-selected {
+  background: var(--accent-soft);
+}
+
+html[data-theme='light'] .forecast-controls__field select,
+html[data-theme='light'] .forecast-controls__field input,
+html[data-theme='light'] .market-catalog__search {
+  background: var(--choice-idle-bg);
+  color: var(--choice-active-fg);
 }

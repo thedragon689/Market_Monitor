@@ -166,7 +166,7 @@ export const LEGEND_SECTIONS = [
         term: 'Regressione lineare',
         formula: 'y = a·t + b',
         description:
-          'Estrapola il trend lineare sui prezzi passati. Pendenza (a) indica inclinazione giornaliera; intercetta (b) il livello base. Linea arancione nel grafico.',
+          'Stima il trend sugli ultimi N giorni (stessa finestra della SMA) e lo proietta in avanti. Pendenza (a) = inclinazione giornaliera. Linea arancione tratteggiata nel grafico.',
       },
       {
         term: 'Log-return',

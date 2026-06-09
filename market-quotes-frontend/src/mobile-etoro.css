@@ -1,0 +1,817 @@
+/**
+ * Mobile UI — stile eToro: bottom nav, pill filter, watchlist rows,
+ * verde trading, card morbide, uso a una mano.
+ * Attivo solo ≤899px; desktop invariato.
+ */
+
+@media (max-width: 899px) {
+  :root {
+    --etoro-green: #13c636;
+    --etoro-green-hover: #0fa82d;
+    --etoro-green-soft: rgba(19, 198, 54, 0.14);
+    --etoro-red: #ff3b30;
+    --etoro-red-soft: rgba(255, 59, 48, 0.12);
+    --mobile-nav-h: 4.35rem;
+    --accent: var(--etoro-green);
+    --accent-hover: var(--etoro-green-hover);
+    --accent-soft: var(--etoro-green-soft);
+    --accent-bg: var(--etoro-green-soft);
+    --accent-border: rgba(19, 198, 54, 0.45);
+    --cta-from: var(--etoro-green);
+    --cta-to: #0d9488;
+    --up: var(--etoro-green);
+    --down: var(--etoro-red);
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 18px;
+    --radius-xl: 22px;
+    --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 6px 20px rgba(15, 23, 42, 0.08);
+  }
+
+  html[data-theme='dark'] {
+    --etoro-green: #2ee55a;
+    --etoro-green-hover: #4ef070;
+    --etoro-green-soft: rgba(46, 229, 90, 0.16);
+    --etoro-red: #ff6961;
+    --etoro-red-soft: rgba(255, 105, 97, 0.14);
+    --accent: var(--etoro-green);
+    --accent-hover: var(--etoro-green-hover);
+    --accent-soft: var(--etoro-green-soft);
+    --accent-bg: var(--etoro-green-soft);
+    --accent-border: rgba(46, 229, 90, 0.4);
+    --bg: #0d1117;
+    --bg-elevated: #161b22;
+    --border: #2a3140;
+  }
+
+  /* ── App shell ── */
+  .app {
+    padding-left: max(0.85rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.85rem, env(safe-area-inset-right, 0px));
+    padding-bottom: calc(var(--mobile-nav-h) + 1.25rem + env(safe-area-inset-bottom, 0px));
+    padding-top: 0;
+  }
+
+  .app-shell {
+    gap: 0.65rem;
+  }
+
+  .app-shell__header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    margin: 0 -0.85rem;
+    padding: 0.55rem max(0.85rem, env(safe-area-inset-left, 0px)) 0.65rem
+      max(0.85rem, env(safe-area-inset-right, 0px));
+    padding-top: max(0.55rem, env(safe-area-inset-top, 0px));
+    border: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    box-shadow: none;
+    background: var(--bg-elevated);
+    backdrop-filter: none;
+    gap: 0.5rem;
+  }
+
+  .app-shell__nav--desktop {
+    display: none !important;
+  }
+
+  .app-shell__brand {
+    width: 100%;
+    gap: 0.55rem;
+  }
+
+  .app-shell__logo-wrap {
+    padding: 0.1rem;
+    border-radius: 11px;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .app-shell__logo {
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: 9px;
+  }
+
+  .app-shell__title {
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .app-shell__tagline {
+    display: none;
+  }
+
+  .app-shell__asset {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.65rem;
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg) 55%, var(--bg-elevated));
+    border: 1px solid var(--border);
+  }
+
+  .app-shell__asset-info {
+    flex: 1;
+    min-width: 0;
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+  }
+
+  .app-shell__asset-info strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.9rem;
+  }
+
+  .app-shell__asset-info code {
+    flex-shrink: 0;
+    font-size: 0.68rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    background: var(--code-bg);
+  }
+
+  .app-shell__asset-actions {
+    width: auto;
+    flex-shrink: 0;
+    gap: 0.3rem;
+  }
+
+  .app-shell__asset-actions .btn {
+    flex: 0 0 auto;
+    min-height: 2.35rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+  }
+
+  .app-shell__asset-actions .btn--cta {
+    background: var(--etoro-green);
+    color: #fff;
+    border: none;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(19, 198, 54, 0.35);
+  }
+
+  .app-shell__asset-actions .btn--ghost {
+    width: 2.35rem;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 1.1rem;
+  }
+
+  /* ── Bottom navigation (eToro-style) ── */
+  .app-shell__bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 80;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    gap: 0;
+    padding: 0.35rem 0.25rem;
+    padding-bottom: max(0.35rem, env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--bg-elevated) 96%, transparent);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(12px);
+  }
+
+  html[data-theme='dark'] .app-shell__bottom-nav {
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.45);
+  }
+
+  .app-shell__bottom-tab {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    min-height: var(--mobile-nav-h);
+    padding: 0.25rem 0.15rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font: inherit;
+    transition: color 0.15s, background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-shell__bottom-tab:active {
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+
+  .app-shell__bottom-tab.is-active {
+    color: var(--etoro-green);
+  }
+
+  .app-shell__bottom-tab.is-done:not(.is-active) {
+    color: color-mix(in srgb, var(--etoro-green) 55%, var(--text-muted));
+  }
+
+  .app-shell__bottom-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.65rem;
+    height: 1.65rem;
+  }
+
+  .app-shell__bottom-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+    text-align: center;
+  }
+
+  /* ── Category pills (Discover-style) ── */
+  .app-shell__categories {
+    margin: 0 -0.15rem;
+  }
+
+  .category-selector,
+  .category-selector--sticky {
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    backdrop-filter: none;
+    margin-bottom: 0;
+  }
+
+  .category-selector--bar .category-selector__intro {
+    display: none;
+  }
+
+  .category-selector--bar .category-selector__grid,
+  .category-selector--compact .category-selector__grid {
+    gap: 0.4rem;
+    padding-bottom: 0.15rem;
+    scrollbar-width: none;
+  }
+
+  .category-selector--bar .category-selector__grid::-webkit-scrollbar,
+  .category-selector--compact .category-selector__grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .category-selector--bar .category-card,
+  .category-selector--compact .category-card {
+    flex: 0 0 auto;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.42rem 0.85rem;
+    border-radius: 999px;
+    border-width: 1.5px;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .category-card__icon {
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 50%;
+    font-size: 0.75rem;
+  }
+
+  .category-card__label {
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  .category-card__meta,
+  .category-card__headline,
+  .category-card__desc {
+    display: none !important;
+  }
+
+  .category-card__check {
+    position: static;
+    width: 1rem;
+    height: 1rem;
+    font-size: 0.55rem;
+    margin-left: -0.15rem;
+  }
+
+  .category-card.is-active {
+    background: var(--etoro-green);
+    border-color: var(--etoro-green);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(19, 198, 54, 0.3);
+  }
+
+  .category-card.is-active .category-card__label,
+  .category-card.is-active .category-card__icon {
+    color: #fff;
+  }
+
+  .category-card.is-active .category-card__icon {
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  /* ── Step intro: solo titolo pagina ── */
+  .step-intro {
+    padding: 0.15rem 0 0.35rem;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+  }
+
+  .step-intro__badge,
+  .step-intro__lead {
+    display: none;
+  }
+
+  .step-intro__title {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── Toolbar minimale ── */
+  .app-toolbar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    padding: 0;
+    margin: -0.25rem 0 0;
+    background: transparent;
+    border: none;
+  }
+
+  .app-toolbar__status {
+    display: none;
+  }
+
+  .app-toolbar__actions .btn {
+    border-radius: 999px;
+    min-height: 2.25rem;
+    font-size: 0.78rem;
+  }
+
+  /* ── Cards morbide ── */
+  .app-card {
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    border: none;
+    box-shadow: var(--shadow-sm);
+    background: var(--bg-elevated);
+  }
+
+  .app-card--flush {
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .view-panel {
+    gap: 0.85rem;
+  }
+
+  /* ── Panel chips → filtri orizzontali ── */
+  .panel-choices {
+    margin-bottom: 0.35rem;
+  }
+
+  .panel-choices__head strong {
+    font-size: 0.88rem;
+  }
+
+  .panel-choices__hint {
+    display: none;
+  }
+
+  .panel-choices__grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    gap: 0.4rem;
+    padding-bottom: 0.2rem;
+    scrollbar-width: none;
+  }
+
+  .panel-choices__grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .panel-choices__chip {
+    flex: 0 0 auto;
+    min-height: 2.35rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    border-width: 1.5px;
+  }
+
+  .panel-choices__chip.is-active {
+    background: var(--etoro-green);
+    border-color: var(--etoro-green);
+    color: #fff;
+  }
+
+  .panel-choices__chip.is-active .panel-choices__chip-label {
+    color: #fff;
+  }
+
+  /* ── Watchlist stile eToro ── */
+  .watchlist__list {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .watchlist__item {
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .watchlist__item:last-child {
+    border-bottom: none;
+  }
+
+  .watchlist__pick {
+    flex: 1;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1rem;
+    background: transparent;
+  }
+
+  .watchlist__code {
+    font-size: 0.9rem;
+    min-width: 3.5rem;
+  }
+
+  /* ── Symbol picker → lista watchlist ── */
+  .symbol-picker__hint {
+    margin-bottom: 0.5rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .symbol-picker__tabs,
+  .symbol-picker__filters {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.35rem;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+  }
+
+  .symbol-picker__tabs::-webkit-scrollbar,
+  .symbol-picker__filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .symbol-picker__tab,
+  .symbol-picker__filter {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .symbol-picker__tab.is-active,
+  .symbol-picker__filter.is-active {
+    background: var(--etoro-green);
+    border-color: var(--etoro-green);
+    color: #fff;
+  }
+
+  .symbol-picker__grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .symbol-picker__sections {
+    max-height: none;
+    gap: 0.75rem;
+  }
+
+  .symbol-picker__section-title {
+    padding: 0 0.15rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  .symbol-chip {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.65rem;
+    padding: 0.85rem 1rem;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    background: transparent;
+    width: 100%;
+  }
+
+  .symbol-chip:last-child {
+    border-bottom: none;
+  }
+
+  .symbol-chip.is-selected {
+    background: var(--etoro-green-soft);
+    box-shadow: inset 3px 0 0 var(--etoro-green);
+  }
+
+  .symbol-chip__row {
+    order: 3;
+    margin-left: auto;
+  }
+
+  .symbol-chip__code {
+    order: 1;
+    font-size: 0.95rem;
+    font-weight: 800;
+    min-width: 3.25rem;
+  }
+
+  .symbol-chip__name {
+    order: 2;
+    flex: 1;
+    min-width: 0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .symbol-chip__price {
+    order: 4;
+    width: 100%;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    padding-left: 3.9rem;
+  }
+
+  .symbol-chip__desc,
+  .symbol-chip__region {
+    display: none;
+  }
+
+  .symbol-chip__chg {
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .symbol-chip__chg--up {
+    background: var(--etoro-green-soft);
+    color: var(--etoro-green);
+  }
+
+  .symbol-chip__chg--down {
+    background: var(--etoro-red-soft);
+    color: var(--etoro-red);
+  }
+
+  /* ── Catalog cards → righe compatte ── */
+  .market-catalog__grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .catalog-card {
+    border: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    padding: 0.85rem 1rem;
+    box-shadow: none;
+  }
+
+  .catalog-card:last-child {
+    border-bottom: none;
+  }
+
+  .catalog-card.is-selected {
+    background: var(--etoro-green-soft);
+    box-shadow: inset 3px 0 0 var(--etoro-green);
+  }
+
+  .catalog-card__chg--up {
+    color: var(--etoro-green);
+    background: var(--etoro-green-soft);
+    padding: 0.2rem 0.45rem;
+    border-radius: 6px;
+  }
+
+  .catalog-card__chg--down {
+    color: var(--etoro-red);
+    background: var(--etoro-red-soft);
+    padding: 0.2rem 0.45rem;
+    border-radius: 6px;
+  }
+
+  /* ── Quote hero ── */
+  .quote-panel {
+    padding: 1.15rem 1rem;
+    border: none;
+    border-radius: var(--radius-xl);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-md);
+  }
+
+  .quote-panel--up {
+    box-shadow:
+      var(--shadow-md),
+      inset 0 3px 0 var(--etoro-green);
+  }
+
+  .quote-panel--down {
+    box-shadow:
+      var(--shadow-md),
+      inset 0 3px 0 var(--etoro-red);
+  }
+
+  .quote-panel__title {
+    font-size: 1.25rem;
+  }
+
+  .quote-panel__price {
+    font-size: 2.35rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .quote-panel__plain {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+
+  .quote-trend {
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg) 50%, var(--bg-elevated));
+  }
+
+  .quote-trend--up {
+    background: var(--etoro-green-soft);
+  }
+
+  .quote-trend--down {
+    background: var(--etoro-red-soft);
+  }
+
+  /* ── Bottoni primari verdi ── */
+  .btn--primary,
+  .btn--cta:not(.btn--compact) {
+    background: var(--etoro-green);
+    border-color: var(--etoro-green);
+    color: #fff;
+    font-weight: 700;
+    border-radius: 999px;
+    min-height: var(--touch-min);
+    box-shadow: 0 4px 16px rgba(19, 198, 54, 0.28);
+  }
+
+  .btn--primary:hover,
+  .btn--cta:not(.btn--compact):hover {
+    background: var(--etoro-green-hover);
+    border-color: var(--etoro-green-hover);
+  }
+
+  /* ── Footer: solo CTA avanti (nav indietro = bottom bar) ── */
+  .view-footer--analysis,
+  .view-footer--forecast {
+    display: none;
+  }
+
+  .view-footer__back {
+    display: none;
+  }
+
+  .view-footer__hint {
+    display: none;
+  }
+
+  .view-footer {
+    position: sticky;
+    bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom, 0px));
+    z-index: 30;
+    margin: 0.75rem -0.15rem 0;
+    padding: 0.65rem 0.85rem;
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.06);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .view-footer .btn {
+    width: 100%;
+    border-radius: 999px;
+    min-height: var(--touch-min);
+    font-weight: 700;
+  }
+
+  .view-footer--explore .btn--primary,
+  .view-footer--advice .btn--cta {
+    width: 100%;
+  }
+
+  /* Shortcut header ridondante con tab Prevedi */
+  .app-shell__forecast-shortcut {
+    display: none;
+  }
+
+  /* ── Trade advice mobile-friendly ── */
+  .trade-advice__verdict {
+    border-radius: var(--radius-xl);
+    border: none;
+    box-shadow: var(--shadow-md);
+  }
+
+  .trade-advice__verdict--buy,
+  .trade-advice__verdict--buy-soft {
+    box-shadow:
+      var(--shadow-md),
+      inset 0 3px 0 var(--etoro-green);
+  }
+
+  .trade-advice__verdict--sell,
+  .trade-advice__verdict--sell-soft {
+    box-shadow:
+      var(--shadow-md),
+      inset 0 3px 0 var(--etoro-red);
+  }
+
+  .trade-advice__strength {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .trade-advice__reason,
+  .trade-advice__pillar {
+    border-radius: var(--radius-md);
+  }
+
+  /* ── Grafici ── */
+  .chart-card {
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background: var(--bg-elevated);
+  }
+
+  .chart-card .recharts-responsive-container {
+    min-height: 260px;
+  }
+
+  /* ── Search catalog toolbar ── */
+  .market-catalog__search input {
+    border-radius: 999px;
+    min-height: var(--touch-min);
+    padding-left: 1rem;
+  }
+
+  .market-catalog__toolbar {
+    gap: 0.5rem;
+  }
+}
+
+/* Desktop: nascondi bottom nav */
+@media (min-width: 900px) {
+  .app-shell__bottom-nav {
+    display: none;
+  }
+}
