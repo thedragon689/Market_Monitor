@@ -14,6 +14,8 @@ import './fintech-polish.css';
 import './mobile-etoro.css';
 import './dark-theme.css';
 import './icons.css';
+import './design-system.css';
+import './pro-dashboard.css';
 import AppShell from './components/AppShell';
 import StepIntro from './components/StepIntro';
 import AppToolbar from './components/AppToolbar';
@@ -23,6 +25,9 @@ import ThemeToggle from './components/ThemeToggle';
 import ViewFallback from './components/ViewFallback';
 import MobileStickyActions from './components/MobileStickyActions';
 import QuotePanel from './components/QuotePanel';
+import AssetStatsRow from './components/AssetStatsRow';
+import MarketOverview from './components/MarketOverview';
+import InfoPage from './components/InfoPage';
 import TrustFooter from './components/TrustFooter';
 import { normalizeTimeframe, sliceHistoryByTimeframe } from './data/chartTimeframes';
 import { catalogToQuoteMap } from './utils/catalogPrice';
@@ -72,6 +77,8 @@ const GeopoliticalSummary = lazy(() => import('./components/GeopoliticalSummary'
 const MarketCorrelations = lazy(() => import('./components/MarketCorrelations'));
 const AdvancedDashboard = lazy(() => import('./components/AdvancedDashboard'));
 const MlForecastPanel = lazy(() => import('./components/MlForecastPanel'));
+const ForecastPreview = lazy(() => import('./components/ForecastPreview'));
+const IndicatorToggles = lazy(() => import('./components/IndicatorToggles'));
 const ForecastChart = lazy(() => import('./components/ForecastChart'));
 const GeopoliticalImpactChart = lazy(
   () => import('./components/GeopoliticalImpactChart')
@@ -99,7 +106,18 @@ export default function App() {
   const [chartOverlays, setChartOverlays] = useState({
     ema20: true,
     ema50: false,
+    ema200: false,
     sma20: false,
+    bollinger: false,
+    forecastArima: false,
+    forecastLstm: false,
+    forecastHybrid: false,
+  });
+  const [indicatorToggles, setIndicatorToggles] = useState({
+    ema: true,
+    rsi: true,
+    macd: true,
+    bollinger: true,
   });
   const [dataFreshKey, setDataFreshKey] = useState(0);
   const [theme, setTheme] = useState(INIT.theme);
@@ -509,7 +527,8 @@ export default function App() {
     [symbol, type, horizonDays, windowN, forecastMethod]
   );
 
-  const loadForecast = useCallback(async () => {
+  const loadForecast = useCallback(async (opts = {}) => {
+    const { navigate = true } = opts;
     try {
       setLoadingForecast(true);
       setLoadingGeo(true);
@@ -523,7 +542,7 @@ export default function App() {
         geo: 'true',
       });
       const { data } = await apiFetch(`${API_BASE}/api/forecast?${params}`);
-      setView('forecast');
+      if (navigate) setView('forecast');
       setForecast(data);
       setGeopolitical((prev) => ({
         ...(prev || {}),
@@ -622,9 +641,13 @@ export default function App() {
     [type, handleTypeChange, handleViewChange]
   );
 
-  const handleGoInfo = useCallback(() => {
-    document.getElementById('trust-footer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, []);
+  const handleSelectCategory = useCallback(
+    (catId) => {
+      handleTypeChange(catId);
+      setView('explore');
+    },
+    [handleTypeChange]
+  );
 
   const handleInternalSection = useCallback(
     (section) => {
@@ -841,12 +864,13 @@ export default function App() {
         theme={theme}
         themeToggle={<ThemeToggle theme={theme} onChange={setTheme} />}
         onQuickNav={handleQuickNav}
-        onGoInfo={handleGoInfo}
         onInternalSection={handleInternalSection}
         onSymbolChange={handleSymbolChange}
         dataFreshKey={dataFreshKey}
       >
-        {!(isMobile && view === 'explore') && !isTerminalExplore && <StepIntro view={view} />}
+        {!(isMobile && view === 'explore') &&
+          !isTerminalExplore &&
+          view !== 'info' && <StepIntro view={view} />}
         <AppToolbar
           shareState={shareState}
           loadingMarket={marketBusy}
@@ -917,6 +941,7 @@ export default function App() {
               loadingMarket={marketBusy}
               quotesBySymbol={quotesBySymbol}
               onSelectAsset={handleSelectAsset}
+              onSelectCategory={handleSelectCategory}
               onAnalyze={() => handleViewChange('analysis')}
               onWatchlistSelect={handleSelectAsset}
               onTypeChange={handleTypeChange}
@@ -924,6 +949,19 @@ export default function App() {
               onForecast={goForecast}
             />
           </Suspense>
+        )}
+
+        {isTerminalExplore && (
+          <div className="home-overview">
+            <MarketOverview
+              catalog={catalog}
+              summary={catalogSummary}
+              loading={catalogPanelLoading}
+              fx={fx}
+              onSelectCategory={handleSelectCategory}
+              onSelectAsset={handleSelectAsset}
+            />
+          </div>
         )}
 
         {isTerminalExplore && (
@@ -971,6 +1009,14 @@ export default function App() {
                 freshKey={dataFreshKey}
                 onGoExplore={() => handleViewChange('explore')}
               />
+              <AssetStatsRow
+                quote={displayQuote}
+                analysis={analysis}
+                loading={quotePanelLoading || loadingAnalysis}
+                type={type}
+                symbol={symbol}
+                fx={fx}
+              />
               <div className="asset-dashboard__chart">
                 <Suspense fallback={<PanelFallback label="Caricamento grafico…" tall />}>
                   <HistoryChart
@@ -988,6 +1034,9 @@ export default function App() {
                     analysis={analysis}
                     chartOverlays={chartOverlays}
                     onChartOverlaysChange={setChartOverlays}
+                    forecast={forecast}
+                    onRequestForecast={() => loadForecast({ navigate: false })}
+                    forecastLoading={loadingForecast}
                   />
                 </Suspense>
               </div>
@@ -1039,12 +1088,34 @@ export default function App() {
               </section>
             )}
 
+            {analysisPanels.includes('forecast') && (
+              <Suspense fallback={<PanelFallback tall />}>
+                <ForecastPreview
+                  forecast={forecast}
+                  loading={loadingForecast}
+                  loadingForecast={loadingForecast}
+                  fx={fx}
+                  type={type}
+                  symbol={symbol}
+                  quote={displayQuote}
+                  onCalculate={() => loadForecast({ navigate: false })}
+                />
+              </Suspense>
+            )}
+
             {(analysisPanels.includes('indicators') ||
               analysisPanels.includes('correlations')) && (
               <div className="app__grid app__grid--duo">
                 {analysisPanels.includes('indicators') && (
                   <section className="app-card">
-                    <h3 className="view-panel__subtitle">Indicatori tecnici</h3>
+                    <h3 className="view-panel__subtitle">Analisi tecnica</h3>
+                    <Suspense fallback={null}>
+                      <IndicatorToggles
+                        value={indicatorToggles}
+                        onChange={setIndicatorToggles}
+                        disabled={loadingAnalysis || loadingMarket}
+                      />
+                    </Suspense>
                     <Suspense fallback={<PanelFallback />}>
                     <TechnicalIndicators
                       analysis={analysis}
@@ -1052,6 +1123,7 @@ export default function App() {
                       fx={fx}
                       type={type}
                       symbol={symbol}
+                      visible={indicatorToggles}
                     />
                     </Suspense>
                   </section>
@@ -1219,6 +1291,14 @@ export default function App() {
               </section>
             )}
           </div>
+        )}
+
+        {view === 'info' && (
+          <InfoPage
+            type={type}
+            marketMeta={marketMeta}
+            categoryConfig={categorySources?.[type]}
+          />
         )}
 
         <TrustFooter />

@@ -4,7 +4,7 @@ import AppLogo from './AppLogo';
 import AssetSwitcher from './AssetSwitcher';
 import BottomNavIcon from './BottomNavIcon';
 import Breadcrumbs from './Breadcrumbs';
-import QuickNav from './QuickNav';
+import ProNavbar from './ProNavbar';
 import MobileNavDrawer from './MobileNavDrawer';
 import { getCategoryMeta } from '../data/categories';
 import { APP_VIEWS, getViewIndex } from '../data/views';
@@ -25,7 +25,6 @@ export default function AppShell({
   themeToggle,
   theme = 'dark',
   onQuickNav,
-  onGoInfo,
   onInternalSection,
   onSymbolChange,
   dataFreshKey = 0,
@@ -133,12 +132,7 @@ export default function AppShell({
         </div>
       </header>
 
-      <QuickNav
-        view={view}
-        type={type}
-        onNavigate={handleQuickNav}
-        onInfo={onGoInfo}
-      />
+      <ProNavbar view={view} type={type} onNavigate={handleQuickNav} />
 
       <Breadcrumbs
         view={view}
@@ -148,15 +142,17 @@ export default function AppShell({
         onNavigate={handleBreadcrumb}
       />
 
-      <div className="app-shell__categories">
-        <CategorySelector
-          type={type}
-          onTypeChange={onTypeChange}
-          summary={categorySummary}
-          variant={view === 'explore' ? 'bar' : 'compact'}
-          onInternalSection={onInternalSection}
-        />
-      </div>
+      {view !== 'info' && (
+        <div className="app-shell__categories">
+          <CategorySelector
+            type={type}
+            onTypeChange={onTypeChange}
+            summary={categorySummary}
+            variant={view === 'explore' ? 'bar' : 'compact'}
+            onInternalSection={onInternalSection}
+          />
+        </div>
+      )}
 
       {isLoading && <div className="app-shell__progress" aria-hidden />}
 
@@ -189,6 +185,7 @@ export default function AppShell({
         type={type}
         onViewChange={onViewChange}
         onTypeChange={onTypeChange}
+        onQuickNav={handleQuickNav}
       />
     </div>
   );

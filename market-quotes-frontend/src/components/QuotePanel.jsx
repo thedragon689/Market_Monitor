@@ -1,4 +1,5 @@
 import { getSymbolMeta } from '../data/symbols';
+import Badge from './Badge';
 import EmptyState from './EmptyState';
 import { changeSummary, formatPercent, formatPrice, usdToEur } from '../utils/format';
 import {
@@ -128,9 +129,9 @@ export default function QuotePanel({
           </p>
         )}
         {quote.changePercent != null && (
-          <span className={`quote-panel__chg-pill quote-panel__chg-pill--${summary.tone}`}>
+          <Badge tone={summary.tone} size="md" className="quote-panel__chg-pill">
             {formatPercent(quote.changePercent)}
-          </span>
+          </Badge>
         )}
       </div>
 

@@ -10,7 +10,7 @@ const DEFAULTS = {
   historyTimeframe: '3M',
   explorePanels: ['overview', 'quick', 'catalog', 'compare'],
   catalogScope: ['category'],
-  analysisPanels: ['indicators', 'correlations', 'geo'],
+  analysisPanels: ['indicators', 'forecast', 'correlations', 'geo'],
   forecastPanels: ['params', 'advanced', 'geo'],
   theme: 'dark',
 };

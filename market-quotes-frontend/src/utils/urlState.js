@@ -44,7 +44,7 @@ export function parseUrlState(search) {
     out.forecastMethod = method;
   }
   const tf = q.get('tf');
-  if (tf && ['1W', '1M', '3M', 'MAX'].includes(tf)) out.historyTimeframe = tf;
+  if (tf && ['1D', '1W', '1M', '3M', '1Y', 'MAX'].includes(tf)) out.historyTimeframe = tf;
   return out;
 }
 

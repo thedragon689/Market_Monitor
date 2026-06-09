@@ -8,7 +8,9 @@ export default function StepIntro({ view }) {
   return (
     <div className="step-intro-block">
       <div className="step-intro">
-        <span className="step-intro__badge">Passo {info.step}</span>
+        {info.step != null && (
+          <span className="step-intro__badge">Passo {info.step}</span>
+        )}
         <div className="step-intro__title-row">
           <h2 className="step-intro__title">{info.title}</h2>
           {view === 'forecast' && (

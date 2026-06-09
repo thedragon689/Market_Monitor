@@ -6,6 +6,7 @@ import MobileAssetHero from './MobileAssetHero';
 import MobileCategoryBar from './MobileCategoryBar';
 import MobileMarketStrip from './MobileMarketStrip';
 import Watchlist from './Watchlist';
+import MarketOverview from './MarketOverview';
 import TerminalTopMovers from './terminal/TerminalTopMovers';
 
 const STOCK_REGIONS = [
@@ -80,6 +81,7 @@ export default function MobileExploreHub({
   loadingMarket,
   quotesBySymbol,
   onSelectAsset,
+  onSelectCategory,
   onAnalyze,
   onWatchlistSelect,
   onTypeChange,
@@ -124,6 +126,15 @@ export default function MobileExploreHub({
         type={type}
         onTypeChange={onTypeChange}
         summary={catalogSummary}
+      />
+
+      <MarketOverview
+        catalog={catalog}
+        summary={catalogSummary}
+        loading={loadingCatalog}
+        fx={fx}
+        onSelectCategory={onSelectCategory || onTypeChange}
+        onSelectAsset={onSelectAsset}
       />
 
       <MobileAssetHero

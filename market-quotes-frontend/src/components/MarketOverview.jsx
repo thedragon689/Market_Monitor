@@ -1,8 +1,20 @@
 import { MARKET_CATEGORIES } from '../data/categories';
 import CategoryIcon from './icons/CategoryIcon';
+import Sparkline from './Sparkline';
 import { changeTone, formatChangeBadge, formatCurrentPrice } from '../utils/catalogPrice';
 
-const OVERVIEW_IDS = ['crypto', 'index', 'commodity', 'precious', 'forex', 'etf', 'macro'];
+function sparkPointsFromQuote(quote) {
+  if (!quote?.price) return [];
+  const price = Number(quote.price);
+  const pct = Number(quote.changePercent) || 0;
+  const n = 6;
+  return Array.from({ length: n }, (_, i) => ({
+    price: price * (1 + (pct / 100) * (i / (n - 1) - 0.5)),
+  }));
+}
+
+/** Homepage mobile-first: 4 macro-mercati principali. */
+const OVERVIEW_IDS = ['index', 'crypto', 'commodity', 'forex'];
 
 const CATALOG_KEYS = {
   stock: 'stocks',
@@ -105,6 +117,13 @@ export default function MarketOverview({
                             <code>{item.id}</code>
                             <span>{item.name}</span>
                           </span>
+                          <Sparkline
+                            className="market-overview__asset-spark"
+                            points={sparkPointsFromQuote(item.quote)}
+                            tone={tone === 'neutral' ? 'auto' : tone}
+                            width={64}
+                            height={24}
+                          />
                           <span className="market-overview__asset-quote">
                             <strong>{price.primary}</strong>
                             {chg != null && (

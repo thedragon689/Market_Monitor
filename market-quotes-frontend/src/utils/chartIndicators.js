@@ -34,13 +34,45 @@ export function smaSeries(prices, period) {
   return out;
 }
 
-/** Aggiunge campi ema20, ema50, sma20 in unità display al dataset del grafico. */
-export function enrichChartWithOverlays(rows, { ema20, ema50, sma20 }, fx, meta, currency) {
+function stdDev(slice) {
+  const mean = slice.reduce((a, b) => a + b, 0) / slice.length;
+  const variance = slice.reduce((a, b) => a + (b - mean) ** 2, 0) / slice.length;
+  return Math.sqrt(variance);
+}
+
+export function bollingerSeries(prices, period = 20, mult = 2) {
+  const data = cleanPrices(prices);
+  const upper = new Array(data.length).fill(null);
+  const middle = new Array(data.length).fill(null);
+  const lower = new Array(data.length).fill(null);
+  if (data.length < period) return { upper, middle, lower };
+
+  for (let i = period - 1; i < data.length; i++) {
+    const slice = data.slice(i - period + 1, i + 1);
+    const mid = slice.reduce((a, b) => a + b, 0) / period;
+    const sd = stdDev(slice);
+    middle[i] = mid;
+    upper[i] = mid + mult * sd;
+    lower[i] = mid - mult * sd;
+  }
+  return { upper, middle, lower };
+}
+
+/** Aggiunge campi overlay in unità display al dataset del grafico. */
+export function enrichChartWithOverlays(
+  rows,
+  { ema20, ema50, ema200, sma20, bollinger },
+  fx,
+  meta,
+  currency
+) {
   if (!rows?.length) return rows;
   const raw = rows.map((r) => r.price);
   const ema20s = ema20 ? emaSeries(raw, 20) : null;
   const ema50s = ema50 ? emaSeries(raw, 50) : null;
+  const ema200s = ema200 ? emaSeries(raw, 200) : null;
   const sma20s = sma20 ? smaSeries(raw, 20) : null;
+  const bb = bollinger ? bollingerSeries(raw, 20, 2) : null;
 
   return rows.map((row, i) => ({
     ...row,
@@ -48,7 +80,15 @@ export function enrichChartWithOverlays(rows, { ema20, ema50, sma20 }, fx, meta,
       ema20s?.[i] != null ? toDisplayPrice(ema20s[i], fx, meta, currency) : null,
     ema50:
       ema50s?.[i] != null ? toDisplayPrice(ema50s[i], fx, meta, currency) : null,
+    ema200:
+      ema200s?.[i] != null ? toDisplayPrice(ema200s[i], fx, meta, currency) : null,
     sma20:
       sma20s?.[i] != null ? toDisplayPrice(sma20s[i], fx, meta, currency) : null,
+    bbUpper:
+      bb?.upper[i] != null ? toDisplayPrice(bb.upper[i], fx, meta, currency) : null,
+    bbMiddle:
+      bb?.middle[i] != null ? toDisplayPrice(bb.middle[i], fx, meta, currency) : null,
+    bbLower:
+      bb?.lower[i] != null ? toDisplayPrice(bb.lower[i], fx, meta, currency) : null,
   }));
 }

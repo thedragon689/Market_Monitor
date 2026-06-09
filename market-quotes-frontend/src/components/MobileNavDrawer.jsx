@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { APP_VIEWS } from '../data/views';
+import { PRO_NAV_ITEMS, isProNavActive } from '../data/proNav';
 import { MARKET_CATEGORIES } from '../data/categories';
 import CategoryIcon from './icons/CategoryIcon';
 
@@ -12,6 +13,7 @@ export default function MobileNavDrawer({
   type,
   onViewChange,
   onTypeChange,
+  onQuickNav,
 }) {
   const panelRef = useRef(null);
 
@@ -30,6 +32,16 @@ export default function MobileNavDrawer({
   }, [open, onClose]);
 
   if (!open) return null;
+
+  const handleProNav = (item) => {
+    if (onQuickNav) {
+      onQuickNav({ view: item.view, type: item.type });
+    } else {
+      if (item.type && item.type !== type) onTypeChange?.(item.type);
+      if (item.view) onViewChange?.(item.view);
+    }
+    onClose?.();
+  };
 
   return (
     <div className="mobile-drawer" role="presentation">
@@ -52,6 +64,25 @@ export default function MobileNavDrawer({
             ✕
           </button>
         </header>
+
+        <nav className="mobile-drawer__section" aria-label="Navigazione principale">
+          <p className="mobile-drawer__label">Mercati</p>
+          <ul className="mobile-drawer__list">
+            {PRO_NAV_ITEMS.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  className={`mobile-drawer__btn ${isProNavActive(item, view, type) ? 'is-active' : ''}`}
+                  onClick={() => handleProNav(item)}
+                >
+                  <span>
+                    <strong>{item.label}</strong>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
         <nav className="mobile-drawer__section" aria-label="Passaggi">
           <p className="mobile-drawer__label">Passaggi</p>

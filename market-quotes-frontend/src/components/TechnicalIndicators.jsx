@@ -19,7 +19,14 @@ function formatNum(value, digits = 2) {
   });
 }
 
-export default function TechnicalIndicators({ analysis, loading, fx, type, symbol }) {
+export default function TechnicalIndicators({
+  analysis,
+  loading,
+  fx,
+  type,
+  symbol,
+  visible = { ema: true, rsi: true, macd: true, bollinger: true },
+}) {
   const meta = getSymbolMeta(symbol, type);
   const ind = analysis?.indicators;
 
@@ -49,33 +56,43 @@ export default function TechnicalIndicators({ analysis, loading, fx, type, symbo
   return (
     <div className="indicators-panel">
       <dl className="indicators-grid">
-        <IndicatorRow label={`SMA (14)`}>{formatNum(ind.sma14)}</IndicatorRow>
-        <IndicatorRow label={`SMA (20)`}>{formatNum(ind.sma20)}</IndicatorRow>
-        <IndicatorRow label={`EMA (14)`}>{formatNum(ind.ema14)}</IndicatorRow>
-        <IndicatorRow label={`EMA (20)`}>{formatNum(ind.ema20)}</IndicatorRow>
-        <IndicatorRow label={`RSI (14)`}>
-          <span className={`indicator-rsi${rsiTone}`}>{formatNum(ind.rsi14)}</span>
-        </IndicatorRow>
-        <IndicatorRow label="MACD">
-          {macd ? (
-            <>
-              linea {formatNum(macd.macdLine, 4)}, signal {formatNum(macd.signal, 4)}, hist{' '}
-              {formatNum(macd.histogram, 4)}
-            </>
-          ) : (
-            '—'
-          )}
-        </IndicatorRow>
-        <IndicatorRow label="Bollinger (20)">
-          {bb ? (
-            <>
-              sup. {formatNum(bb.upper)} · media {formatNum(bb.middle)} · inf.{' '}
-              {formatNum(bb.lower)}
-            </>
-          ) : (
-            '—'
-          )}
-        </IndicatorRow>
+        {visible.ema !== false && (
+          <>
+            <IndicatorRow label={`SMA (14)`}>{formatNum(ind.sma14)}</IndicatorRow>
+            <IndicatorRow label={`SMA (20)`}>{formatNum(ind.sma20)}</IndicatorRow>
+            <IndicatorRow label={`EMA (14)`}>{formatNum(ind.ema14)}</IndicatorRow>
+            <IndicatorRow label={`EMA (20)`}>{formatNum(ind.ema20)}</IndicatorRow>
+          </>
+        )}
+        {visible.rsi !== false && (
+          <IndicatorRow label={`RSI (14)`}>
+            <span className={`indicator-rsi${rsiTone}`}>{formatNum(ind.rsi14)}</span>
+          </IndicatorRow>
+        )}
+        {visible.macd !== false && (
+          <IndicatorRow label="MACD">
+            {macd ? (
+              <>
+                linea {formatNum(macd.macdLine, 4)}, signal {formatNum(macd.signal, 4)}, hist{' '}
+                {formatNum(macd.histogram, 4)}
+              </>
+            ) : (
+              '—'
+            )}
+          </IndicatorRow>
+        )}
+        {visible.bollinger !== false && (
+          <IndicatorRow label="Bollinger (20)">
+            {bb ? (
+              <>
+                sup. {formatNum(bb.upper)} · media {formatNum(bb.middle)} · inf.{' '}
+                {formatNum(bb.lower)}
+              </>
+            ) : (
+              '—'
+            )}
+          </IndicatorRow>
+        )}
         {ind.cci20 != null && (
           <IndicatorRow label="CCI (20)">{formatNum(ind.cci20, 1)}</IndicatorRow>
         )}

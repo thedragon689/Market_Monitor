@@ -15,6 +15,7 @@ export const CATALOG_SCOPE_OPTIONS = [
 
 export const ANALYSIS_PANEL_OPTIONS = [
   { id: 'indicators', label: 'Indicatori tecnici', hint: 'SMA · RSI · MACD' },
+  { id: 'forecast', label: 'Previsioni', hint: 'ARIMA · LSTM · Ibrido' },
   { id: 'correlations', label: 'Correlazioni', hint: 'Benchmark ρ' },
   { id: 'geo', label: 'Contesto globale', hint: 'Geo · risk · news' },
   { id: 'compare', label: 'Tabella confronto', hint: 'Peer categoria' },
