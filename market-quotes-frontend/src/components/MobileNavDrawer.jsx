@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { APP_VIEWS } from '../data/views';
 import { MARKET_CATEGORIES } from '../data/categories';
+import CategoryIcon from './icons/CategoryIcon';
 
 const PRIMARY_CATEGORIES = MARKET_CATEGORIES.filter((c) => c.group === 'primary');
 
@@ -89,7 +90,10 @@ export default function MobileNavDrawer({
                     onClose?.();
                   }}
                 >
-                  <span aria-hidden>{cat.icon}</span> {cat.label}
+                  <span className="mobile-drawer__chip-icon" aria-hidden>
+                    <CategoryIcon id={cat.id} size={18} />
+                  </span>
+                  {cat.label}
                 </button>
               </li>
             ))}

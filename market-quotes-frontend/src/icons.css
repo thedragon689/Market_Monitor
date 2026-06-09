@@ -1,0 +1,65 @@
+/* Icone UI — dimensioni coerenti desktop / mobile */
+.ui-icon {
+  display: block;
+  flex-shrink: 0;
+}
+
+.category-card__icon .ui-icon,
+.market-overview__icon .ui-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.mobile-cat-bar__icon .ui-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.terminal-rail__btn .ui-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.terminal-search__icon .ui-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  opacity: 0.7;
+}
+
+.app-logo-mark {
+  display: block;
+  border-radius: 22%;
+}
+
+.app-logo-mark--dark,
+.app-logo-mark--light {
+  filter: none;
+}
+
+.mobile-hero__avatar .ui-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.mobile-drawer__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mobile-drawer__chip-icon {
+  display: flex;
+  color: var(--accent);
+}
+
+.terminal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.terminal-rail__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

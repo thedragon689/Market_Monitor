@@ -1,10 +1,10 @@
 import {
-  MARKET_CATEGORIES,
   CATEGORY_GROUPS,
   INTERNAL_SECTIONS,
   categoriesByGroup,
   categoryCount,
 } from '../data/categories';
+import CategoryIcon from './icons/CategoryIcon';
 
 function CategoryCard({ cat, active, count, variant, onClick }) {
   return (
@@ -16,7 +16,7 @@ function CategoryCard({ cat, active, count, variant, onClick }) {
       onClick={onClick}
     >
       <span className="category-card__icon" aria-hidden>
-        {cat.icon}
+        <CategoryIcon id={cat.id} />
       </span>
       <span className="category-card__body">
         <span className="category-card__label">{cat.label}</span>
@@ -89,7 +89,7 @@ export default function CategorySelector({
                 onClick={() => onInternalSection(section)}
               >
                 <span className="category-card__icon" aria-hidden>
-                  {section.icon}
+                  <CategoryIcon id={section.id} />
                 </span>
                 <span className="category-card__body">
                   <span className="category-card__label">{section.label}</span>

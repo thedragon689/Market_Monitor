@@ -73,34 +73,30 @@
 }
 
 .app-shell__logo,
-.app-logo {
+.app-logo,
+.app-logo-mark {
   display: block;
   width: 3.5rem;
   height: 3.5rem;
-  border-radius: 12px;
-  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .app-logo--light {
-  filter: drop-shadow(0 2px 8px rgba(15, 23, 42, 0.18));
+  filter: drop-shadow(0 2px 8px rgba(15, 23, 42, 0.12));
 }
 
 .app-logo--dark {
-  filter: drop-shadow(0 3px 12px rgba(0, 0, 0, 0.5));
+  filter: none;
 }
 
 html[data-theme='dark'] .app-shell__logo-wrap {
-  background: color-mix(in srgb, #1a2238 88%, transparent);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--accent) 55%, #6366f1),
-    0 0 20px rgba(99, 102, 241, 0.42),
-    0 8px 24px rgba(0, 0, 0, 0.35);
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
 }
 
 html[data-theme='dark'] .app-logo--dark {
-  filter:
-    drop-shadow(0 0 6px rgba(99, 102, 241, 0.45))
-    drop-shadow(0 4px 12px rgba(0, 0, 0, 0.55));
+  filter: none;
 }
 
 .app-shell__title {

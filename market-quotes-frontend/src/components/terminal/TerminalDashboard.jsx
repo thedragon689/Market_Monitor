@@ -1,4 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
+import CategoryIcon from '../icons/CategoryIcon';
+import RefreshIcon from '../icons/RefreshIcon';
+import SearchIcon from '../icons/SearchIcon';
 import TerminalWidget from './TerminalWidget';
 import TerminalDataTable from './TerminalDataTable';
 import TerminalPerformanceChart from './TerminalPerformanceChart';
@@ -157,7 +160,7 @@ export default function TerminalDashboard({
       <div className="terminal-dashboard__toolbar">
         <label className="terminal-search">
           <span className="terminal-search__icon" aria-hidden>
-            ⌕
+            <SearchIcon />
           </span>
           <input
             type="search"
@@ -179,7 +182,8 @@ export default function TerminalDashboard({
             onClick={onRefresh}
             disabled={loadingMarket || loadingCatalog}
           >
-            ↻ Aggiorna
+            <RefreshIcon size={15} />
+            Aggiorna
           </button>
         </div>
       </div>
@@ -195,7 +199,7 @@ export default function TerminalDashboard({
               aria-label={r.label}
               onClick={() => handleRail(r.id, 'left')}
             >
-              <span aria-hidden>{r.icon}</span>
+              <CategoryIcon id={r.iconId} size={22} />
             </button>
           ))}
         </aside>
@@ -273,7 +277,7 @@ export default function TerminalDashboard({
               aria-label={r.label}
               onClick={() => handleRail(r.id, 'right')}
             >
-              <span aria-hidden>{r.icon}</span>
+              <CategoryIcon id={r.iconId} size={22} />
             </button>
           ))}
         </aside>

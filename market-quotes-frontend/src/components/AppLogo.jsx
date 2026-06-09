@@ -1,21 +1,18 @@
-/** Logo app — varianti tema chiaro / scuro per massima leggibilità */
+import AppLogoMark from './icons/AppLogoMark';
+
+/** Logo app — SVG scalabile, tema chiaro / scuro */
 export default function AppLogo({
   className = '',
   size = 56,
   theme = 'dark',
   title = 'Market Monitor',
 }) {
-  const isLight = theme === 'light';
-  const src = isLight ? '/app-icon-light-512.png' : '/app-icon-dark-512.png';
-
   return (
-    <img
-      className={`app-logo ${isLight ? 'app-logo--light' : 'app-logo--dark'} ${className}`.trim()}
-      src={src}
-      width={size}
-      height={size}
-      alt={title}
-      decoding="async"
+    <AppLogoMark
+      className={`app-logo ${theme === 'light' ? 'app-logo--light' : 'app-logo--dark'} ${className}`.trim()}
+      size={size}
+      theme={theme}
+      title={title}
     />
   );
 }

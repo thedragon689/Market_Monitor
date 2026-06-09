@@ -1,4 +1,5 @@
 import { MARKET_CATEGORIES } from '../data/categories';
+import CategoryIcon from './icons/CategoryIcon';
 import { changeTone, formatChangeBadge, formatCurrentPrice } from '../utils/catalogPrice';
 
 const OVERVIEW_IDS = ['crypto', 'index', 'commodity', 'precious', 'forex', 'etf', 'macro'];
@@ -73,7 +74,7 @@ export default function MarketOverview({
                 onClick={() => onSelectCategory?.(cat.id)}
               >
                 <span className="market-overview__icon" aria-hidden>
-                  {cat.icon}
+                  <CategoryIcon id={cat.id} />
                 </span>
                 <div>
                   <h3 className="market-overview__card-title">{cat.label}</h3>

@@ -13,6 +13,7 @@ import './ui-polish.css';
 import './fintech-polish.css';
 import './mobile-etoro.css';
 import './dark-theme.css';
+import './icons.css';
 import AppShell from './components/AppShell';
 import StepIntro from './components/StepIntro';
 import AppToolbar from './components/AppToolbar';

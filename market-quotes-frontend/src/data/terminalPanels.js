@@ -95,15 +95,15 @@ export const TERMINAL_HEATMAP_CELLS = [
 ];
 
 export const TERMINAL_RAIL_LEFT = [
-  { id: 'indices', icon: '◎', label: 'Indici' },
-  { id: 'sectors', icon: '▦', label: 'Settori' },
-  { id: 'rates', icon: '⎓', label: 'Tassi' },
+  { id: 'indices', iconId: 'indices', label: 'Indici' },
+  { id: 'sectors', iconId: 'sectors', label: 'Settori' },
+  { id: 'rates', iconId: 'rates', label: 'Tassi' },
 ];
 
 export const TERMINAL_RAIL_RIGHT = [
-  { id: 'forex', icon: '¤', label: 'Forex' },
-  { id: 'commodities', icon: '▲', label: 'Commod.' },
-  { id: 'crypto', icon: '₿', label: 'Crypto' },
+  { id: 'forex', iconId: 'forex', label: 'Forex' },
+  { id: 'commodities', iconId: 'commodities', label: 'Commod.' },
+  { id: 'crypto', iconId: 'crypto', label: 'Crypto' },
 ];
 
 export const DEFAULT_CHART_PICKS = [

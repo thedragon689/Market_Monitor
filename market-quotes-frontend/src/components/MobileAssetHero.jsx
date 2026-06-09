@@ -1,5 +1,6 @@
 import { getSymbolMeta } from '../data/symbols';
 import { changeTone, formatChangeBadge, formatCurrentPrice } from '../utils/catalogPrice';
+import CategoryIcon from './icons/CategoryIcon';
 
 export default function MobileAssetHero({
   type,
@@ -18,8 +19,8 @@ export default function MobileAssetHero({
 
   return (
     <section className="mobile-hero" aria-label="Asset selezionato">
-      <div className="mobile-hero__avatar" aria-hidden>
-        {meta.name.charAt(0).toUpperCase()}
+      <div className={`mobile-hero__avatar mobile-hero__avatar--${type}`} aria-hidden>
+        <CategoryIcon id={type} size={24} />
       </div>
       <div className="mobile-hero__body">
         <p className="mobile-hero__name">{meta.name}</p>

@@ -1,4 +1,5 @@
 import { MARKET_CATEGORIES } from '../data/categories';
+import CategoryIcon from './icons/CategoryIcon';
 
 const PRIMARY = MARKET_CATEGORIES.filter((c) => c.group === 'primary');
 
@@ -29,7 +30,7 @@ export default function MobileCategoryBar({ type, onTypeChange, summary }) {
                 aria-current={active ? 'true' : undefined}
               >
                 <span className="mobile-cat-bar__icon" aria-hidden>
-                  {cat.icon}
+                  <CategoryIcon id={cat.id} />
                 </span>
                 <span className="mobile-cat-bar__label">{cat.label}</span>
                 {stat?.quoted != null && (

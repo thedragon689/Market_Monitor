@@ -7,6 +7,17 @@ html[data-theme='dark'] {
   --focus-ring: rgba(129, 140, 248, 0.55);
 }
 
+/* Logo — niente bordatura/alone nel dark */
+html[data-theme='dark'] .app-shell__logo-wrap {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+html[data-theme='dark'] .app-logo--dark {
+  filter: none;
+}
+
 html[data-theme='dark'] body {
   background:
     radial-gradient(ellipse 120% 80% at 50% -20%, rgba(99, 102, 241, 0.08), transparent),
@@ -318,5 +329,15 @@ html[data-theme='dark'] .trust-footer__copy {
     --chart-grid: rgba(159, 176, 200, 0.22);
     --up: #4ade80;
     --down: #fb7185;
+  }
+
+  html:not([data-theme='light']) .app-shell__logo-wrap {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  html:not([data-theme='light']) .app-logo--dark {
+    filter: none;
   }
 }

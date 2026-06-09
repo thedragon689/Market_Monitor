@@ -24,7 +24,7 @@ export default function AssetSwitcher({
         >
           {PRIMARY_TYPES.map((cat) => (
             <option key={cat.id} value={cat.id}>
-              {cat.icon} {cat.label}
+              {cat.label}
             </option>
           ))}
         </select>
