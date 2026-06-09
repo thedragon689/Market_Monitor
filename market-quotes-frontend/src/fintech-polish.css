@@ -1,0 +1,467 @@
+/* Fintech UX polish — gerarchia visiva, nav, grafici, fiducia */
+
+:root {
+  --chart-line-up: var(--up);
+  --chart-line-down: var(--down);
+}
+
+/* ── Quick nav ── */
+.quick-nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: 0.5rem var(--gutter);
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.quick-nav__list {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.quick-nav__list::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-nav__btn {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+    transform 0.12s ease;
+}
+
+.quick-nav__btn:hover {
+  color: var(--text-h);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.quick-nav__btn.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.quick-nav__btn:active {
+  transform: scale(0.97);
+}
+
+/* ── Breadcrumbs ── */
+.breadcrumbs {
+  padding: 0.35rem var(--gutter) 0;
+}
+
+.breadcrumbs__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.78rem;
+}
+
+.breadcrumbs__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.breadcrumbs__link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.breadcrumbs__link:hover {
+  text-decoration: underline;
+}
+
+.breadcrumbs__current {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.breadcrumbs__current code {
+  margin-left: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--text-h);
+}
+
+.breadcrumbs__sep {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* ── Asset dashboard (analysis hero) ── */
+.asset-dashboard {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.25rem;
+}
+
+@media (min-width: 900px) {
+  .asset-dashboard {
+    grid-template-columns: minmax(260px, 1fr) minmax(0, 1.6fr);
+    align-items: start;
+    gap: 1.5rem;
+  }
+}
+
+.asset-dashboard__chart-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.35rem;
+}
+
+.chart-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.chart-toggle input {
+  accent-color: var(--accent);
+}
+
+/* ── Quote hero ── */
+.quote-panel--hero .quote-panel__title {
+  margin: 0;
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-h);
+}
+
+.quote-panel__symbol {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  background: var(--code-bg);
+  font-family: var(--mono);
+  font-size: 0.55em;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.quote-panel__price-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.quote-panel--hero .quote-panel__price {
+  font-size: clamp(2.5rem, 6vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.quote-panel__price--up {
+  color: var(--up);
+}
+
+.quote-panel__price--down {
+  color: var(--down);
+}
+
+.quote-panel__price--flat,
+.quote-panel__price--neutral {
+  color: var(--text-h);
+}
+
+.quote-panel__chg-pill {
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.quote-panel__chg-pill--up {
+  background: color-mix(in srgb, var(--up) 18%, transparent);
+  color: var(--up);
+}
+
+.quote-panel__chg-pill--down {
+  background: color-mix(in srgb, var(--down) 18%, transparent);
+  color: var(--down);
+}
+
+.quote-panel__chg-pill--flat,
+.quote-panel__chg-pill--neutral {
+  background: var(--code-bg);
+  color: var(--text-muted);
+}
+
+.quote-panel__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 1rem 0 0;
+  padding: 0.75rem 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.quote-panel__stats dt {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.quote-panel__stats dd {
+  margin: 0.1rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.quote-panel__more {
+  margin-top: 0.85rem;
+  font-size: 0.85rem;
+}
+
+.quote-panel__more summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 600;
+  list-style: none;
+}
+
+.quote-panel__more summary::-webkit-details-marker {
+  display: none;
+}
+
+.quote-panel__more[open] summary {
+  margin-bottom: 0.5rem;
+}
+
+/* ── Chart timeframe ── */
+.chart-timeframe {
+  display: inline-flex;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  border-radius: 10px;
+  background: var(--code-bg);
+}
+
+.chart-timeframe__btn {
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0.35rem 0.55rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.chart-timeframe__btn.is-active {
+  background: var(--surface-elevated);
+  color: var(--text-h);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.chart-card--history .chart-card__head {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.chart-card__indicator {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.chart-tooltip--rich .chart-tooltip__delta {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.chart-tooltip__delta--up {
+  color: var(--up);
+}
+
+.chart-tooltip__delta--down {
+  color: var(--down);
+}
+
+/* ── Trust footer ── */
+.trust-footer {
+  margin-top: 2rem;
+  padding: 1.5rem var(--gutter) 2rem;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-elevated) 60%, var(--bg));
+}
+
+.trust-footer__grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 720px) {
+  .trust-footer__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.trust-footer__title {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.trust-footer__sources {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trust-footer__sources li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.4rem 0;
+  font-size: 0.88rem;
+}
+
+.trust-footer__sources strong {
+  color: var(--text-h);
+}
+
+.trust-footer__sources span {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.trust-footer__legal {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.trust-footer__copy {
+  margin: 1rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ── Micro-interactions ── */
+.app-card,
+.btn,
+.app-shell__tab {
+  transition: box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.skeleton {
+  animation: fintech-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes fintech-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── Category groups ── */
+.category-selector__group {
+  margin-bottom: 1rem;
+}
+
+.category-selector__group-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.category-selector__group--internal {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border);
+}
+
+.category-selector__grid--internal {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+
+.category-selector--compact .category-selector__group-title {
+  font-size: 0.68rem;
+}
+
+.app-shell__asset-cat--index,
+.app-shell__asset-cat--forex,
+.app-shell__asset-cat--etf,
+.app-shell__asset-cat--volatility,
+.app-shell__asset-cat--rates,
+.app-shell__asset-cat--macro,
+.app-shell__asset-cat--sentiment {
+  background: var(--cat-soft, var(--code-bg));
+  color: var(--cat-accent, var(--accent));
+}
+
+.app-shell__asset-cat--index { --cat-accent: var(--cat-index); --cat-soft: var(--cat-index-soft); }
+.app-shell__asset-cat--forex { --cat-accent: var(--cat-forex); --cat-soft: var(--cat-forex-soft); }
+.app-shell__asset-cat--etf { --cat-accent: var(--cat-etf); --cat-soft: var(--cat-etf-soft); }
+.app-shell__asset-cat--volatility { --cat-accent: var(--cat-volatility); --cat-soft: var(--cat-volatility-soft); }
+.app-shell__asset-cat--rates { --cat-accent: var(--cat-rates); --cat-soft: var(--cat-rates-soft); }
+.app-shell__asset-cat--macro { --cat-accent: var(--cat-macro); --cat-soft: var(--cat-macro-soft); }
+.app-shell__asset-cat--sentiment { --cat-accent: var(--cat-sentiment); --cat-soft: var(--cat-sentiment-soft); }
+
+@media (max-width: 899px) {
+  .quick-nav {
+    display: none;
+  }
+
+  .breadcrumbs {
+    padding-inline: 1rem;
+  }
+
+  .asset-dashboard {
+    padding: 1rem;
+  }
+}

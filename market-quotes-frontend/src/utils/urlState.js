@@ -1,7 +1,20 @@
 import { VIEW_IDS } from '../data/views.js';
 
 const VALID_VIEWS = new Set(VIEW_IDS);
-const VALID_TYPES = new Set(['stock', 'national', 'crypto', 'precious', 'commodity']);
+const VALID_TYPES = new Set([
+  'stock',
+  'national',
+  'index',
+  'forex',
+  'crypto',
+  'precious',
+  'commodity',
+  'etf',
+  'volatility',
+  'rates',
+  'macro',
+  'sentiment',
+]);
 
 export function parseUrlState(search) {
   const q = new URLSearchParams(search);
@@ -30,6 +43,8 @@ export function parseUrlState(search) {
   if (method && validMethods.includes(method)) {
     out.forecastMethod = method;
   }
+  const tf = q.get('tf');
+  if (tf && ['1W', '1M', '3M', 'MAX'].includes(tf)) out.historyTimeframe = tf;
   return out;
 }
 
@@ -46,6 +61,9 @@ export function buildUrlState(state) {
   }
   if (state.forecastMethod && state.forecastMethod !== 'both') {
     q.set('method', state.forecastMethod);
+  }
+  if (state.historyTimeframe && state.historyTimeframe !== '3M') {
+    q.set('tf', state.historyTimeframe);
   }
   const s = q.toString();
   return s ? `?${s}` : '';

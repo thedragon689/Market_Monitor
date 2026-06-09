@@ -59,7 +59,20 @@ export function formatChangeBadge(quote) {
 export function catalogToQuoteMap(catalog) {
   const map = {};
   if (!catalog) return map;
-  for (const type of ['stock', 'national', 'crypto', 'precious', 'commodity']) {
+  for (const type of [
+    'stock',
+    'national',
+    'index',
+    'forex',
+    'crypto',
+    'precious',
+    'commodity',
+    'etf',
+    'volatility',
+    'rates',
+    'macro',
+    'sentiment',
+  ]) {
     for (const item of catalog[type] || []) {
       if (item?.id) map[item.id.toUpperCase()] = item.quote;
     }

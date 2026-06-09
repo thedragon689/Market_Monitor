@@ -41,9 +41,11 @@ export default function QuotePanel({
   loading,
   fx,
   onGoExplore,
+  variant = 'default',
 }) {
   const meta = getSymbolMeta(symbol, type);
   const live = quote?.liveExchanges;
+  const isHero = variant === 'hero';
 
   if (loading) {
     return (
@@ -85,43 +87,54 @@ export default function QuotePanel({
   const delta = changeForDisplay(changeVal, display, fx);
 
   return (
-    <article className={`quote-panel quote-panel--${summary.tone}`}>
+    <article className={`quote-panel quote-panel--${summary.tone} ${isHero ? 'quote-panel--hero' : ''}`}>
       <header className="quote-panel__header">
         <div>
-          <p className="quote-panel__eyebrow">
-            {isShare
-              ? 'Costo singola azione'
-              : isCoinDisplay
-                ? 'Prezzo live per coin'
-                : isGram
-                  ? 'Costo al grammo'
-                  : 'Valore attuale'}
-          </p>
-          <h2 className="quote-panel__title">{meta.name}</h2>
-          <p className="quote-panel__subtitle">{meta.hint}</p>
+          {!isHero && (
+            <p className="quote-panel__eyebrow">
+              {isShare
+                ? 'Costo singola azione'
+                : isCoinDisplay
+                  ? 'Prezzo live per coin'
+                  : isGram
+                    ? 'Costo al grammo'
+                    : 'Valore attuale'}
+            </p>
+          )}
+          <h2 className="quote-panel__title">
+            {meta.name}
+            <code className="quote-panel__symbol">{quote.symbol}</code>
+          </h2>
+          {!isHero && <p className="quote-panel__subtitle">{meta.hint}</p>}
         </div>
-        <span className="quote-panel__badge">{quote.symbol}</span>
+        {!isHero && <span className="quote-panel__badge">{quote.symbol}</span>}
       </header>
 
-      {mainEur != null ? (
-        <>
-          <p className="quote-panel__price">
+      <div className="quote-panel__price-row">
+        {mainEur != null ? (
+          <p className={`quote-panel__price quote-panel__price--${summary.tone}`}>
             {isGram ? formatPerGram(mainEur, 'EUR') : formatPrice(mainEur, 'EUR')}
             {display.primaryLabel && (
               <span className="quote-panel__unit"> {display.primaryLabel}</span>
             )}
           </p>
-          {mainUsd != null && (
-            <p className="quote-panel__price-usd">
-              {isGram ? formatPerGram(mainUsd, 'USD') : formatPrice(mainUsd, 'USD')}
-              {display.primaryLabel && (
-                <span className="quote-panel__unit"> {display.primaryLabel}</span>
-              )}
-            </p>
-          )}
-        </>
-      ) : (
-        <p className="quote-panel__price">
+        ) : (
+          <p className={`quote-panel__price quote-panel__price--${summary.tone}`}>
+            {isGram ? formatPerGram(mainUsd, 'USD') : formatPrice(mainUsd, 'USD')}
+            {display.primaryLabel && (
+              <span className="quote-panel__unit"> {display.primaryLabel}</span>
+            )}
+          </p>
+        )}
+        {quote.changePercent != null && (
+          <span className={`quote-panel__chg-pill quote-panel__chg-pill--${summary.tone}`}>
+            {formatPercent(quote.changePercent)}
+          </span>
+        )}
+      </div>
+
+      {mainEur != null && mainUsd != null && (
+        <p className="quote-panel__price-usd">
           {isGram ? formatPerGram(mainUsd, 'USD') : formatPrice(mainUsd, 'USD')}
           {display.primaryLabel && (
             <span className="quote-panel__unit"> {display.primaryLabel}</span>
@@ -129,91 +142,123 @@ export default function QuotePanel({
         </p>
       )}
 
-      {display.secondaryEur != null && display.secondaryLabel && (
-        <p className="quote-panel__reference">
-          Quotazione mercato: {formatPrice(display.secondaryEur, 'EUR')}{' '}
-          {display.secondaryLabel}
-          {display.secondaryUsd != null && (
-            <span className="quote-panel__plain-usd">
-              {' '}
-              ({formatPrice(display.secondaryUsd, 'USD')})
-            </span>
+      {isHero && (
+        <dl className="quote-panel__stats">
+          {quote.volume != null && (
+            <>
+              <dt>Volume</dt>
+              <dd>{Number(quote.volume).toLocaleString('it-IT')}</dd>
+            </>
           )}
-        </p>
+          {quote.high != null && (
+            <>
+              <dt>Max giorno</dt>
+              <dd>{formatPrice(quote.high, 'USD')}</dd>
+            </>
+          )}
+          {quote.low != null && (
+            <>
+              <dt>Min giorno</dt>
+              <dd>{formatPrice(quote.low, 'USD')}</dd>
+            </>
+          )}
+          {quote.asOf && (
+            <>
+              <dt>Aggiornato</dt>
+              <dd>{quote.asOf}</dd>
+            </>
+          )}
+        </dl>
       )}
 
-      <p className="quote-panel__plain">
-        In parole semplici: oggi <strong>{display.plainUnit}</strong> costa circa{' '}
-        <strong>
-          {mainEur != null
-            ? isGram
-              ? formatPerGram(mainEur, 'EUR')
-              : formatPrice(mainEur, 'EUR')
-            : isGram
-              ? formatPerGram(mainUsd, 'USD')
-              : formatPrice(mainUsd, 'USD')}
-        </strong>
-        {isShare && ' (prezzo di una singola azione)'}
-        {isCoinDisplay && ' (prezzo di una singola coin)'}.
-      </p>
-
-      {live && (live.binance || live.kraken) && (
-        <div className="quote-panel__live-feeds">
-          <p className="quote-panel__live-title">
-            Stream live
-            {live.status === 'connecting' && ' · connessione…'}
-            {live.status === 'live' && ' · aggiornamento WebSocket'}
+      <details className="quote-panel__more">
+        <summary>Dettagli quotazione</summary>
+        {display.secondaryEur != null && display.secondaryLabel && (
+          <p className="quote-panel__reference">
+            Quotazione mercato: {formatPrice(display.secondaryEur, 'EUR')}{' '}
+            {display.secondaryLabel}
+            {display.secondaryUsd != null && (
+              <span className="quote-panel__plain-usd">
+                {' '}
+                ({formatPrice(display.secondaryUsd, 'USD')})
+              </span>
+            )}
           </p>
-          <ul className="quote-panel__live-list">
-            {live.binance && (
-              <li>
-                <strong>Binance</strong> BTCUSDT ·{' '}
-                {formatPrice(
-                  fx?.eurUsd ? usdToEur(live.binance.price, fx.eurUsd) : live.binance.price,
-                  fx?.eurUsd ? 'EUR' : 'USD'
-                )}
-                {live.binance.changePercent != null && (
-                  <span> ({formatPercent(live.binance.changePercent)})</span>
-                )}
-              </li>
-            )}
-            {live.kraken && (
-              <li>
-                <strong>Kraken</strong> XBT/USD ·{' '}
-                {formatPrice(
-                  fx?.eurUsd ? usdToEur(live.kraken.price, fx.eurUsd) : live.kraken.price,
-                  fx?.eurUsd ? 'EUR' : 'USD'
-                )}
-              </li>
-            )}
-          </ul>
-        </div>
-      )}
+        )}
 
-      {quote.exchanges && !live?.binance && !live?.kraken && (
-        <div className="quote-panel__live-feeds">
-          <p className="quote-panel__live-title">Exchange REST</p>
-          <ul className="quote-panel__live-list">
-            {quote.exchanges.binance && (
-              <li>
-                <strong>Binance</strong> · {formatPrice(quote.exchanges.binance.price, 'USD')}
-              </li>
-            )}
-            {quote.exchanges.kraken && (
-              <li>
-                <strong>Kraken</strong> · {formatPrice(quote.exchanges.kraken.price, 'USD')}
-              </li>
-            )}
-          </ul>
-        </div>
-      )}
-
-      {fx?.eurUsd != null && (
-        <p className="quote-panel__fx">
-          Cambio usato: 1 € = {formatPrice(fx.eurUsd, 'USD')}
-          {fx?.asOf ? ` (agg. ${fx.asOf})` : ''}
+        <p className="quote-panel__plain">
+          Oggi <strong>{display.plainUnit}</strong> costa circa{' '}
+          <strong>
+            {mainEur != null
+              ? isGram
+                ? formatPerGram(mainEur, 'EUR')
+                : formatPrice(mainEur, 'EUR')
+              : isGram
+                ? formatPerGram(mainUsd, 'USD')
+                : formatPrice(mainUsd, 'USD')}
+          </strong>
+          {isShare && ' (singola azione)'}
+          {isCoinDisplay && ' (singola coin)'}.
         </p>
-      )}
+
+        {live && (live.binance || live.kraken) && (
+          <div className="quote-panel__live-feeds">
+            <p className="quote-panel__live-title">
+              Stream live
+              {live.status === 'connecting' && ' · connessione…'}
+              {live.status === 'live' && ' · WebSocket'}
+            </p>
+            <ul className="quote-panel__live-list">
+              {live.binance && (
+                <li>
+                  <strong>Binance</strong> ·{' '}
+                  {formatPrice(
+                    fx?.eurUsd ? usdToEur(live.binance.price, fx.eurUsd) : live.binance.price,
+                    fx?.eurUsd ? 'EUR' : 'USD'
+                  )}
+                  {live.binance.changePercent != null && (
+                    <span> ({formatPercent(live.binance.changePercent)})</span>
+                  )}
+                </li>
+              )}
+              {live.kraken && (
+                <li>
+                  <strong>Kraken</strong> ·{' '}
+                  {formatPrice(
+                    fx?.eurUsd ? usdToEur(live.kraken.price, fx.eurUsd) : live.kraken.price,
+                    fx?.eurUsd ? 'EUR' : 'USD'
+                  )}
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
+
+        {quote.exchanges && !live?.binance && !live?.kraken && (
+          <div className="quote-panel__live-feeds">
+            <p className="quote-panel__live-title">Exchange REST</p>
+            <ul className="quote-panel__live-list">
+              {quote.exchanges.binance && (
+                <li>
+                  <strong>Binance</strong> · {formatPrice(quote.exchanges.binance.price, 'USD')}
+                </li>
+              )}
+              {quote.exchanges.kraken && (
+                <li>
+                  <strong>Kraken</strong> · {formatPrice(quote.exchanges.kraken.price, 'USD')}
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
+
+        {fx?.eurUsd != null && (
+          <p className="quote-panel__fx">
+            Cambio: 1 € = {formatPrice(fx.eurUsd, 'USD')}
+            {fx?.asOf ? ` (${fx.asOf})` : ''}
+          </p>
+        )}
+      </details>
 
       {hasChange && delta && (
         <div className={`quote-trend quote-trend--${summary.tone}`}>
@@ -235,7 +280,7 @@ export default function QuotePanel({
         </div>
       )}
 
-      {quote.asOf && <p className="quote-panel__date">Aggiornato al {quote.asOf}</p>}
+      {!isHero && quote.asOf && <p className="quote-panel__date">Aggiornato al {quote.asOf}</p>}
     </article>
   );
 }

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { MARKET_CATEGORIES } from '../data/categories';
 import { useMobileLayout } from '../hooks/useMobileLayout';
 import { formatShortDate } from '../utils/format';
 import { changeTone, formatChangeBadge, formatCurrentPrice } from '../utils/catalogPrice';
@@ -10,39 +11,17 @@ const STOCK_SUBGROUPS = [
   { id: 'AF', title: 'Africa', match: (i) => i.market === 'AF' || i.region === 'Africa' },
 ];
 
-const CATEGORY_SECTIONS = [
-  {
-    id: 'stock',
-    title: 'Azioni',
-    subtitle: 'Titoli USA, Europa e Africa — prezzo per azione',
-    subgroups: STOCK_SUBGROUPS,
-    tone: 'stock',
-  },
-  {
-    id: 'national',
-    title: 'Azioni nazionali',
-    subtitle: 'Blue chip FTSE MIB — quotati in euro',
-    tone: 'national',
-  },
-  {
-    id: 'crypto',
-    title: 'Criptovalute',
-    subtitle: 'Bitcoin, Ethereum e altcoin — prezzo per coin',
-    tone: 'crypto',
-  },
-  {
-    id: 'precious',
-    title: 'Metalli preziosi',
-    subtitle: 'Oro, argento, platino e palladio — prezzo al grammo',
-    tone: 'precious',
-  },
-  {
-    id: 'commodity',
-    title: 'Materie prime',
-    subtitle: 'Petrolio e rame — prezzo al barile o al grammo',
-    tone: 'commodity',
-  },
-];
+const CATEGORY_SECTIONS = MARKET_CATEGORIES.map((cat) => ({
+  id: cat.id,
+  title: cat.label,
+  subtitle: cat.description,
+  tone: cat.tone,
+  ...(cat.id === 'stock' ? { subgroups: STOCK_SUBGROUPS } : {}),
+}));
+
+const ASSET_TYPE_LABELS = Object.fromEntries(
+  MARKET_CATEGORIES.map((c) => [c.id, c.label])
+);
 
 function CatalogCard({
   item,
@@ -59,18 +38,7 @@ function CatalogCard({
   const price = formatCurrentPrice(q, meta, fx);
   const tone = changeTone(q?.changePercent);
   const chg = formatChangeBadge(q);
-  const categoryLabel =
-    item.assetType === 'stock'
-      ? 'Azione'
-      : item.assetType === 'national'
-        ? 'Azione nazionale'
-        : item.assetType === 'crypto'
-          ? 'Crypto'
-          : item.assetType === 'precious'
-            ? 'Metallo'
-            : item.assetType === 'commodity'
-              ? 'Materia prima'
-              : null;
+  const categoryLabel = ASSET_TYPE_LABELS[item.assetType] ?? null;
 
   return (
     <article
@@ -206,16 +174,16 @@ export default function MarketCatalog({
   const [sortBy, setSortBy] = useState('name');
   const [stockRegion, setStockRegion] = useState('all');
 
-  const catalogByType = useMemo(
-    () => ({
-      stock: (catalog?.stock || []).map((i) => ({ ...i, assetType: 'stock' })),
-      national: (catalog?.national || []).map((i) => ({ ...i, assetType: 'national' })),
-      crypto: (catalog?.crypto || []).map((i) => ({ ...i, assetType: 'crypto' })),
-      precious: (catalog?.precious || []).map((i) => ({ ...i, assetType: 'precious' })),
-      commodity: (catalog?.commodity || []).map((i) => ({ ...i, assetType: 'commodity' })),
-    }),
-    [catalog]
-  );
+  const catalogByType = useMemo(() => {
+    const map = {};
+    for (const cat of MARKET_CATEGORIES) {
+      map[cat.id] = (catalog?.[cat.id] || []).map((i) => ({
+        ...i,
+        assetType: cat.id,
+      }));
+    }
+    return map;
+  }, [catalog]);
 
   const sectionsToRender = useMemo(() => {
     const active = showAllCategories
@@ -252,18 +220,29 @@ export default function MarketCatalog({
     [sectionsToRender]
   );
 
-  const quotedTotal =
-    (summary?.stocks?.quoted ?? 0) +
-    (summary?.national?.quoted ?? 0) +
-    (summary?.crypto?.quoted ?? 0) +
-    (summary?.precious?.quoted ?? 0) +
-    (summary?.commodities?.quoted ?? 0);
-  const assetTotal =
-    (summary?.stocks?.total ?? 0) +
-    (summary?.national?.total ?? 0) +
-    (summary?.crypto?.total ?? 0) +
-    (summary?.precious?.total ?? 0) +
-    (summary?.commodities?.total ?? 0);
+  const summaryKeys = {
+    stock: 'stocks',
+    national: 'national',
+    index: 'indices',
+    forex: 'forex',
+    crypto: 'crypto',
+    precious: 'precious',
+    commodity: 'commodities',
+    etf: 'etf',
+    volatility: 'volatility',
+    rates: 'rates',
+    macro: 'macro',
+    sentiment: 'sentiment',
+  };
+
+  const quotedTotal = MARKET_CATEGORIES.reduce(
+    (acc, cat) => acc + (summary?.[summaryKeys[cat.id]]?.quoted ?? 0),
+    0
+  );
+  const assetTotal = MARKET_CATEGORIES.reduce(
+    (acc, cat) => acc + (summary?.[summaryKeys[cat.id]]?.total ?? 0),
+    0
+  );
 
   const showCategoryBadge = showAllCategories;
 

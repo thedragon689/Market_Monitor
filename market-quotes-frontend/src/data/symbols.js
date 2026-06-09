@@ -1,6 +1,16 @@
 /** Sincronizzato con lib/stockRegistry.js, lib/nationalStockRegistry.js, lib/cryptoRegistry.js */
 
 import { COMMODITY_METAL_SYMBOLS } from './commoditySymbols.js';
+import {
+  INDEX_SYMBOLS,
+  FOREX_SYMBOLS,
+  ETF_SYMBOLS,
+  VOLATILITY_SYMBOLS,
+  RATES_SYMBOLS,
+  MACRO_SYMBOLS,
+  SENTIMENT_SYMBOLS,
+  EXTRA_CRYPTO_SYMBOLS,
+} from './extendedSymbols.js';
 
 const base = { pricingKind: 'perShare' };
 const coin = { pricingKind: 'perCoin', unit: 'USD/coin' };
@@ -73,7 +83,18 @@ export const CRYPTO_SYMBOLS = [
   { ...coin, id: 'BNB-USD', name: 'BNB', hint: 'Exchange · BNB Chain', family: 'Exchange' },
   { ...coin, id: 'DOGE-USD', name: 'Dogecoin', hint: 'Meme · pagamenti social', family: 'Meme' },
   { ...coin, id: 'DOT-USD', name: 'Polkadot', hint: 'Interoperabilità · parachain', family: 'Layer 0' },
+  ...EXTRA_CRYPTO_SYMBOLS,
 ];
+
+export {
+  INDEX_SYMBOLS,
+  FOREX_SYMBOLS,
+  ETF_SYMBOLS,
+  VOLATILITY_SYMBOLS,
+  RATES_SYMBOLS,
+  MACRO_SYMBOLS,
+  SENTIMENT_SYMBOLS,
+};
 
 export const PRECIOUS_METAL_SYMBOLS = [
   {
@@ -117,9 +138,16 @@ export const METAL_SYMBOLS = [...PRECIOUS_METAL_SYMBOLS, ...COMMODITY_METAL_SYMB
 export function getSymbolsForType(type) {
   if (type === 'stock') return STOCK_SYMBOLS;
   if (type === 'national') return NATIONAL_STOCKS;
+  if (type === 'index') return INDEX_SYMBOLS;
+  if (type === 'forex') return FOREX_SYMBOLS;
+  if (type === 'etf') return ETF_SYMBOLS;
   if (type === 'crypto') return CRYPTO_SYMBOLS;
   if (type === 'commodity') return COMMODITY_METAL_SYMBOLS;
   if (type === 'precious' || type === 'metal') return PRECIOUS_METAL_SYMBOLS;
+  if (type === 'volatility') return VOLATILITY_SYMBOLS;
+  if (type === 'rates') return RATES_SYMBOLS;
+  if (type === 'macro') return MACRO_SYMBOLS;
+  if (type === 'sentiment') return SENTIMENT_SYMBOLS;
   return STOCK_SYMBOLS;
 }
 
@@ -131,11 +159,17 @@ export function getSymbolMeta(id, type) {
       name: id,
       hint: '',
       pricingKind:
-        type === 'stock' || type === 'national'
+        type === 'stock' || type === 'national' || type === 'etf'
           ? 'perShare'
           : type === 'crypto'
             ? 'perCoin'
-            : 'perGramTroy',
+            : type === 'forex'
+              ? 'perPair'
+              : type === 'index' || type === 'volatility'
+                ? 'perIndex'
+                : type === 'rates'
+                  ? 'perYield'
+                  : 'perGramTroy',
     }
   );
 }
@@ -149,5 +183,5 @@ export function isPreciousMarketType(type) {
 }
 
 export function isEquityMarketType(type) {
-  return type === 'stock' || type === 'national';
+  return type === 'stock' || type === 'national' || type === 'etf';
 }

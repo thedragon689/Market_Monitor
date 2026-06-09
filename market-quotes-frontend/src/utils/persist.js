@@ -7,6 +7,7 @@ const DEFAULTS = {
   windowN: 5,
   horizonDays: 5,
   forecastMethod: 'both',
+  historyTimeframe: '3M',
   explorePanels: ['quick', 'catalog', 'compare'],
   catalogScope: ['category'],
   analysisPanels: ['indicators', 'correlations', 'geo'],

@@ -34,6 +34,8 @@ export function resolveInitialAppState() {
     horizonDays: url.horizonDays ?? stored.horizonDays ?? defaults.horizonDays,
     forecastMethod:
       url.forecastMethod ?? stored.forecastMethod ?? defaults.forecastMethod,
+    historyTimeframe:
+      url.historyTimeframe ?? stored.historyTimeframe ?? defaults.historyTimeframe,
     theme: stored.theme ?? defaults.theme,
     explorePanels,
     catalogScope: stored.catalogScope ?? defaults.catalogScope,

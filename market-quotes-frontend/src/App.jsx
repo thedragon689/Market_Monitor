@@ -10,6 +10,7 @@ import {
 import './App.css';
 import './responsive.css';
 import './ui-polish.css';
+import './fintech-polish.css';
 import './mobile-etoro.css';
 import AppShell from './components/AppShell';
 import StepIntro from './components/StepIntro';
@@ -32,6 +33,8 @@ import ForecastCards from './components/ForecastCards';
 import ForecastControls from './components/ForecastControls';
 import HistoryChart from './components/HistoryChart';
 import QuotePanel from './components/QuotePanel';
+import TrustFooter from './components/TrustFooter';
+import { sliceHistoryByTimeframe } from './data/chartTimeframes';
 import CompetitorBoard from './components/CompetitorBoard';
 import MarketCatalog from './components/MarketCatalog';
 import SymbolPicker from './components/SymbolPicker';
@@ -76,6 +79,8 @@ export default function App() {
   const [windowN, setWindowN] = useState(INIT.windowN);
   const [horizonDays, setHorizonDays] = useState(INIT.horizonDays);
   const [forecastMethod, setForecastMethod] = useState(INIT.forecastMethod);
+  const [historyTimeframe, setHistoryTimeframe] = useState(INIT.historyTimeframe);
+  const [showChartIndicators, setShowChartIndicators] = useState(true);
   const [theme, setTheme] = useState(INIT.theme);
 
   const [quote, setQuote] = useState(null);
@@ -342,7 +347,7 @@ export default function App() {
       setWarning(null);
 
       const { data } = await apiFetch(
-        `${API_BASE}/api/market?symbol=${encodeURIComponent(symbol)}&type=${type}&limit=90`
+        `${API_BASE}/api/market?symbol=${encodeURIComponent(symbol)}&type=${type}&limit=120`
       );
       if (gen !== fetchGen.current) return;
 
@@ -519,6 +524,30 @@ export default function App() {
     loadForecast();
   }, [loadForecast]);
 
+  const handleQuickNav = useCallback(
+    ({ view: nextView, type: nextType }) => {
+      if (nextType && nextType !== type) handleTypeChange(nextType);
+      if (nextView) handleViewChange(nextView);
+    },
+    [type, handleTypeChange, handleViewChange]
+  );
+
+  const handleGoInfo = useCallback(() => {
+    document.getElementById('trust-footer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  const handleInternalSection = useCallback(
+    (section) => {
+      if (section.view) setView(section.view);
+      if (section.analysisPanels) setAnalysisPanels(section.analysisPanels);
+      if (section.forecastPanels) setForecastPanels(section.forecastPanels);
+      if (section.view === 'forecast' && quote?.price && !quote?.error) {
+        loadForecast();
+      }
+    },
+    [quote, loadForecast]
+  );
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
@@ -531,6 +560,7 @@ export default function App() {
       windowN,
       horizonDays,
       forecastMethod,
+      historyTimeframe,
       theme,
       explorePanels,
       catalogScope,
@@ -544,6 +574,7 @@ export default function App() {
       windowN,
       horizonDays,
       forecastMethod,
+      historyTimeframe,
     });
   }, [
     view,
@@ -552,6 +583,7 @@ export default function App() {
     windowN,
     horizonDays,
     forecastMethod,
+    historyTimeframe,
     theme,
     explorePanels,
     catalogScope,
@@ -603,6 +635,11 @@ export default function App() {
       ? symbol.toUpperCase()
       : null;
   const cryptoLive = useCryptoLiveQuote(liveCryptoId, Boolean(liveCryptoId));
+
+  const chartHistory = useMemo(
+    () => sliceHistoryByTimeframe(history, historyTimeframe),
+    [history, historyTimeframe]
+  );
 
   const displayQuote = useMemo(() => {
     if (!quote) return quote;
@@ -688,6 +725,9 @@ export default function App() {
         loadingMarket={loadingMarket}
         isLoading={isLoading}
         themeToggle={<ThemeToggle theme={theme} onChange={setTheme} />}
+        onQuickNav={handleQuickNav}
+        onGoInfo={handleGoInfo}
+        onInternalSection={handleInternalSection}
       >
         {!(isMobile && view === 'explore') && <StepIntro view={view} />}
         <AppToolbar
@@ -853,21 +893,29 @@ export default function App() {
               categoryConfig={categorySources?.[type]}
             />
 
-            <div className="app__grid app__grid--top">
-              <section className="app-card">
-                <h3 className="view-panel__subtitle">Quotazione live</h3>
-                <QuotePanel
-                  quote={displayQuote}
-                  type={type}
-                  symbol={symbol}
-                  loading={loadingMarket}
-                  fx={fx}
-                  onGoExplore={() => handleViewChange('explore')}
-                />
-              </section>
-              <section className="app-card app-card--chart">
+            <section className="asset-dashboard app-card">
+              <QuotePanel
+                variant="hero"
+                quote={displayQuote}
+                type={type}
+                symbol={symbol}
+                loading={loadingMarket}
+                fx={fx}
+                onGoExplore={() => handleViewChange('explore')}
+              />
+              <div className="asset-dashboard__chart">
+                <div className="asset-dashboard__chart-tools">
+                  <label className="chart-toggle">
+                    <input
+                      type="checkbox"
+                      checked={showChartIndicators}
+                      onChange={(e) => setShowChartIndicators(e.target.checked)}
+                    />
+                    RSI nel grafico
+                  </label>
+                </div>
                 <HistoryChart
-                  history={history}
+                  history={chartHistory}
                   title={`Andamento · ${meta.name}`}
                   loading={loadingMarket}
                   fx={fx}
@@ -875,9 +923,13 @@ export default function App() {
                   type={type}
                   symbol={symbol}
                   quote={displayQuote}
+                  timeframe={historyTimeframe}
+                  onTimeframeChange={setHistoryTimeframe}
+                  showIndicators={showChartIndicators}
+                  analysis={analysis}
                 />
-              </section>
-            </div>
+              </div>
+            </section>
 
             <div className="view-panel__actions view-panel__actions--dual">
               <button
@@ -1077,6 +1129,8 @@ export default function App() {
             )}
           </div>
         )}
+
+        <TrustFooter />
 
         <ViewFooter
           view={view}

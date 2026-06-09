@@ -1,6 +1,8 @@
 import CategorySelector from './CategorySelector';
 import AppLogo from './AppLogo';
 import BottomNavIcon from './BottomNavIcon';
+import Breadcrumbs from './Breadcrumbs';
+import QuickNav from './QuickNav';
 import { getCategoryMeta } from '../data/categories';
 import { APP_VIEWS, getViewIndex } from '../data/views';
 
@@ -18,10 +20,27 @@ export default function AppShell({
   loadingMarket,
   isLoading,
   themeToggle,
+  onQuickNav,
+  onGoInfo,
+  onInternalSection,
   children,
 }) {
   const categoryMeta = getCategoryMeta(type);
   const viewIdx = getViewIndex(view);
+
+  const handleBreadcrumb = ({ view: nextView, type: nextType }) => {
+    if (nextView) onViewChange(nextView);
+    if (nextType && nextType !== type) onTypeChange(nextType);
+  };
+
+  const handleQuickNav = ({ view: nextView, type: nextType }) => {
+    if (onQuickNav) {
+      onQuickNav({ view: nextView, type: nextType });
+      return;
+    }
+    if (nextView) onViewChange(nextView);
+    if (nextType) onTypeChange(nextType);
+  };
 
   return (
     <div className="app-shell">
@@ -89,12 +108,28 @@ export default function AppShell({
         </div>
       </header>
 
+      <QuickNav
+        view={view}
+        type={type}
+        onNavigate={handleQuickNav}
+        onInfo={onGoInfo}
+      />
+
+      <Breadcrumbs
+        view={view}
+        type={type}
+        symbol={symbol}
+        assetName={assetName}
+        onNavigate={handleBreadcrumb}
+      />
+
       <div className="app-shell__categories">
         <CategorySelector
           type={type}
           onTypeChange={onTypeChange}
           summary={categorySummary}
           variant={view === 'explore' ? 'bar' : 'compact'}
+          onInternalSection={onInternalSection}
         />
       </div>
 

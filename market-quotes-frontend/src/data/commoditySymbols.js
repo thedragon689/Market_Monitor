@@ -73,6 +73,30 @@ export const COMMODITY_METAL_SYMBOLS = [
     pricingKind: 'perBushel',
     unit: 'USD/bushel',
   },
+  {
+    id: 'SUGAR',
+    name: 'Zucchero',
+    family: 'agri',
+    hint: 'ICE sugar #11',
+    pricingKind: 'perLb',
+    unit: 'USD/libbra',
+  },
+  {
+    id: 'COFFEE',
+    name: 'Caffè',
+    family: 'agri',
+    hint: 'Arabica coffee',
+    pricingKind: 'perLb',
+    unit: 'USD/libbra',
+  },
+  {
+    id: 'COTTON',
+    name: 'Cotone',
+    family: 'agri',
+    hint: 'ICE cotton',
+    pricingKind: 'perLb',
+    unit: 'USD/libbra',
+  },
 ];
 
 export const COMMODITY_FAMILY_LABELS = {

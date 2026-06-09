@@ -305,7 +305,7 @@ export default function ForecastChart({
             dataKey="actual"
             name="actual"
             stroke="var(--chart-line)"
-            strokeWidth={2.75}
+            strokeWidth={3.5}
             strokeLinecap="round"
             strokeLinejoin="round"
             dot={false}

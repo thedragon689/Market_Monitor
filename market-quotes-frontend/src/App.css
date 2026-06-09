@@ -997,6 +997,46 @@ html[data-theme='dark'] .app-shell__logo {
   --cat-soft: var(--cat-crypto-soft);
 }
 
+.category-card--index {
+  --cat-accent: var(--cat-index);
+  --cat-soft: var(--cat-index-soft);
+}
+
+.category-card--forex {
+  --cat-accent: var(--cat-forex);
+  --cat-soft: var(--cat-forex-soft);
+}
+
+.category-card--etf {
+  --cat-accent: var(--cat-etf);
+  --cat-soft: var(--cat-etf-soft);
+}
+
+.category-card--volatility {
+  --cat-accent: var(--cat-volatility);
+  --cat-soft: var(--cat-volatility-soft);
+}
+
+.category-card--rates {
+  --cat-accent: var(--cat-rates);
+  --cat-soft: var(--cat-rates-soft);
+}
+
+.category-card--macro {
+  --cat-accent: var(--cat-macro);
+  --cat-soft: var(--cat-macro-soft);
+}
+
+.category-card--sentiment {
+  --cat-accent: var(--cat-sentiment);
+  --cat-soft: var(--cat-sentiment-soft);
+}
+
+.category-card--internal {
+  --cat-accent: var(--cat-internal);
+  --cat-soft: var(--cat-internal-soft);
+}
+
 .category-card__icon {
   flex-shrink: 0;
   width: 2.25rem;

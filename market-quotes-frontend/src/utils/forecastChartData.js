@@ -204,8 +204,8 @@ export function forecastSeriesMeta(forecast) {
   ].filter(Boolean);
 
   const count = overlays.length;
-  const overlayWidth = count <= 2 ? 2.75 : count <= 4 ? 2.35 : 2.1;
-  const classicWidth = count <= 3 ? 3 : 2.5;
+  const overlayWidth = count <= 2 ? 2 : count <= 4 ? 1.85 : 1.65;
+  const classicWidth = count <= 3 ? 2.25 : 2;
 
   return {
     overlays,

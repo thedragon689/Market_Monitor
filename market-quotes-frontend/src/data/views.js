@@ -45,3 +45,7 @@ export function getViewIntro(viewId) {
   if (!v) return null;
   return { step: Number(v.step), title: v.title, lead: v.lead };
 }
+
+export function getViewMeta(viewId) {
+  return APP_VIEWS.find((x) => x.id === viewId) ?? APP_VIEWS[0];
+}

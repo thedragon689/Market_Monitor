@@ -26,7 +26,7 @@ export default function MobileAssetHero({
           <code>{symbol}</code>
           {meta.region && <span>{meta.region}</span>}
         </p>
-        <p className="mobile-hero__price">
+        <p className={`mobile-hero__price mobile-hero__price--${tone}`}>
           {loading && !q?.price ? (
             <span className="mobile-hero__loading">Caricamento…</span>
           ) : (

@@ -518,7 +518,7 @@
 
   .mobile-hero__name {
     margin: 0;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 800;
     color: var(--text-h);
     overflow: hidden;
@@ -544,10 +544,18 @@
 
   .mobile-hero__price {
     margin: 0.25rem 0 0;
-    font-size: 1.15rem;
+    font-size: clamp(1.35rem, 5vw, 1.65rem);
     font-weight: 800;
     color: var(--text-h);
     letter-spacing: -0.02em;
+  }
+
+  .mobile-hero__price--up {
+    color: var(--up);
+  }
+
+  .mobile-hero__price--down {
+    color: var(--down);
   }
 
   .mobile-hero__unit {
