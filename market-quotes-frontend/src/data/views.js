@@ -30,7 +30,7 @@ export const APP_VIEWS = [
     label: 'Prevedi',
     hint: 'Scenari futuri',
     title: 'Calcola la previsione',
-    lead: 'Imposta finestra e orizzonte temporale, poi genera scenari con media mobile e regressione.',
+    lead: 'Scegli tra metodi classici (SMA, regressione) o motori ML (ARIMA, LSTM), imposta finestra e orizzonte, poi calcola.',
   },
 ];
 

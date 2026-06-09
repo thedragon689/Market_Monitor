@@ -10,7 +10,7 @@ const DEFAULTS = {
   explorePanels: ['quick', 'catalog', 'compare'],
   catalogScope: ['category'],
   analysisPanels: ['indicators', 'correlations', 'geo'],
-  forecastPanels: ['params', 'geo'],
+  forecastPanels: ['params', 'advanced', 'geo'],
   theme: 'dark',
 };
 

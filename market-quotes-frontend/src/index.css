@@ -152,8 +152,14 @@ html[data-theme='light'] {
 html[data-theme='light'] .app {
   --chart-line: #6366f1;
   --chart-fill: #6366f1;
-  --chart-sma: #10b981;
-  --chart-linear: #f59e0b;
+  --chart-sma: #059669;
+  --chart-linear: #d97706;
+  --chart-arima: #8b5cf6;
+  --chart-lstm: #ec4899;
+  --chart-log: #0d9488;
+  --chart-prophet: #4f46e5;
+  --chart-sma-soft: color-mix(in srgb, var(--chart-sma) 16%, transparent);
+  --chart-linear-soft: color-mix(in srgb, var(--chart-linear) 16%, transparent);
   --up: #059669;
   --down: #e11d48;
 }
@@ -202,6 +208,12 @@ html[data-theme='dark'] .app {
   --chart-fill: #818cf8;
   --chart-sma: #34d399;
   --chart-linear: #fbbf24;
+  --chart-arima: #a78bfa;
+  --chart-lstm: #f472b6;
+  --chart-log: #2dd4bf;
+  --chart-prophet: #818cf8;
+  --chart-sma-soft: color-mix(in srgb, var(--chart-sma) 22%, transparent);
+  --chart-linear-soft: color-mix(in srgb, var(--chart-linear) 22%, transparent);
   --up: #34d399;
   --down: #fb7185;
 }

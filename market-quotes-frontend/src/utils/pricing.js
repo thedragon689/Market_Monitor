@@ -1,4 +1,5 @@
 import { formatPrice, usdToEur } from './format';
+import { quoteFromNativePrice } from './nativeCurrency';
 
 /** Grammi in un'oncia troy (oro/argento spot). */
 export const TROY_OZ_GRAMS = 31.1034768;
@@ -96,7 +97,31 @@ export function buildDisplayPricing(meta, quote, fx) {
       primaryUsd: usd,
       secondaryEur: null,
       secondaryUsd: null,
-      plainUnit: 'un barile (WTI)',
+      plainUnit: 'un barile',
+    };
+  }
+
+  if (meta.pricingKind === 'perMmbtu') {
+    return {
+      kind: 'perMmbtu',
+      primaryLabel: 'MMBtu',
+      primaryEur: eur,
+      primaryUsd: usd,
+      secondaryEur: null,
+      secondaryUsd: null,
+      plainUnit: 'un MMBtu',
+    };
+  }
+
+  if (meta.pricingKind === 'perBushel') {
+    return {
+      kind: 'perBushel',
+      primaryLabel: 'bushel',
+      primaryEur: eur,
+      primaryUsd: usd,
+      secondaryEur: null,
+      secondaryUsd: null,
+      plainUnit: 'un bushel',
     };
   }
 
@@ -109,20 +134,22 @@ export function buildDisplayPricing(meta, quote, fx) {
   };
 }
 
-/** Valore numerico per assi grafico (EUR, eventualmente al grammo). */
-export function toChartDisplayValue(usd, fx, meta) {
-  if (usd == null || !Number.isFinite(usd)) return null;
-  const eur = usdToEur(usd, fx?.eurUsd);
-  const display = buildDisplayPricing(meta, { price: usd, priceEur: eur }, fx);
-  return display.primaryEur ?? eur ?? usd;
+/** Valore numerico per assi grafico (valuta nativa → EUR display). */
+export function toChartDisplayValue(nativePrice, fx, meta, currency = 'USD') {
+  if (nativePrice == null || !Number.isFinite(nativePrice)) return null;
+  const quoteLike = quoteFromNativePrice(nativePrice, currency, fx);
+  const display = buildDisplayPricing(meta, quoteLike, fx);
+  return display.primaryEur ?? display.primaryUsd ?? nativePrice;
 }
 
 /** Etichetta prezzo previsione: EUR in evidenza, USD tra parentesi. */
-export function formatForecastDual(usd, fx, meta) {
-  if (usd == null || !Number.isFinite(usd)) return { primary: '—', secondary: null };
+export function formatForecastDual(nativePrice, fx, meta, currency = 'USD') {
+  if (nativePrice == null || !Number.isFinite(nativePrice)) {
+    return { primary: '—', secondary: null };
+  }
 
-  const eur = usdToEur(usd, fx?.eurUsd);
-  const display = buildDisplayPricing(meta, { price: usd, priceEur: eur }, fx);
+  const quoteLike = quoteFromNativePrice(nativePrice, currency, fx);
+  const display = buildDisplayPricing(meta, quoteLike, fx);
 
   if (display.primaryEur != null && display.primaryLabel === 'al grammo') {
     return {
@@ -154,16 +181,31 @@ export function formatForecastDual(usd, fx, meta) {
     };
   }
 
-  return { primary: formatPrice(usd, 'USD'), secondary: null };
+  const ccy = String(currency).toUpperCase();
+  if (ccy === 'EUR') {
+    return {
+      primary: formatPrice(nativePrice, 'EUR'),
+      secondary: quoteLike?.priceUsd != null ? formatPrice(quoteLike.priceUsd, 'USD') : null,
+    };
+  }
+  return { primary: formatPrice(nativePrice, 'USD'), secondary: null };
 }
 
-/** Coefficienti regressione (USD) → testo EUR + USD. */
-export function formatRegressionCoeff(valueUsd, fx, { unit = '', decimals = 2 } = {}) {
-  if (valueUsd == null || !Number.isFinite(valueUsd)) return '—';
-  const eur = usdToEur(valueUsd, fx?.eurUsd);
+/** Coefficienti regressione (valuta nativa) → testo EUR + USD. */
+export function formatRegressionCoeff(valueNative, fx, { unit = '', decimals = 2, currency = 'USD' } = {}) {
+  if (valueNative == null || !Number.isFinite(valueNative)) return '—';
+  const quoteLike = quoteFromNativePrice(valueNative, currency, fx);
   const suffix = unit ? ` ${unit}` : '';
-  if (eur == null) return `${valueUsd.toFixed(decimals)} USD${suffix}`;
-  return `${formatPrice(eur, 'EUR')}${suffix} (${valueUsd.toFixed(decimals)} USD${suffix})`;
+  const ccy = String(currency).toUpperCase();
+  if (ccy === 'EUR') {
+    const usd = quoteLike?.priceUsd;
+    return usd != null
+      ? `${formatPrice(valueNative, 'EUR')}${suffix} (${usd.toFixed(decimals)} USD${suffix})`
+      : `${formatPrice(valueNative, 'EUR')}${suffix}`;
+  }
+  const eur = quoteLike?.priceEur;
+  if (eur == null) return `${valueNative.toFixed(decimals)} USD${suffix}`;
+  return `${formatPrice(eur, 'EUR')}${suffix} (${valueNative.toFixed(decimals)} USD${suffix})`;
 }
 
 export function formatCompetitorCell(quote, meta, fx) {

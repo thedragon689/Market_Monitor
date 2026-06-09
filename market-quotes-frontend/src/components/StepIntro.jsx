@@ -1,4 +1,5 @@
 import { getViewIntro } from '../data/views';
+import ForecastDisclaimerInfo from './ForecastDisclaimerInfo';
 
 export default function StepIntro({ view }) {
   const info = getViewIntro(view);
@@ -8,7 +9,12 @@ export default function StepIntro({ view }) {
     <div className="step-intro-block">
       <div className="step-intro">
         <span className="step-intro__badge">Passo {info.step}</span>
-        <h2 className="step-intro__title">{info.title}</h2>
+        <div className="step-intro__title-row">
+          <h2 className="step-intro__title">{info.title}</h2>
+          {view === 'forecast' && (
+            <ForecastDisclaimerInfo label="Avvertenze" className="forecast-disclaimer-info--intro" />
+          )}
+        </div>
         <p className="step-intro__lead">{info.lead}</p>
       </div>
     </div>

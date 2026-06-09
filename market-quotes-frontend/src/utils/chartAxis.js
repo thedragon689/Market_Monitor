@@ -1,9 +1,9 @@
 import { formatPerGram, toChartDisplayValue } from './pricing';
 
-export function toDisplayPrice(usd, fx, meta) {
-  if (usd == null || !Number.isFinite(usd)) return null;
-  if (!fx?.eurUsd || !meta) return usd;
-  return toChartDisplayValue(usd, fx, meta);
+export function toDisplayPrice(nativePrice, fx, meta, currency = 'USD') {
+  if (nativePrice == null || !Number.isFinite(nativePrice)) return null;
+  if (!meta) return nativePrice;
+  return toChartDisplayValue(nativePrice, fx, meta, currency);
 }
 
 export function chartYDomain(values, paddingRatio = 0.1) {

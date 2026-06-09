@@ -70,6 +70,21 @@ export default function TechnicalIndicators({ analysis, loading, fx, type, symbo
             '—'
           )}
         </IndicatorRow>
+        {ind.cci20 != null && (
+          <IndicatorRow label="CCI (20)">{formatNum(ind.cci20, 1)}</IndicatorRow>
+        )}
+        {ind.williamsR14 != null && (
+          <IndicatorRow label="Williams %R">{formatNum(ind.williamsR14, 1)}</IndicatorRow>
+        )}
+        {ind.atr14 != null && (
+          <IndicatorRow label="ATR (14)">
+            {formatNum(ind.atr14.value, 4)}
+            {ind.atr14.pctOfPrice != null && ` (${formatNum(ind.atr14.pctOfPrice, 2)}%)`}
+          </IndicatorRow>
+        )}
+        {ind.momentum14 != null && (
+          <IndicatorRow label="Momentum (14)">{formatNum(ind.momentum14, 2)}%</IndicatorRow>
+        )}
       </dl>
 
       {analysis?.forecast?.logReturn?.nextPrice != null && (

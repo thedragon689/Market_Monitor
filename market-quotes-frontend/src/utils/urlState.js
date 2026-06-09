@@ -17,7 +17,17 @@ export function parseUrlState(search) {
   if (w >= 2 && w <= 60) out.windowN = w;
   if (h >= 1 && h <= 30) out.horizonDays = h;
   const method = q.get('method');
-  if (method && ['linear', 'forest', 'both'].includes(method)) {
+  const validMethods = [
+    'both',
+    'all',
+    'ml',
+    'arima',
+    'lstm',
+    'sma',
+    'linear',
+    'log',
+  ];
+  if (method && validMethods.includes(method)) {
     out.forecastMethod = method;
   }
   return out;

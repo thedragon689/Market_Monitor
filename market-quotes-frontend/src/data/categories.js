@@ -35,7 +35,7 @@ export const MARKET_CATEGORIES = [
     id: 'commodity',
     label: 'Materie prime',
     headline: 'Commodities',
-    description: 'Petrolio WTI e rame — barile o grammo',
+    description: 'Energia, metalli, agricoli — spot, futures, curva e modelli ML',
     unit: '€ / barile o g',
     tone: 'commodity',
   },

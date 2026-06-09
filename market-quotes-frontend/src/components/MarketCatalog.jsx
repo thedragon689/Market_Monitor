@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useMobileLayout } from '../hooks/useMobileLayout';
 import { formatShortDate } from '../utils/format';
 import { changeTone, formatChangeBadge, formatCurrentPrice } from '../utils/catalogPrice';
 import { SORT_OPTIONS, sortAssetItems } from '../utils/sortAssets';
@@ -43,7 +44,16 @@ const CATEGORY_SECTIONS = [
   },
 ];
 
-function CatalogCard({ item, selected, onSelect, onForecast, fx, showCategory, forecastLoading }) {
+function CatalogCard({
+  item,
+  selected,
+  onSelect,
+  onForecast,
+  fx,
+  showCategory,
+  forecastLoading,
+  compact = false,
+}) {
   const q = item.quote;
   const meta = item;
   const price = formatCurrentPrice(q, meta, fx);
@@ -64,37 +74,62 @@ function CatalogCard({ item, selected, onSelect, onForecast, fx, showCategory, f
 
   return (
     <article
-      className={`catalog-card ${selected ? 'is-selected' : ''} ${!q?.price ? 'is-muted' : ''}`}
+      className={`catalog-card ${compact ? 'catalog-card--chip' : ''} ${selected ? 'is-selected' : ''} ${!q?.price ? 'is-muted' : ''}`}
     >
       <button type="button" className="catalog-card__body" onClick={() => onSelect?.(item)}>
-      <div className="catalog-card__top">
-        <code className="catalog-card__code">{item.id}</code>
-        {showCategory && categoryLabel && (
-          <span className="catalog-card__category">{categoryLabel}</span>
-        )}
-        {item.region && <span className="catalog-card__region">{item.region}</span>}
-        {item.family && !item.region && (
-          <span className="catalog-card__region">{item.family}</span>
-        )}
-      </div>
-      <h3 className="catalog-card__name">{item.name}</h3>
-      <p className="catalog-card__hint">{item.hint || item.sector}</p>
-      <div className="catalog-card__price-block">
-        <span className="catalog-card__price-label">Prezzo attuale</span>
-        <p className="catalog-card__price">
-          {price.primary}
-          {price.unit && <span className="catalog-card__unit"> {price.unit}</span>}
-        </p>
-        {price.secondary && <p className="catalog-card__price-sub">{price.secondary}</p>}
-      </div>
-      <div className="catalog-card__footer">
-        {chg != null ? (
-          <span className={`catalog-card__chg catalog-card__chg--${tone}`}>{chg}</span>
-        ) : (
-          <span className="catalog-card__chg catalog-card__chg--neutral">—</span>
-        )}
-        {q?.asOf && <time className="catalog-card__date">{formatShortDate(q.asOf)}</time>}
-      </div>
+      {compact ? (
+        <>
+          <div className="catalog-card__row">
+            <code className="catalog-card__code">{item.id}</code>
+            {chg != null ? (
+              <span className={`catalog-card__chg catalog-card__chg--${tone}`}>{chg}</span>
+            ) : (
+              <span className="catalog-card__chg catalog-card__chg--neutral">—</span>
+            )}
+          </div>
+          <h3 className="catalog-card__name">{item.name}</h3>
+          <p className="catalog-card__price">
+            {price.primary}
+            {price.unit && q?.price ? ` ${price.unit}` : ''}
+          </p>
+          <p className="catalog-card__hint">{item.hint || item.sector}</p>
+          {item.region && <span className="catalog-card__region">{item.region}</span>}
+          {item.family && !item.region && (
+            <span className="catalog-card__region">{item.family}</span>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="catalog-card__top">
+            <code className="catalog-card__code">{item.id}</code>
+            {showCategory && categoryLabel && (
+              <span className="catalog-card__category">{categoryLabel}</span>
+            )}
+            {item.region && <span className="catalog-card__region">{item.region}</span>}
+            {item.family && !item.region && (
+              <span className="catalog-card__region">{item.family}</span>
+            )}
+          </div>
+          <h3 className="catalog-card__name">{item.name}</h3>
+          <p className="catalog-card__hint">{item.hint || item.sector}</p>
+          <div className="catalog-card__price-block">
+            <span className="catalog-card__price-label">Prezzo attuale</span>
+            <p className="catalog-card__price">
+              {price.primary}
+              {price.unit && <span className="catalog-card__unit"> {price.unit}</span>}
+            </p>
+            {price.secondary && <p className="catalog-card__price-sub">{price.secondary}</p>}
+          </div>
+          <div className="catalog-card__footer">
+            {chg != null ? (
+              <span className={`catalog-card__chg catalog-card__chg--${tone}`}>{chg}</span>
+            ) : (
+              <span className="catalog-card__chg catalog-card__chg--neutral">—</span>
+            )}
+            {q?.asOf && <time className="catalog-card__date">{formatShortDate(q.asOf)}</time>}
+          </div>
+        </>
+      )}
       </button>
       <button
         type="button"
@@ -117,16 +152,19 @@ function CatalogGrid({
   fx,
   showCategory,
   forecastLoading,
+  className = '',
 }) {
+  const compact = className.includes('market-catalog__grid--chip');
   if (!items.length) return null;
   return (
-    <div className="market-catalog__grid">
+    <div className={`market-catalog__grid ${className}`.trim()}>
       {items.map((item) => (
         <CatalogCard
           key={`${item.assetType}-${item.id}`}
           item={item}
           fx={fx}
           showCategory={showCategory}
+          compact={compact}
           forecastLoading={forecastLoading}
           selected={selectedSymbol === item.id && selectedType === item.assetType}
           onSelect={(it) => onSelectAsset?.(it.id, it.assetType)}
@@ -163,8 +201,10 @@ export default function MarketCatalog({
   forecastLoading,
   showAllCategories = false,
 }) {
+  const isMobile = useMobileLayout();
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState('name');
+  const [stockRegion, setStockRegion] = useState('all');
 
   const catalogByType = useMemo(
     () => ({
@@ -227,8 +267,12 @@ export default function MarketCatalog({
 
   const showCategoryBadge = showAllCategories;
 
+  const gridClassName = isMobile
+    ? ''
+    : 'symbol-picker__grid market-catalog__grid--chip';
+
   return (
-    <section className="market-catalog">
+    <section className={`market-catalog ${!isMobile ? 'market-catalog--picker-style' : ''}`.trim()}>
       <div className="market-catalog__stats">
         <div className="market-catalog__stat">
           <span className="market-catalog__stat-value">{assetTotal}</span>
@@ -326,14 +370,38 @@ export default function MarketCatalog({
               </header>
 
               {section.subgroups ? (
-                section.subgroups.map((sg) => (
-                  <div key={sg.id} className="market-catalog__subgroup">
-                    <h4 className="market-catalog__subgroup-title">
-                      <span>{sg.title}</span>
-                      <span className="market-catalog__subgroup-count">{sg.items.length}</span>
-                    </h4>
+                !isMobile && section.id === 'stock' ? (
+                  <>
+                    <div
+                      className="symbol-picker__filters market-catalog__stock-regions"
+                      role="group"
+                      aria-label="Filtra per area"
+                    >
+                      <button
+                        type="button"
+                        className={`symbol-picker__filter ${stockRegion === 'all' ? 'is-active' : ''}`}
+                        onClick={() => setStockRegion('all')}
+                      >
+                        Tutte ({section.subgroups.reduce((a, sg) => a + sg.items.length, 0)})
+                      </button>
+                      {section.subgroups.map((sg) => (
+                        <button
+                          key={sg.id}
+                          type="button"
+                          className={`symbol-picker__filter ${stockRegion === sg.id ? 'is-active' : ''}`}
+                          onClick={() => setStockRegion(sg.id)}
+                        >
+                          {sg.title} ({sg.items.length})
+                        </button>
+                      ))}
+                    </div>
                     <CatalogGrid
-                      items={sg.items}
+                      items={
+                        stockRegion === 'all'
+                          ? section.subgroups.flatMap((sg) => sg.items)
+                          : section.subgroups.find((sg) => sg.id === stockRegion)?.items ?? []
+                      }
+                      className={gridClassName}
                       selectedType={selectedType}
                       selectedSymbol={selectedSymbol}
                       onSelectAsset={onSelectAsset}
@@ -342,11 +410,32 @@ export default function MarketCatalog({
                       showCategory={showCategoryBadge}
                       forecastLoading={forecastLoading}
                     />
-                  </div>
-                ))
+                  </>
+                ) : (
+                  section.subgroups.map((sg) => (
+                    <div key={sg.id} className="market-catalog__subgroup">
+                      <h4 className="market-catalog__subgroup-title">
+                        <span>{sg.title}</span>
+                        <span className="market-catalog__subgroup-count">{sg.items.length}</span>
+                      </h4>
+                      <CatalogGrid
+                        items={sg.items}
+                        className={gridClassName}
+                        selectedType={selectedType}
+                        selectedSymbol={selectedSymbol}
+                        onSelectAsset={onSelectAsset}
+                        onForecast={onForecast}
+                        fx={fx}
+                        showCategory={showCategoryBadge}
+                        forecastLoading={forecastLoading}
+                      />
+                    </div>
+                  ))
+                )
               ) : (
                 <CatalogGrid
                   items={section.items}
+                  className={gridClassName}
                   selectedType={selectedType}
                   selectedSymbol={selectedSymbol}
                   onSelectAsset={onSelectAsset}

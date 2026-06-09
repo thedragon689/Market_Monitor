@@ -293,14 +293,122 @@
 }
 
 @media (min-width: 900px) {
-  .market-catalog__grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  .view-panel__explore-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .market-catalog--picker-style .market-catalog__stock-regions {
+    margin: 0 0 0.75rem;
+  }
+
+  .market-catalog--picker-style .market-catalog__grid--chip {
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .market-catalog--picker-style .catalog-card {
+    border-radius: 10px;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .market-catalog--picker-style .catalog-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .market-catalog--picker-style .catalog-card__body {
+    gap: 0.15rem;
+    padding: 0.65rem 0.75rem 0.45rem;
+  }
+
+  .market-catalog--picker-style .catalog-card__top {
+    width: 100%;
+  }
+
+  .market-catalog--picker-style .catalog-card__code {
+    font-size: 0.75rem;
+  }
+
+  .market-catalog--picker-style .catalog-card__name {
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .market-catalog--picker-style .catalog-card__hint {
+    font-size: 0.72rem;
+    line-height: 1.3;
+  }
+
+  .market-catalog--picker-style .catalog-card__price-block {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .market-catalog--picker-style .catalog-card__price-label,
+  .market-catalog--picker-style .catalog-card__date {
+    display: none;
+  }
+
+  .market-catalog--picker-style .catalog-card__price {
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .market-catalog--picker-style .catalog-card__price-sub {
+    margin: 0;
+    font-size: 0.68rem;
+  }
+
+  .market-catalog--picker-style .catalog-card__footer {
+    margin-top: 0.1rem;
+  }
+
+  .market-catalog--picker-style .catalog-card__chg {
+    font-size: 0.68rem;
+  }
+
+  .market-catalog--picker-style .catalog-card__category {
+    display: none;
+  }
+
+  .market-catalog--picker-style .catalog-card__region {
+    font-size: 0.7rem;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    opacity: 0.85;
+  }
+
+  .market-catalog--picker-style .catalog-card__cta {
+    width: calc(100% - 1rem);
+    margin: 0 0.5rem 0.5rem;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.72rem;
+  }
+
+  .market-catalog--picker-style .market-catalog__group-header {
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .market-catalog--picker-style .market-catalog__category-badge {
+    display: none;
   }
 }
 
 @media (min-width: 1200px) {
-  .market-catalog__grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  .market-catalog--picker-style .market-catalog__grid--chip {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }
 
@@ -363,6 +471,20 @@
 }
 
 /* ── Forecast & controls ── */
+@media (max-width: 520px) {
+  .forecast-method-picker__groups {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    grid-template-columns: none;
+  }
+
+  .forecast-method-picker__group {
+    flex: 0 0 auto;
+    min-width: 7.5rem;
+  }
+}
+
 @media (max-width: 639px) {
   .forecast-controls__main {
     flex-direction: column;
@@ -514,10 +636,47 @@
 }
 
 @media (min-width: 900px) {
-  .forecast-controls__params {
+  .forecast-controls--desktop-panel {
+    padding: 1.15rem 1.35rem;
+  }
+
+  .forecast-controls--desktop-panel .forecast-controls__layout {
     display: grid;
-    grid-template-columns: repeat(3, minmax(140px, 1fr));
-    align-items: end;
+    grid-template-columns: minmax(220px, 0.85fr) minmax(0, 2.15fr);
+    gap: 1.25rem 1.5rem;
+    align-items: start;
+    margin-top: 0.85rem;
+    padding-top: 0.85rem;
+    border-top: 1px dashed var(--border);
+  }
+
+  .forecast-controls--desktop-panel .forecast-controls__params {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0.85rem 1rem;
+    border-top: none;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+  }
+
+  .forecast-controls--desktop-panel .forecast-controls__field {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .forecast-method-picker__option-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .forecast-method-picker__section--ml .forecast-method-picker__option-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .forecast-method-picker__option-grid--wide {
+    grid-template-columns: 1fr;
   }
 
   .app-shell__main {
@@ -534,15 +693,6 @@
 
   .category-selector--cards .category-selector__grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
-
-  .app__grid--explore {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-  }
-
-  .app__grid--explore > :only-child {
-    grid-column: 1 / -1;
   }
 
   .app__grid--duo {
@@ -577,6 +727,18 @@
 }
 
 @media (min-width: 1200px) {
+  .forecast-controls--desktop-panel .forecast-controls__layout {
+    grid-template-columns: minmax(240px, 0.75fr) minmax(0, 2.5fr);
+  }
+
+  .forecast-method-picker__option-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .forecast-method-picker__option-grid--wide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .app__grid--top {
     grid-template-columns: minmax(320px, 1fr) minmax(420px, 1.55fr);
     gap: 1.65rem;
@@ -636,7 +798,7 @@
     grid-template-columns: minmax(340px, 1fr) minmax(480px, 1.75fr);
   }
 
-  .app__grid--explore {
+  .view-panel__explore-stack {
     gap: 1.5rem;
   }
 

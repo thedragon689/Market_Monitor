@@ -9,87 +9,34 @@ import {
   YAxis,
 } from 'recharts';
 import { getSymbolMeta } from '../data/symbols';
-import { formatShortDate } from '../utils/format';
-import { chartAxisHint, chartYDomain, formatChartYTick, toDisplayPrice } from '../utils/chartAxis';
+import { chartAxisHint, chartYDomain, formatChartYTick } from '../utils/chartAxis';
+import {
+  buildForecastChartData,
+  buildForecastRawByKey,
+  forecastSeriesMeta,
+} from '../utils/forecastChartData';
+import { inferNativeCurrency } from '../utils/nativeCurrency';
 import { formatForecastDual } from '../utils/pricing';
+import ForecastDisclaimerInfo from './ForecastDisclaimerInfo';
 
-function applyForecastOverlays(trimmed, forecast, cv) {
-  if (!trimmed.length || !forecast?.methods) return;
+const FORECAST_DOT = { r: 3.5, strokeWidth: 2, stroke: 'var(--bg-elevated)' };
 
-  const reg = forecast.methods.linearRegression;
-  const smaLevel = forecast.methods.sma?.level;
-  const window =
-    reg?.window ?? forecast.methods.sma?.window ?? forecast.windowSize ?? 5;
-
-  if (reg?.coefficients && !reg.error) {
-    const { slope, intercept } = reg.coefficients;
-    const w = Math.min(window, trimmed.length);
-    const start = trimmed.length - w;
-    for (let i = 0; i < w; i++) {
-      const dayT = window - w + i + 1;
-      trimmed[start + i].linear = cv(slope * dayT + intercept);
-    }
-  }
-
-  if (smaLevel != null) {
-    const w = Math.min(window, trimmed.length);
-    const start = trimmed.length - w;
-    const smaVal = cv(smaLevel);
-    for (let i = start; i < trimmed.length; i++) {
-      trimmed[i].sma = smaVal;
-    }
-  }
+function forecastDot(props) {
+  const { cx, cy, payload } = props;
+  if (payload?.kind !== 'forecast' || cx == null || cy == null) return null;
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={FORECAST_DOT.r}
+      fill={props.stroke}
+      stroke={FORECAST_DOT.stroke}
+      strokeWidth={FORECAST_DOT.strokeWidth}
+    />
+  );
 }
 
-function buildChartData(history, forecast, fx, meta) {
-  if (!history?.length) return [];
-
-  const cv = (p) => toDisplayPrice(p, fx, meta);
-
-  const historical = history.map((p, i) => ({
-    key: `h-${p.date}`,
-    date: p.date,
-    label: formatShortDate(p.date),
-    actual: cv(p.price),
-    sma: null,
-    linear: null,
-    kind: 'history',
-    index: i + 1,
-  }));
-
-  const last = historical[historical.length - 1];
-  const n = historical.length;
-
-  const smaPoints = forecast?.methods?.sma?.forecasts ?? [];
-  const linearPoints = forecast?.methods?.linearRegression?.forecasts ?? [];
-  const maxLen = Math.max(smaPoints.length, linearPoints.length);
-
-  const future = [];
-  for (let k = 0; k < maxLen; k++) {
-    const offset = k + 1;
-    future.push({
-      key: `f-${offset}`,
-      date: null,
-      label: `+${offset} gg`,
-      actual: k === 0 ? last.actual : null,
-      sma: cv(smaPoints[k]?.price ?? null),
-      linear: cv(linearPoints[k]?.price ?? null),
-      kind: 'forecast',
-      index: n + offset,
-    });
-  }
-
-  if (future.length) {
-    future[0].actual = last.actual;
-  }
-
-  const trimmed = historical.slice(-45);
-  applyForecastOverlays(trimmed, forecast, cv);
-
-  return [...trimmed, ...future];
-}
-
-function ChartTooltip({ active, payload, fx, meta, rawByKey }) {
+function ChartTooltip({ active, payload, fx, meta, rawByKey, currency }) {
   if (!active || !payload?.length) return null;
   const row = payload[0].payload;
 
@@ -98,11 +45,12 @@ function ChartTooltip({ active, payload, fx, meta, rawByKey }) {
     if (row[field] == null && raw == null) return null;
     const dual =
       raw != null && fx?.eurUsd
-        ? formatForecastDual(raw, fx, meta)
+        ? formatForecastDual(raw, fx, meta, currency)
         : { primary: row[field] != null ? String(row[field]) : '—', secondary: null };
     return (
       <p className={`chart-tooltip__row chart-tooltip__row--${field}`}>
-        <span>{label}</span>{' '}
+        <span className="chart-tooltip__swatch" aria-hidden />
+        <span className="chart-tooltip__row-label">{label}</span>
         <strong>{dual.primary}</strong>
         {dual.secondary && <span className="chart-tooltip__usd"> ({dual.secondary})</span>}
       </p>
@@ -110,12 +58,39 @@ function ChartTooltip({ active, payload, fx, meta, rawByKey }) {
   };
 
   return (
-    <div className="chart-tooltip">
+    <div className="chart-tooltip chart-tooltip--forecast">
       <p className="chart-tooltip__date">{row.label}</p>
       {rowLine('actual', 'Reale')}
       {rowLine('sma', 'Media mobile')}
-      {rowLine('linear', 'Regressione lineare')}
+      {rowLine('linear', 'Regressione')}
+      {rowLine('logReturn', 'Log-return')}
+      {rowLine('prophet', 'Prophet')}
+      {rowLine('arima', 'ARIMA')}
+      {rowLine('lstm', 'LSTM')}
     </div>
+  );
+}
+
+function ChartLegend({ payload }) {
+  if (!payload?.length) return null;
+  const labels = {
+    actual: 'Prezzo reale',
+    sma: 'Media mobile',
+    linear: 'Regressione lineare',
+    logReturn: 'Log-return',
+    prophet: 'Prophet',
+    arima: 'ARIMA',
+    lstm: 'LSTM',
+  };
+  return (
+    <ul className="chart-legend chart-legend--forecast">
+      {payload.map((entry) => (
+        <li key={entry.value} className={`chart-legend__item chart-legend__item--${entry.value}`}>
+          <span className="chart-legend__swatch" aria-hidden />
+          <span>{labels[entry.value] || entry.value}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -126,10 +101,12 @@ export default function ForecastChart({
   fx,
   type,
   symbol,
+  quote,
   onForecast,
   forecastLoading,
 }) {
   const meta = getSymbolMeta(symbol, type);
+  const currency = inferNativeCurrency(type, quote, symbol);
 
   if (loading) {
     return (
@@ -162,74 +139,57 @@ export default function ForecastChart({
     );
   }
 
-  const trimmedHist = history?.slice(-45) ?? [];
-  const rawByKey = {};
-  trimmedHist.forEach((p) => {
-    rawByKey[`h-${p.date}`] = { actual: p.price };
-  });
-
-  const reg = forecast?.methods?.linearRegression;
-  const smaLevel = forecast?.methods?.sma?.level;
-  const window = reg?.window ?? forecast?.methods?.sma?.window ?? forecast.windowSize ?? 5;
-
-  if (trimmedHist.length && reg?.coefficients) {
-    const anchorKey = `h-${trimmedHist[trimmedHist.length - 1].date}`;
-    const { slope, intercept } = reg.coefficients;
-    rawByKey[anchorKey] = {
-      ...rawByKey[anchorKey],
-      linear: slope * window + intercept,
-    };
-    const w = Math.min(window, trimmedHist.length);
-    const start = trimmedHist.length - w;
-    for (let i = 0; i < w; i++) {
-      const dayT = window - w + i + 1;
-      const key = `h-${trimmedHist[start + i].date}`;
-      rawByKey[key] = { ...rawByKey[key], linear: slope * dayT + intercept };
-    }
-  }
-
-  if (smaLevel != null && trimmedHist.length) {
-    const w = Math.min(window, trimmedHist.length);
-    for (let i = trimmedHist.length - w; i < trimmedHist.length; i++) {
-      const key = `h-${trimmedHist[i].date}`;
-      rawByKey[key] = { ...rawByKey[key], sma: smaLevel };
-    }
-  }
-
-  const smaPts = forecast?.methods?.sma?.forecasts ?? [];
-  const linPts = forecast?.methods?.linearRegression?.forecasts ?? [];
-  const maxLen = Math.max(smaPts.length, linPts.length);
-  const lastHist = history[history.length - 1];
-  for (let k = 0; k < maxLen; k++) {
-    rawByKey[`f-${k + 1}`] = {
-      actual: k === 0 ? lastHist?.price : null,
-      sma: smaPts[k]?.price ?? null,
-      linear: linPts[k]?.price ?? null,
-    };
-  }
-
-  const data = buildChartData(history, forecast, fx, meta);
+  const { data } = buildForecastChartData(history, forecast, fx, meta, currency);
   if (!data.length) return null;
 
-  const values = data.flatMap((d) => [d.actual, d.sma, d.linear].filter((v) => v != null));
-  const [yMin, yMax] = chartYDomain(values, 0.1);
+  const rawByKey = buildForecastRawByKey(history, forecast);
+  const series = forecastSeriesMeta(forecast);
+
+  const values = data.flatMap((d) =>
+    [d.actual, d.sma, d.linear, d.logReturn, d.prophet, d.arima, d.lstm].filter((v) => v != null)
+  );
+  const [yMin, yMax] = chartYDomain(values, 0.08);
   const isGram = meta.pricingKind === 'perGramTroy' || meta.pricingKind === 'perGramLb';
 
+  const subtitleParts = [chartAxisHint(fx, meta)];
+  if (series.hasSma) subtitleParts.push('verde = SMA');
+  if (series.hasLinear) subtitleParts.push('arancione = regressione');
+  if (series.hasLogReturn) subtitleParts.push('teal = log-return');
+  if (series.hasProphet) subtitleParts.push('indaco = Prophet');
+  if (series.hasArima) subtitleParts.push('viola = ARIMA');
+  if (series.hasLstm) subtitleParts.push('rosa = LSTM');
+
   return (
-    <div className="chart-card">
-      <h3 className="chart-card__title">Storico e previsioni</h3>
-      <p className="chart-card__subtitle">
-        {chartAxisHint(fx, meta)} · storico (indigo) · verde = media mobile · arancione = regressione
-      </p>
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
+    <div className="chart-card chart-card--forecast">
+      <div className="chart-card__head">
+        <h3 className="chart-card__title">Storico e previsioni</h3>
+        <ForecastDisclaimerInfo />
+      </div>
+      <p className="chart-card__subtitle">{subtitleParts.join(' · ')}</p>
+      <ResponsiveContainer width="100%" height={320}>
+        <LineChart data={data} margin={{ top: 10, right: 14, left: 2, bottom: 4 }}>
+          <defs>
+            <filter id="forecastLineGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="1.2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <CartesianGrid
+            strokeDasharray="4 6"
+            stroke="var(--chart-grid)"
+            vertical={false}
+            strokeOpacity={0.85}
+          />
           <XAxis
             dataKey="label"
             tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
             tickLine={false}
             axisLine={false}
-            minTickGap={20}
+            minTickGap={18}
+            interval="preserveStartEnd"
           />
           <YAxis
             domain={[yMin, yMax]}
@@ -239,48 +199,118 @@ export default function ForecastChart({
             tickFormatter={(v) => formatChartYTick(v, fx, meta)}
             width={isGram ? 88 : 72}
           />
-          <Tooltip content={<ChartTooltip fx={fx} meta={meta} rawByKey={rawByKey} />} />
-          <Legend
-            wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
-            formatter={(value) => {
-              const labels = {
-                actual: 'Prezzo reale',
-                sma: 'Media mobile',
-                linear: 'Regressione lineare',
-              };
-              return labels[value] || value;
-            }}
+          <Tooltip
+            content={
+              <ChartTooltip fx={fx} meta={meta} rawByKey={rawByKey} currency={currency} />
+            }
           />
+          <Legend content={<ChartLegend />} />
+
+          {series.hasSma && (
+            <Line
+              type="linear"
+              dataKey="sma"
+              name="sma"
+              stroke="var(--chart-sma)"
+              strokeWidth={series.classicWidth}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              dot={false}
+              activeDot={{ r: 4, stroke: 'var(--bg-elevated)', strokeWidth: 2 }}
+              connectNulls
+              isAnimationActive={false}
+              style={{ filter: 'url(#forecastLineGlow)' }}
+            />
+          )}
+
+          {series.hasLinear && (
+            <Line
+              type="linear"
+              dataKey="linear"
+              name="linear"
+              stroke="var(--chart-linear)"
+              strokeWidth={series.classicWidth}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              dot={false}
+              activeDot={{ r: 4, stroke: 'var(--bg-elevated)', strokeWidth: 2 }}
+              connectNulls
+              isAnimationActive={false}
+              style={{ filter: 'url(#forecastLineGlow)' }}
+            />
+          )}
+
+          {series.hasLogReturn && (
+            <Line
+              type="monotone"
+              dataKey="logReturn"
+              name="logReturn"
+              stroke="var(--chart-log)"
+              strokeWidth={series.classicWidth}
+              strokeDasharray="6 4"
+              strokeLinecap="round"
+              dot={forecastDot}
+              connectNulls
+              isAnimationActive={false}
+            />
+          )}
+
+          {series.hasProphet && (
+            <Line
+              type="monotone"
+              dataKey="prophet"
+              name="prophet"
+              stroke="var(--chart-prophet)"
+              strokeWidth={series.overlayWidth}
+              strokeDasharray="3 5"
+              strokeLinecap="round"
+              dot={forecastDot}
+              connectNulls
+              isAnimationActive={false}
+            />
+          )}
+
+          {series.hasArima && (
+            <Line
+              type="monotone"
+              dataKey="arima"
+              name="arima"
+              stroke="var(--chart-arima)"
+              strokeWidth={series.mlWidth}
+              strokeDasharray="7 4"
+              strokeLinecap="round"
+              dot={forecastDot}
+              connectNulls
+              isAnimationActive={false}
+            />
+          )}
+
+          {series.hasLstm && (
+            <Line
+              type="monotone"
+              dataKey="lstm"
+              name="lstm"
+              stroke="var(--chart-lstm)"
+              strokeWidth={series.mlWidth}
+              strokeDasharray="4 3"
+              strokeLinecap="round"
+              dot={forecastDot}
+              connectNulls
+              isAnimationActive={false}
+            />
+          )}
+
           <Line
-            type="linear"
+            type="monotone"
             dataKey="actual"
             name="actual"
             stroke="var(--chart-line)"
-            strokeWidth={2.5}
+            strokeWidth={2.75}
+            strokeLinecap="round"
+            strokeLinejoin="round"
             dot={false}
+            activeDot={{ r: 5, fill: 'var(--chart-line)', stroke: 'var(--bg-elevated)', strokeWidth: 2 }}
             connectNulls={false}
-            isAnimationActive={false}
-          />
-          <Line
-            type="linear"
-            dataKey="sma"
-            name="sma"
-            stroke="var(--chart-sma)"
-            strokeWidth={2}
-            strokeDasharray="6 4"
-            dot={{ r: 3 }}
-            connectNulls
-            isAnimationActive={false}
-          />
-          <Line
-            type="linear"
-            dataKey="linear"
-            name="linear"
-            stroke="var(--chart-linear)"
-            strokeWidth={2}
-            strokeDasharray="2 4"
-            dot={{ r: 3 }}
-            connectNulls
             isAnimationActive={false}
           />
         </LineChart>

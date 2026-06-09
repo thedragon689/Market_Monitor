@@ -22,6 +22,7 @@ export const ANALYSIS_PANEL_OPTIONS = [
 
 export const FORECAST_PANEL_OPTIONS = [
   { id: 'params', label: 'Parametri calcolo', hint: 'N · giorni · metodo' },
+  { id: 'advanced', label: 'ML avanzato', hint: 'Polinomio · RF' },
   { id: 'geo', label: 'Impatto geopolitico', hint: 'Dopo il calcolo' },
   { id: 'legend', label: 'Legenda', hint: 'Metodi previsione' },
 ];

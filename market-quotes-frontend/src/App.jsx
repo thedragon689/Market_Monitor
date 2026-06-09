@@ -38,6 +38,7 @@ import SymbolPicker from './components/SymbolPicker';
 import { catalogToQuoteMap } from './utils/catalogPrice';
 import { getCategoryMeta } from './data/categories';
 import TechnicalIndicators from './components/TechnicalIndicators';
+import CommodityDashboard from './components/CommodityDashboard';
 import GeopoliticalNews from './components/GeopoliticalNews';
 import GeopoliticalSummary from './components/GeopoliticalSummary';
 import MarketCorrelations from './components/MarketCorrelations';
@@ -56,6 +57,7 @@ import {
 } from './data/symbols';
 
 const AdvancedDashboard = lazy(() => import('./components/AdvancedDashboard'));
+const MlForecastPanel = lazy(() => import('./components/MlForecastPanel'));
 const ForecastChart = lazy(() => import('./components/ForecastChart'));
 const GeopoliticalImpactChart = lazy(
   () => import('./components/GeopoliticalImpactChart')
@@ -89,6 +91,8 @@ export default function App() {
   const [loadingCompetitors, setLoadingCompetitors] = useState(false);
   const [analysis, setAnalysis] = useState(null);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
+  const [commodityProfile, setCommodityProfile] = useState(null);
+  const [loadingCommodity, setLoadingCommodity] = useState(false);
   const [geopolitical, setGeopolitical] = useState(null);
   const [geoNews, setGeoNews] = useState(null);
   const [loadingGeo, setLoadingGeo] = useState(false);
@@ -237,12 +241,44 @@ export default function App() {
     }
   }, []);
 
+  const isMetalMarket = type === 'commodity' || type === 'precious' || type === 'metal';
+
+  const loadCommodityProfile = useCallback(
+    async (sym, marketType) => {
+      if (marketType !== 'commodity' && marketType !== 'precious' && marketType !== 'metal') {
+        setCommodityProfile(null);
+        return;
+      }
+      try {
+        setLoadingCommodity(true);
+        const params = new URLSearchParams({
+          symbol: sym,
+          type: marketType === 'metal' ? 'precious' : marketType,
+          days: String(horizonDays),
+          window: String(windowN),
+        });
+        const { data } = await apiFetch(
+          `${API_BASE}/api/commodities/profile?${params}`,
+          { optional: true }
+        );
+        setCommodityProfile(data ?? null);
+        if (data?.fx?.eurUsd) setFx(data.fx);
+      } catch {
+        setCommodityProfile(null);
+      } finally {
+        setLoadingCommodity(false);
+      }
+    },
+    [horizonDays, windowN]
+  );
+
   const loadAnalysisBundle = useCallback(
     async (sym, marketType, rate) => {
       try {
         setLoadingAnalysis(true);
         setLoadingIntelligence(true);
         setLoadingGeo(true);
+        loadCommodityProfile(sym, marketType);
         const params = new URLSearchParams({
           symbol: sym,
           type: marketType,
@@ -270,7 +306,7 @@ export default function App() {
         setLoadingGeo(false);
       }
     },
-    [horizonDays, windowN, forecastMethod, applyIntelligence]
+    [horizonDays, windowN, forecastMethod, applyIntelligence, loadCommodityProfile]
   );
 
   const loadCompetitorQuotes = useCallback(async (marketType, rate) => {
@@ -754,7 +790,7 @@ export default function App() {
               fx={fx}
             />
 
-            <div className="app__grid app__grid--explore">
+            <div className="view-panel__explore-stack">
               {explorePanels.includes('quick') && (
                 <section className="app-card app-card--picker">
                   <h3 className="view-panel__subtitle">Selezione rapida</h3>
@@ -836,6 +872,9 @@ export default function App() {
                   loading={loadingMarket}
                   fx={fx}
                   meta={meta}
+                  type={type}
+                  symbol={symbol}
+                  quote={displayQuote}
                 />
               </section>
             </div>
@@ -860,6 +899,16 @@ export default function App() {
             </div>
 
             <IntelligentAlerts alerts={intelligence?.alerts} />
+
+            {isMetalMarket && (
+              <section className="app-card app-card--commodity">
+                <CommodityDashboard
+                  profile={commodityProfile}
+                  loading={loadingCommodity || loadingMarket}
+                  fx={fx}
+                />
+              </section>
+            )}
 
             {(analysisPanels.includes('indicators') ||
               analysisPanels.includes('correlations')) && (
@@ -925,6 +974,9 @@ export default function App() {
                     history={history}
                     fx={fx}
                     meta={meta}
+                    type={type}
+                    symbol={symbol}
+                    quote={displayQuote}
                     loading={geoLoading || loadingMarket}
                   />
                 </Suspense>
@@ -954,6 +1006,7 @@ export default function App() {
                 busy={isLoading}
                 symbol={symbol}
                 assetName={meta.name}
+                historyLength={history?.length ?? 0}
               />
             )}
 
@@ -967,6 +1020,7 @@ export default function App() {
                     fx={fx}
                     type={type}
                     symbol={symbol}
+                    quote={displayQuote}
                     onForecast={goForecast}
                     forecastLoading={loadingForecast || loadingMarket}
                   />
@@ -977,9 +1031,26 @@ export default function App() {
                   fx={fx}
                   type={type}
                   symbol={symbol}
+                  quote={displayQuote}
                 />
               </div>
             </section>
+
+            {forecastPanels.includes('advanced') && (
+              <section className="app-card app-card--forecast-advanced">
+                <h3 className="view-panel__subtitle">Previsioni avanzate · ML intelligence</h3>
+                <Suspense fallback={<PanelFallback />}>
+                  <MlForecastPanel
+                    intelligence={intelligence}
+                    loading={loadingIntelligence || loadingForecast}
+                    type={type}
+                    symbol={symbol}
+                    quote={displayQuote}
+                    fx={fx}
+                  />
+                </Suspense>
+              </section>
+            )}
 
             {forecastPanels.includes('geo') && (
               <section className="app-card app-card--geo">
@@ -996,6 +1067,9 @@ export default function App() {
                     history={history}
                     fx={fx}
                     meta={meta}
+                    type={type}
+                    symbol={symbol}
+                    quote={displayQuote}
                     loading={loadingForecast || loadingMarket}
                   />
                 </Suspense>

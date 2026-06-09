@@ -61,7 +61,7 @@ export const LEGEND_SECTIONS = [
       {
         term: 'Materie prime',
         description:
-          'Petrolio WTI (al barile) e rame (al grammo da quotazione in libbre). Futures Yahoo come proxy.',
+          'Energia (WTI, Brent, gas), metalli (rame, nickel, litio), agricoli (mais, grano, soia). Dashboard con spot, volume, open interest, forward curve (contango/backwardation), macro DXY, modelli ARIMA/LSTM/Prophet e news filtrate.',
       },
       {
         term: 'Var. %',
@@ -126,13 +126,19 @@ export const LEGEND_SECTIONS = [
       },
       {
         term: 'Bande di Bollinger (20)',
+        formula: 'μ ± 2σ su finestra 20',
         description:
-          'Canale attorno a una media: banda superiore, media e inferiore. Prezzo vicino al bordo superiore/inferiore segnala estensione o volatilità.',
+          'Canale attorno alla SMA(20). Prezzo vicino al bordo superiore/inferiore segnala estensione o volatilità.',
+      },
+      {
+        term: 'CCI · Williams %R · Momentum',
+        description:
+          'CCI(20) e Williams %R(14) usano solo le chiusure (proxy senza massimi/minimi OHLC). Momentum(14) = variazione % su 14 giorni. Utili come filtri nel consiglio operativo.',
       },
       {
         term: 'ATR · Beta · Drawdown',
         description:
-          'ATR = volatilità media giornaliera; Beta = sensibilità vs SPY; Max drawdown = calo massimo dal picco recente (nel pannello Risk).',
+          'ATR = media |Δclose| (proxy senza H/L); Beta = Cov(rₐ,rᵦ)/Var(rᵦ) su rendimenti log allineati per data (come ρ); Max drawdown = calo massimo dal picco recente.',
       },
     ],
   },
@@ -150,6 +156,11 @@ export const LEGEND_SECTIONS = [
         term: 'Orizzonte (giorni)',
         description:
           'Quanti giorni futuri stimare (1–30). Ogni metodo produce una serie P+1, P+2, … fino all’orizzonte scelto.',
+      },
+      {
+        term: 'Come scegliere il metodo',
+        description:
+          'Su desktop: griglia con tutti i tipi di calcolo visibili (classici, ML, confronto completo), con anteprima colore grafico e giorni di storico richiesti. Su mobile: tre tab compatti.',
       },
       {
         term: 'SMA + regressione',
@@ -175,14 +186,46 @@ export const LEGEND_SECTIONS = [
           'Usa la media dei rendimenti logaritmici giornalieri. Adatto a serie con variazioni percentuali simili nel tempo.',
       },
       {
-        term: 'Tutti (+ log-return)',
+        term: 'Tutti (classici + ML)',
         description:
-          'Esegue SMA, regressione e log-return insieme. Consigliato per confrontare metodi diversi sullo stesso asset.',
+          'Esegue SMA, regressione, log-return, ARIMA e LSTM insieme. Consigliato per confrontare metodi statistici e di machine learning.',
+      },
+      {
+        term: 'ARIMA + LSTM',
+        description:
+          'Solo i motori ML: ARIMA (serie temporale classica) e LSTM (rete ricorrente addestrata sulla serie). Richiedono più storico (18+ e 28+ giorni).',
+      },
+      {
+        term: 'ARIMA',
+        formula: 'ARIMA(p,d,q)',
+        description:
+          'AutoRegressive Integrated Moving Average: modella trend e autocorrelazione nei residui. Ordine (p,d,q) scelto automaticamente.',
+      },
+      {
+        term: 'LSTM',
+        description:
+          'Long Short-Term Memory: rete neurale leggera addestrata online sui rendimenti log. Linea rosa nel grafico previsioni.',
       },
       {
         term: 'Prezzo reale vs stime',
         description:
-          'Nel grafico previsioni: linea continua indigo = storico; tratteggi verde/arancione = scenari SMA e regressione.',
+          'Nel grafico: indigo = storico; verde = SMA; arancione = regressione; teal = log-return; indaco = Prophet; viola = ARIMA; rosa = LSTM.',
+      },
+      {
+        term: 'ML avanzato (Polinomio · RF)',
+        description:
+          'Nel passo Prevedi, pannello «ML avanzato»: regressione polinomiale grado 2 e Random Forest dal motore intelligence (sentiment, volatilità, geo).',
+      },
+      {
+        term: 'Finestra N — ambito per metodo',
+        description:
+          'N controlla SMA e regressione (min 2 giorni). ARIMA/LSTM ignorano N se <18/28 e usano tutta la serie disponibile. Log-return usa l’intera serie per la media dei rendimenti.',
+      },
+      {
+        term: 'Prophet (commodity)',
+        formula: 'trend lineare + stagionalità 7 slot',
+        description:
+          'Versione leggera: stagionalità su indice giorno (non calendario reale). Attivo con metodo commodity o nel dashboard materie prime.',
       },
     ],
   },

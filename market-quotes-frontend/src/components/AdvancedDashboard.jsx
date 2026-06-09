@@ -8,6 +8,7 @@ import {
   YAxis,
 } from 'recharts';
 import { formatShortDate } from '../utils/format';
+import MlForecastPanel from './MlForecastPanel';
 
 const REGIME_CLASS = {
   bull: 'regime--bull',
@@ -158,8 +159,13 @@ function RiskPanel({ risk }) {
         <dd>{risk.drawdown?.maxDrawdown != null ? `${risk.drawdown.maxDrawdown}%` : '—'}</dd>
       </div>
       <div>
-        <dt>Beta vs SPY</dt>
-        <dd>{risk.beta?.beta ?? '—'}</dd>
+        <dt>Beta vs {risk.beta?.benchmark ?? 'benchmark'}</dt>
+        <dd>
+          {risk.beta?.beta ?? '—'}
+          {risk.beta?.method && (
+            <span className="adv-dash__muted"> · {risk.beta.method}</span>
+          )}
+        </dd>
       </div>
       <div>
         <dt>VIX</dt>
@@ -242,21 +248,17 @@ export default function AdvancedDashboard({ intelligence, loading }) {
           <h4>Timeline eventi geopolitici</h4>
           <EventTimeline timeline={geo?.sentimentTimeline} />
         </section>
-        {intelligence.ml?.polynomial && (
-          <section className="adv-dash__panel">
-            <h4>ML — Polinomio grado 2</h4>
-            <p className="adv-dash__muted">
-              Prossimo:{' '}
-              {intelligence.ml.polynomial.forecasts?.[0]?.price?.toFixed(2) ?? '—'}
-            </p>
-          </section>
-        )}
-        {intelligence.ml?.randomForest && (
-          <section className="adv-dash__panel">
-            <h4>ML — Random Forest ({intelligence.ml.randomForest.trees} alberi)</h4>
-            <p className="adv-dash__muted">
-              Prossimo: {intelligence.ml.randomForest.nextPrice?.toFixed(2) ?? '—'}
-            </p>
+        {(intelligence.ml?.polynomial || intelligence.ml?.randomForest) && (
+          <section className="adv-dash__panel adv-dash__panel--wide">
+            <h4>ML avanzato — Polinomio &amp; Random Forest</h4>
+            <MlForecastPanel
+              intelligence={intelligence}
+              loading={loading}
+              type={intelligence.type}
+              symbol={intelligence.symbol}
+              fx={null}
+              compact
+            />
           </section>
         )}
       </div>

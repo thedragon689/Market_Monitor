@@ -12,10 +12,14 @@
     "dev:web": "npm run dev --prefix market-quotes-frontend",
     "dev:all": "node node_modules/concurrently/dist/bin/concurrently.js -n api,web -c cyan,magenta \"npm run dev:api\" \"npm run dev:web\"",
     "smoke": "node scripts/smoke-health.js",
-    "smoke:prod": "node scripts/smoke-health.js https://valutazioniborsa.netlify.app"
+    "smoke:prod": "node scripts/smoke-health.js https://valutazioniborsa.netlify.app",
+    "verify:math": "node scripts/verify-math.js",
+    "verify:api": "node scripts/verify-api-ws.js",
+    "verify:api:prod": "node scripts/verify-api-ws.js https://valutazioniborsa.netlify.app"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "ws": "^8.18.0"
   },
   "dependencies": {
     "axios": "^1.7.0",

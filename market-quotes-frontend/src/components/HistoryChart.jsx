@@ -9,15 +9,16 @@ import {
 } from 'recharts';
 import { formatShortDate } from '../utils/format';
 import { chartAxisHint, chartYDomain, formatChartYTick, toDisplayPrice } from '../utils/chartAxis';
+import { inferNativeCurrency } from '../utils/nativeCurrency';
 import { formatForecastDual } from '../utils/pricing';
 
-function ChartTooltip({ active, payload, fx, meta, rawByDate }) {
+function ChartTooltip({ active, payload, fx, meta, rawByDate, currency }) {
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   const raw = rawByDate?.[point.date];
   const dual =
     raw != null && fx?.eurUsd && meta
-      ? formatForecastDual(raw, fx, meta)
+      ? formatForecastDual(raw, fx, meta, currency)
       : { primary: point.display?.toFixed?.(2) ?? point.display, secondary: null };
 
   return (
@@ -31,7 +32,8 @@ function ChartTooltip({ active, payload, fx, meta, rawByDate }) {
   );
 }
 
-export default function HistoryChart({ history, title, loading, fx, meta }) {
+export default function HistoryChart({ history, title, loading, fx, meta, type, symbol, quote }) {
+  const currency = inferNativeCurrency(type, quote, symbol);
   if (loading) {
     return (
       <div className="chart-card chart-card--loading">
@@ -55,7 +57,7 @@ export default function HistoryChart({ history, title, loading, fx, meta }) {
     return {
       ...p,
       label: formatShortDate(p.date),
-      display: toDisplayPrice(p.price, fx, meta),
+      display: toDisplayPrice(p.price, fx, meta, currency),
     };
   });
 
@@ -93,7 +95,11 @@ export default function HistoryChart({ history, title, loading, fx, meta }) {
             tickFormatter={(v) => formatChartYTick(v, fx, meta)}
             width={isGram ? 88 : 64}
           />
-          <Tooltip content={<ChartTooltip fx={fx} meta={meta} rawByDate={rawByDate} />} />
+          <Tooltip
+            content={
+              <ChartTooltip fx={fx} meta={meta} rawByDate={rawByDate} currency={currency} />
+            }
+          />
           <Area
             type="linear"
             dataKey="display"

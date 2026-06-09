@@ -11,9 +11,20 @@ import {
 } from 'recharts';
 import { formatShortDate } from '../utils/format';
 import { chartYDomain, formatChartYTick, toDisplayPrice } from '../utils/chartAxis';
+import { inferNativeCurrency } from '../utils/nativeCurrency';
 import { formatForecastDual } from '../utils/pricing';
 
-export default function GeopoliticalImpactChart({ geo, history, fx, meta, loading }) {
+export default function GeopoliticalImpactChart({
+  geo,
+  history,
+  fx,
+  meta,
+  type,
+  symbol,
+  quote,
+  loading,
+}) {
+  const currency = inferNativeCurrency(type, quote, symbol);
   const impact = geo?.impactSeries ?? [];
   const hasImpact = impact.length > 0;
 
@@ -25,8 +36,8 @@ export default function GeopoliticalImpactChart({ geo, history, fx, meta, loadin
         return {
           key: row.date,
           label: formatShortDate(row.date),
-          actual: toDisplayPrice(row.price, fx, meta),
-          geoAdjusted: toDisplayPrice(row.geoAdjustedPrice, fx, meta),
+          actual: toDisplayPrice(row.price, fx, meta, currency),
+          geoAdjusted: toDisplayPrice(row.geoAdjustedPrice, fx, meta, currency),
           geoImpactPct: row.geoImpactPct,
         };
       })
@@ -35,7 +46,7 @@ export default function GeopoliticalImpactChart({ geo, history, fx, meta, loadin
         return {
           key: p.date,
           label: formatShortDate(p.date),
-          actual: toDisplayPrice(p.price, fx, meta),
+          actual: toDisplayPrice(p.price, fx, meta, currency),
           geoAdjusted: null,
           geoImpactPct: 0,
         };
@@ -109,7 +120,7 @@ export default function GeopoliticalImpactChart({ geo, history, fx, meta, loadin
                       Prezzo reale:{' '}
                       <strong>
                         {fx?.eurUsd && meta
-                          ? formatForecastDual(raw.actual, fx, meta).primary
+                          ? formatForecastDual(raw.actual, fx, meta, currency).primary
                           : raw.actual.toFixed(2)}
                       </strong>
                     </p>
@@ -117,7 +128,9 @@ export default function GeopoliticalImpactChart({ geo, history, fx, meta, loadin
                   {raw?.geoAdjusted != null && (
                     <p>
                       Scenario geo ({geoIndex} pt):{' '}
-                      <strong>{formatForecastDual(raw.geoAdjusted, fx, meta).primary}</strong>
+                      <strong>
+                        {formatForecastDual(raw.geoAdjusted, fx, meta, currency).primary}
+                      </strong>
                     </p>
                   )}
                   <p>Impatto %: {row.geoImpactPct?.toFixed(2)}%</p>

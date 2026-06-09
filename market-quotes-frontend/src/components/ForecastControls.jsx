@@ -1,10 +1,6 @@
-const METHOD_OPTIONS = [
-  { value: 'both', label: 'SMA + regressione' },
-  { value: 'all', label: 'Tutti (+ log-return)' },
-  { value: 'sma', label: 'Solo media mobile' },
-  { value: 'linear', label: 'Solo regressione' },
-  { value: 'log', label: 'Solo log-return' },
-];
+import { useMobileLayout } from '../hooks/useMobileLayout';
+import ForecastDisclaimerInfo from './ForecastDisclaimerInfo';
+import ForecastMethodPicker from './ForecastMethodPicker';
 
 export default function ForecastControls({
   windowN,
@@ -21,12 +17,17 @@ export default function ForecastControls({
   busy,
   symbol,
   assetName,
+  historyLength = 0,
   variant = 'sticky',
 }) {
   const isHero = variant === 'hero';
+  const isMobile = useMobileLayout();
+  const isDesktopPanel = !isMobile && variant === 'panel';
 
   return (
-    <div className={`forecast-controls forecast-controls--${variant} ${busy ? 'forecast-controls--busy' : ''}`}>
+    <div
+      className={`forecast-controls forecast-controls--${variant} ${isDesktopPanel ? 'forecast-controls--desktop-panel' : ''} ${busy ? 'forecast-controls--busy' : ''}`}
+    >
       <div className="forecast-controls__main">
         {!isHero && (
           <div className="forecast-controls__context">
@@ -39,6 +40,7 @@ export default function ForecastControls({
         )}
 
         <div className="forecast-controls__actions">
+          <ForecastDisclaimerInfo className="forecast-disclaimer-info--controls" />
           <button
             type="button"
             className="btn btn--cta"
@@ -61,40 +63,46 @@ export default function ForecastControls({
         </div>
       </div>
 
-      <div className="forecast-controls__params">
-        <label className="forecast-controls__field">
-          <span>Finestra media (N)</span>
-          <input
-            type="number"
-            min={2}
-            max={60}
-            value={windowN}
-            onChange={(e) => setWindowN(Number(e.target.value))}
-          />
-        </label>
-        <label className="forecast-controls__field">
-          <span>Orizzonte (giorni)</span>
-          <input
-            type="number"
-            min={1}
-            max={30}
-            value={horizonDays}
-            onChange={(e) => setHorizonDays(Number(e.target.value))}
-          />
-        </label>
-        <label className="forecast-controls__field forecast-controls__field--wide">
-          <span>Metodo</span>
-          <select
-            value={forecastMethod}
-            onChange={(e) => setForecastMethod(e.target.value)}
-          >
-            {METHOD_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div className="forecast-controls__layout">
+        <div className="forecast-controls__params">
+          <label className="forecast-controls__field">
+            <span>Finestra media (N)</span>
+            <input
+              type="number"
+              min={2}
+              max={60}
+              value={windowN}
+              onChange={(e) => setWindowN(Number(e.target.value))}
+            />
+            {isDesktopPanel && (
+              <span className="forecast-controls__field-hint">
+                Giorni usati per SMA e regressione (2–60)
+              </span>
+            )}
+          </label>
+          <label className="forecast-controls__field">
+            <span>Orizzonte (giorni)</span>
+            <input
+              type="number"
+              min={1}
+              max={30}
+              value={horizonDays}
+              onChange={(e) => setHorizonDays(Number(e.target.value))}
+            />
+            {isDesktopPanel && (
+              <span className="forecast-controls__field-hint">
+                Quanti giorni futuri stimare (1–30)
+              </span>
+            )}
+          </label>
+        </div>
+
+        <ForecastMethodPicker
+          value={forecastMethod}
+          onChange={setForecastMethod}
+          historyLength={historyLength}
+          layout={isMobile ? 'mobile' : 'desktop'}
+        />
       </div>
     </div>
   );

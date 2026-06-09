@@ -1151,7 +1151,20 @@
   }
 
   .chart-card .recharts-responsive-container {
-    min-height: 260px;
+    min-height: 280px;
+  }
+
+  .chart-card--forecast .recharts-responsive-container {
+    min-height: 300px;
+  }
+
+  .chart-legend--forecast {
+    gap: 0.35rem 0.55rem;
+    font-size: 0.72rem;
+  }
+
+  .chart-tooltip--forecast {
+    max-width: min(92vw, 18rem);
   }
 
   /* ── Search catalog toolbar ── */
@@ -1163,6 +1176,194 @@
 
   .market-catalog__toolbar {
     gap: 0.5rem;
+  }
+
+  /* ── Forecast method picker (mobile eToro) ── */
+  .forecast-controls__layout {
+    display: block;
+  }
+
+  .forecast-controls__field-hint {
+    display: none;
+  }
+
+  .forecast-method-picker {
+    margin-top: 0.65rem;
+    padding-top: 0.65rem;
+  }
+
+  .forecast-method-picker__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+
+  .forecast-method-picker__groups {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    gap: 0.4rem;
+    padding-bottom: 0.15rem;
+    scrollbar-width: none;
+    grid-template-columns: none;
+  }
+
+  .forecast-method-picker__groups::-webkit-scrollbar {
+    display: none;
+  }
+
+  .forecast-method-picker__group {
+    flex: 0 0 auto;
+    min-width: 8.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 999px;
+    min-height: var(--touch-min);
+    justify-content: center;
+  }
+
+  .forecast-method-picker__group.is-active {
+    background: var(--etoro-green);
+    border-color: var(--etoro-green);
+    box-shadow: none;
+  }
+
+  .forecast-method-picker__group.is-active .forecast-method-picker__group-label,
+  .forecast-method-picker__group.is-active .forecast-method-picker__group-hint {
+    color: #fff;
+  }
+
+  .forecast-method-picker__group-hint {
+    display: none;
+  }
+
+  .forecast-method-picker__lead {
+    font-size: 0.8rem;
+  }
+
+  .forecast-method-picker__classic {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.15rem;
+    scrollbar-width: none;
+  }
+
+  .forecast-method-picker__classic::-webkit-scrollbar {
+    display: none;
+  }
+
+  .forecast-method-picker__chip {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    min-height: var(--touch-min);
+    padding: 0.45rem 0.9rem;
+  }
+
+  .forecast-method-picker__chip.is-active {
+    background: var(--etoro-green);
+    border-color: var(--etoro-green);
+  }
+
+  .forecast-method-picker__chip.is-active .forecast-method-picker__chip-label {
+    color: #fff;
+  }
+
+  .forecast-method-picker__chip-hint {
+    display: none;
+  }
+
+  .forecast-method-picker__ml-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    gap: 0.55rem;
+    padding-bottom: 0.2rem;
+    scrollbar-width: none;
+    grid-template-columns: none;
+  }
+
+  .forecast-method-picker__ml-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .forecast-method-card {
+    flex: 0 0 78%;
+    max-width: 17rem;
+    min-height: 9.5rem;
+    padding: 0.9rem 1rem;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .forecast-method-card:active {
+    transform: scale(0.98);
+  }
+
+  .forecast-method-card--arima.is-active {
+    box-shadow:
+      var(--shadow-md),
+      inset 0 3px 0 var(--chart-arima);
+  }
+
+  .forecast-method-card--lstm.is-active {
+    box-shadow:
+      var(--shadow-md),
+      inset 0 3px 0 var(--chart-lstm);
+  }
+
+  .forecast-method-picker__combo {
+    min-height: var(--touch-min);
+    border-radius: 999px;
+    padding: 0.65rem 1rem;
+  }
+
+  .forecast-method-picker__combo.is-active {
+    border-color: var(--etoro-green);
+    background: var(--etoro-green-soft);
+  }
+
+  .forecast-method-picker__all {
+    border: none;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .forecast-method-picker__notice {
+    border-radius: var(--radius-md);
+    font-size: 0.78rem;
+  }
+
+  .forecast-controls__params {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .forecast-cards {
+    gap: 0.65rem;
+  }
+
+  .forecast-card--arima,
+  .forecast-card--lstm {
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .forecast-disclaimer-info__popover {
+    position: fixed;
+    top: auto;
+    bottom: calc(var(--mobile-nav-h) + 0.75rem);
+    left: 0.85rem;
+    right: 0.85rem;
+    width: auto;
+    max-height: min(28rem, 62vh);
+    z-index: 200;
+  }
+
+  .forecast-disclaimer-info--intro .forecast-disclaimer-info__label {
+    display: none;
   }
 }
 

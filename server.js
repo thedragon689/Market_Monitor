@@ -19,6 +19,8 @@ import { loadMarketData } from './lib/yahoo.js';
 import { fetchBitcoinLiveSnapshot } from './lib/exchanges/bitcoin.js';
 import { buildTradeAdvice } from './lib/trading/buildTradeAdvice.js';
 import { CATEGORY_SOURCES } from './lib/sources/categorySources.js';
+import { buildCommodityProfile } from './lib/commodity/buildProfile.js';
+import { isMetalType } from './lib/marketType.js';
 
 // process.cwd(): ok in locale e su Netlify (niente import.meta — esbuild lo rompe).
 dotenv.config({ path: path.join(process.cwd(), '.env'), override: true });
@@ -54,11 +56,16 @@ function quoteFromSeries(series, symbol, extra = {}) {
   const change = prev ? last.price - prev.price : null;
   const changePercent =
     prev && prev.price ? ((change / prev.price) * 100).toFixed(4) : null;
+  const type = extra.type;
+  const currency =
+    extra.currency ||
+    (type === 'national' ? 'EUR' : null) ||
+    (String(symbol).toUpperCase().endsWith('.MI') ? 'EUR' : 'USD');
 
   return {
     symbol,
     price: last.price,
-    currency: 'USD',
+    currency,
     change,
     changePercent,
     asOf: last.date,
@@ -155,7 +162,13 @@ app.get('/api/market', async (req, res) => {
 
     const history = series.slice(-maxPoints);
     const fx = await loadFx();
-    const baseQuote = quote || quoteFromSeries(history, symbol, { provider: meta.provider });
+    const baseQuote =
+      quote ||
+      quoteFromSeries(history, symbol, {
+        provider: meta.provider,
+        type,
+        currency: quote?.currency,
+      });
 
     res.json({
       symbol,
@@ -260,16 +273,31 @@ app.get('/api/forecast', async (req, res) => {
     const horizonDays = Math.min(Math.max(Number(days) || 5, 1), 30);
     const windowSize = Math.min(Math.max(Number(window) || 5, 2), 60);
     const methods = String(method).toLowerCase();
-    const allowedMethods = ['both', 'sma', 'linear', 'log', 'logreturn', 'all'];
+    const allowedMethods = [
+      'both',
+      'sma',
+      'linear',
+      'log',
+      'logreturn',
+      'all',
+      'arima',
+      'lstm',
+      'ml',
+      'prophet',
+      'commodity',
+    ];
     if (!allowedMethods.includes(methods)) {
       return res.status(400).json({
         error:
-          'Parametro "method": sma | linear | log | both | all (sma+linear+log-return)',
+          'Parametro "method": sma | linear | log | both | all | arima | lstm | ml | prophet | commodity',
       });
     }
 
+    const needsMl = ['arima', 'lstm', 'ml', 'all'].includes(methods);
+    const minPoints = needsMl ? Math.max(windowSize, 30) : windowSize;
+
     const { series, meta, fromCache, stale } = await getCachedMarket(symbol, type, {
-      minPoints: windowSize,
+      minPoints,
     });
     const historicalPrices = pricesFromSeries(series);
 
@@ -431,6 +459,59 @@ app.get('/api/geopolitical/sentiment', (req, res) => {
   });
 });
 
+app.get('/api/commodities/profile', async (req, res) => {
+  try {
+    const {
+      symbol,
+      type = 'commodity',
+      days = 5,
+      window = 20,
+    } = req.query;
+    if (!symbol) {
+      return res.status(400).json({ error: 'Parametro "symbol" richiesto' });
+    }
+    if (!isMetalType(type)) {
+      return res.status(400).json({
+        error: 'Profilo commodity per type=precious o type=commodity',
+      });
+    }
+
+    const horizonDays = Math.min(Math.max(Number(days) || 5, 1), 30);
+    const windowSize = Math.min(Math.max(Number(window) || 20, 2), 60);
+
+    const cacheKey = `commodity:${type}:${symbol}:${horizonDays}:${windowSize}`;
+    const cached = getCache(cacheKey);
+    if (cached) {
+      return res.json({ ...cached, cached: true });
+    }
+
+    const { series, quote, meta } = await getCachedMarket(symbol, type, {
+      minPoints: Math.max(windowSize, 30),
+    });
+
+    const profile = await buildCommodityProfile({
+      symbol,
+      type,
+      series,
+      quote,
+      windowSize,
+      horizonDays,
+    });
+
+    const fx = await loadFx();
+    const body = {
+      ...profile,
+      fx,
+      provider: meta?.provider,
+      cached: false,
+    };
+    setCache(cacheKey, body, CACHE_TTL_MS);
+    res.json(body);
+  } catch (err) {
+    sendError(res, err, '/api/commodities/profile');
+  }
+});
+
 app.get('/api/correlations', async (req, res) => {
   try {
     const { symbol, type = 'stock' } = req.query;
@@ -480,6 +561,10 @@ app.get('/api/intelligence', async (req, res) => {
       return res.status(400).json({ error: 'Dati storici insufficienti' });
     }
 
+    const includeCorrelations = !['0', 'false', 'no'].includes(
+      String(req.query.correlations ?? 'true').toLowerCase()
+    );
+
     const intelligence = await buildMarketIntelligence({
       symbol,
       type,
@@ -488,7 +573,7 @@ app.get('/api/intelligence', async (req, res) => {
       windowSize: Math.min(windowSize, prices.length),
       horizonDays,
       methods,
-      includeCorrelations: true,
+      includeCorrelations,
     });
 
     const fx = await loadFx();

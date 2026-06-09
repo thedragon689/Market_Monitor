@@ -1,5 +1,7 @@
 /** Sincronizzato con lib/stockRegistry.js, lib/nationalStockRegistry.js, lib/cryptoRegistry.js */
 
+import { COMMODITY_METAL_SYMBOLS } from './commoditySymbols.js';
+
 const base = { pricingKind: 'perShare' };
 const coin = { pricingKind: 'perCoin', unit: 'USD/coin' };
 
@@ -108,24 +110,7 @@ export const PRECIOUS_METAL_SYMBOLS = [
   },
 ];
 
-export const COMMODITY_METAL_SYMBOLS = [
-  {
-    id: 'WTI',
-    name: 'Petrolio WTI',
-    family: 'Energia',
-    hint: 'Futures petrolio — quotazione al barile',
-    pricingKind: 'perBarrel',
-    unit: 'USD/barile',
-  },
-  {
-    id: 'COPPER',
-    name: 'Rame',
-    family: 'Industriale',
-    hint: 'Futures rame — prezzo al grammo da libbra',
-    pricingKind: 'perGramLb',
-    unit: 'USD/libbra',
-  },
-];
+export { COMMODITY_METAL_SYMBOLS };
 
 export const METAL_SYMBOLS = [...PRECIOUS_METAL_SYMBOLS, ...COMMODITY_METAL_SYMBOLS];
 
