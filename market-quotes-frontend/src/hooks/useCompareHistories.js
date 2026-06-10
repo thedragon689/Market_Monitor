@@ -63,6 +63,7 @@ export function useCompareHistories(picks, timeframeId) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pickKey è il proxy stabile di picks
   }, [pickKey, timeframeId]);
 
   const chartData = (() => {

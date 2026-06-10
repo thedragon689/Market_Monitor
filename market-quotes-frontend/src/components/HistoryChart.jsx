@@ -108,7 +108,10 @@ export default function HistoryChart({
 }) {
   const isMobile = useMobileLayout();
   const [fullscreen, setFullscreen] = useState(false);
-  const overlays = { ...DEFAULT_OVERLAYS, ...chartOverlays };
+  const overlays = useMemo(
+    () => ({ ...DEFAULT_OVERLAYS, ...chartOverlays }),
+    [chartOverlays]
+  );
   const currency = inferNativeCurrency(type, quote, symbol);
 
   useEffect(() => {

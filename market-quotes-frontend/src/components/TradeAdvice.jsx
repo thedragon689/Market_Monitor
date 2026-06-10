@@ -166,15 +166,15 @@ export default function TradeAdvice({
       <div className="trade-advice__strength" aria-label="Forza segnali">
         <span className="trade-advice__strength-item trade-advice__strength-item--bull">
           <span className="trade-advice__strength-label">Acquisto</span>
-          <strong>{advice.signalStrength?.bull ?? advice.signalCounts.bull}</strong>
+          <strong>{advice.signalStrength?.bull ?? advice.signalCounts?.bull ?? 0}</strong>
         </span>
         <span className="trade-advice__strength-item trade-advice__strength-item--hold">
           <span className="trade-advice__strength-label">Neutri</span>
-          <strong>{advice.signalStrength?.neutral ?? advice.signalCounts.neutral}</strong>
+          <strong>{advice.signalStrength?.neutral ?? advice.signalCounts?.neutral ?? 0}</strong>
         </span>
         <span className="trade-advice__strength-item trade-advice__strength-item--bear">
           <span className="trade-advice__strength-label">Vendita</span>
-          <strong>{advice.signalStrength?.bear ?? advice.signalCounts.bear}</strong>
+          <strong>{advice.signalStrength?.bear ?? advice.signalCounts?.bear ?? 0}</strong>
         </span>
       </div>
 

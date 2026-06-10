@@ -208,23 +208,3 @@ export function formatRegressionCoeff(valueNative, fx, { unit = '', decimals = 2
   return `${formatPrice(eur, 'EUR')}${suffix} (${valueNative.toFixed(decimals)} USD${suffix})`;
 }
 
-export function formatCompetitorCell(quote, meta, fx) {
-  if (!quote?.price) return '—';
-  const display = buildDisplayPricing(meta, quote, fx);
-  if (display.kind === 'perShare') {
-    return display.primaryEur != null
-      ? `${formatPrice(display.primaryEur, 'EUR')} / azione`
-      : `${formatPrice(display.primaryUsd, 'USD')} / azione`;
-  }
-  if (display.kind === 'perCoin') {
-    return display.primaryEur != null
-      ? `${formatPrice(display.primaryEur, 'EUR')} / coin`
-      : `${formatPrice(display.primaryUsd, 'USD')} / coin`;
-  }
-  if (display.primaryEur != null && display.primaryLabel === 'al grammo') {
-    return `${formatPerGram(display.primaryEur, 'EUR')} / g`;
-  }
-  return display.primaryEur != null
-    ? formatPrice(display.primaryEur, 'EUR')
-    : formatPrice(display.primaryUsd, 'USD');
-}

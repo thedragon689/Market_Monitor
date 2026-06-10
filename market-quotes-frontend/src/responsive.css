@@ -467,9 +467,35 @@
   }
 
   .competitor-table__action .btn {
-    min-height: 2.25rem;
+    min-height: var(--touch-min, 44px);
     padding: 0.35rem 0.55rem;
     font-size: 0.78rem;
+  }
+
+  /* Controlli grafico: target tattile pieno su mobile */
+  .chart-timeframe__btn,
+  .chart-overlay-toggles__btn {
+    min-height: var(--touch-min, 44px);
+  }
+}
+
+/* ── Telefoni in landscape: recupera spazio verticale ── */
+@media (max-width: 899px) and (orientation: landscape) and (max-height: 500px) {
+  :root {
+    --mobile-nav-h: 3.4rem;
+  }
+
+  .app-shell__header--sticky {
+    position: static;
+  }
+
+  .chart-card .recharts-responsive-container,
+  .chart-card__plot {
+    max-height: 46vh;
+  }
+
+  .mobile-home__carousel {
+    gap: 0.4rem;
   }
 }
 

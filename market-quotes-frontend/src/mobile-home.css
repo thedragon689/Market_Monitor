@@ -30,7 +30,7 @@
   /* Header mobile unificato */
   .app-shell--mobile .app-shell__brand--mobile {
     display: grid;
-    grid-template-columns: 2.5rem 1fr auto;
+    grid-template-columns: 44px 1fr auto;
     align-items: center;
     width: 100%;
     gap: 0.45rem;
@@ -71,8 +71,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 2.5rem;
-    min-height: 2.5rem;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
     border: 1.5px solid var(--border);
     border-radius: 10px;
@@ -84,10 +84,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    min-width: 2.5rem;
-    min-height: 2.5rem;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
     border: 1.5px solid var(--mhome-blue);
     border-radius: 10px;
@@ -113,10 +113,10 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 2.5rem;
-    height: 2.5rem;
-    min-width: 2.5rem;
-    min-height: 2.5rem;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
     border: 1.5px solid color-mix(in srgb, var(--text-h) 28%, var(--border));
     border-radius: 10px;

@@ -8,8 +8,6 @@ const DEFAULTS = {
   horizonDays: 5,
   forecastMethod: 'both',
   historyTimeframe: '3M',
-  explorePanels: ['overview', 'quick', 'catalog', 'compare'],
-  catalogScope: ['category'],
   analysisPanels: ['indicators', 'forecast', 'correlations', 'geo'],
   forecastPanels: ['params', 'advanced', 'geo'],
   theme: 'dark',

@@ -11,7 +11,8 @@ export async function apiFetch(url, options = {}) {
     throw new Error(
       err.message === 'Failed to fetch'
         ? 'Connessione al server non disponibile. Riprova tra poco.'
-        : err.message
+        : err.message,
+      { cause: err }
     );
   }
 

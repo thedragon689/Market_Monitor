@@ -800,26 +800,4 @@
   }
 }
 
-@media (max-width: 768px) {
-  .app--terminal {
-    padding: 0 0 4.5rem;
-  }
-
-  .terminal-dashboard__layout {
-    grid-template-columns: 1fr;
-  }
-
-  .terminal-rail {
-    display: none;
-  }
-
-  .terminal-dashboard__col {
-    max-height: none;
-    border-right: none;
-    border-bottom: 1px solid var(--terminal-border);
-  }
-
-  .terminal-dashboard__col--left {
-    display: flex;
-  }
-}
+/* Nota: il terminal monta solo da 900px in su (App.jsx), niente media query mobile. */

@@ -662,12 +662,7 @@
   border-radius: 50%;
 }
 
-.chart-card__zoom-hint {
-  margin: 0.35rem 0 0;
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  text-align: right;
-}
+/* .chart-card__zoom-hint: definito in pro-dashboard.css (vince in cascata) */
 
 .chart-tooltip__overlay {
   margin: 0.15rem 0 0;

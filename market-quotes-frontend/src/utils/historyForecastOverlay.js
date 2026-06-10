@@ -59,10 +59,3 @@ export function appendForecastOverlays(rows, forecast, overlays, fx, meta, curre
 
   return out;
 }
-
-export function hasForecastOverlays(forecast) {
-  const m = forecast?.methods ?? {};
-  const arima = Boolean(m.arima && !m.arima.error && m.arima.forecasts?.length);
-  const lstm = Boolean(m.lstm && !m.lstm.error && m.lstm.forecasts?.length);
-  return { arima, lstm, hybrid: arima || lstm };
-}

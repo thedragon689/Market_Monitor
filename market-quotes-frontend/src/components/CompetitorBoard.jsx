@@ -46,9 +46,15 @@ function CompetitorRow({
     <tr
       className={`competitor-table__row ${selected ? 'is-selected' : ''} ${loading ? 'is-loading' : ''}`}
       onClick={() => onSelect?.(id)}
-      onKeyDown={(e) => e.key === 'Enter' && onSelect?.(id)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect?.(id);
+        }
+      }}
       tabIndex={0}
       role="button"
+      aria-label={`Apri analisi di ${meta.name || id}`}
     >
       <td>
         <span className="competitor-table__code">{id}</span>

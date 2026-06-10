@@ -4,7 +4,6 @@ export default function ViewFooter({
   onForecast,
   loadingForecast,
   loadingMarket,
-  assetName,
   hasForecast,
 }) {
   if (view === 'explore') {

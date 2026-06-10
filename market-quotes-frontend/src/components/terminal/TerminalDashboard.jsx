@@ -166,6 +166,7 @@ export default function TerminalDashboard({
             type="search"
             className="terminal-search__input"
             placeholder="Cerca ticker, nome o categoria…"
+            aria-label="Cerca ticker, nome o categoria"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />

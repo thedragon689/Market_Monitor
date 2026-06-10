@@ -36,7 +36,7 @@ function StructureBadge({ structure, label }) {
   );
 }
 
-export default function CommodityDashboard({ profile, loading, fx }) {
+export default function CommodityDashboard({ profile, loading }) {
   if (loading && !profile) {
     return (
       <div className="commodity-dashboard commodity-dashboard--loading">

@@ -35,7 +35,6 @@ import InfoPage from './components/InfoPage';
 import TrustFooter from './components/TrustFooter';
 import { normalizeTimeframe, sliceHistoryByTimeframe } from './data/chartTimeframes';
 import { catalogToQuoteMap } from './utils/catalogPrice';
-import { getCategoryMeta } from './data/categories';
 import {
   ANALYSIS_PANEL_OPTIONS,
   FORECAST_PANEL_OPTIONS,
@@ -105,7 +104,7 @@ export default function App() {
   const [historyTimeframe, setHistoryTimeframe] = useState(
     normalizeTimeframe(INIT.historyTimeframe)
   );
-  const [showChartIndicators, setShowChartIndicators] = useState(true);
+  const [showChartIndicators] = useState(true);
   const [chartOverlays, setChartOverlays] = useState({
     ema20: true,
     ema50: false,
@@ -154,8 +153,6 @@ export default function App() {
   const [catalogUpdatedAt, setCatalogUpdatedAt] = useState(INIT_CATALOG?.updatedAt ?? null);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
   const [refreshingCatalog, setRefreshingCatalog] = useState(false);
-  const [explorePanels, setExplorePanels] = useState(INIT.explorePanels);
-  const [catalogScope, setCatalogScope] = useState(INIT.catalogScope);
   const [analysisPanels, setAnalysisPanels] = useState(INIT.analysisPanels);
   const [forecastPanels, setForecastPanels] = useState(INIT.forecastPanels);
   const [marketMeta, setMarketMeta] = useState(null);
@@ -260,11 +257,6 @@ export default function App() {
     [type]
   );
 
-  const handleGoAnalyze = useCallback(() => {
-    prefetchMarket(symbol, type);
-    setView('analysis');
-  }, [symbol, type]);
-
   const handleSymbolChange = useCallback((id) => {
     setSymbol(id);
     setView('analysis');
@@ -279,7 +271,6 @@ export default function App() {
   const handleTypeChange = useCallback(
     (nextType) => {
       setType(nextType);
-      setCatalogScope(['category']);
       const list = getSymbolsForType(nextType);
       const stillValid = list.some((s) => s.id === symbol);
       if (!stillValid) setSymbol(list[0].id);
@@ -289,7 +280,7 @@ export default function App() {
       setIntelligence(null);
       pendingForecast.current = false;
     },
-    [symbol, view]
+    [symbol]
   );
 
   const loadIntelligence = useCallback(
@@ -384,6 +375,8 @@ export default function App() {
           `${API_BASE}/api/analysis-bundle?${params}`,
           { optional: true }
         );
+        // Guardia anti-race: ignora risposte di asset non più correnti.
+        if (analysisKeyRef.current !== bundleKey) return;
         if (!data) return;
         if (data.analysis) {
           setAnalysis(data.analysis);
@@ -392,10 +385,11 @@ export default function App() {
         }
         applyIntelligence(data.intelligence);
       } catch {
+        if (analysisKeyRef.current !== bundleKey) return;
         setAnalysis(null);
         setIntelligence(null);
       } finally {
-        if (isNewBundle) {
+        if (isNewBundle && analysisKeyRef.current === bundleKey) {
           setLoadingAnalysis(false);
           setLoadingIntelligence(false);
           setLoadingGeo(false);
@@ -624,11 +618,6 @@ export default function App() {
     [type, symbol, quote, loadingMarket, loadForecast]
   );
 
-  const handleAssetForecast = useCallback(
-    (id, assetType) => requestForecast(id, assetType),
-    [requestForecast]
-  );
-
   const handleCompetitorForecast = useCallback(
     (id) => requestForecast(id, type),
     [requestForecast, type]
@@ -661,7 +650,7 @@ export default function App() {
   }, [quote, forecast, loadTradeAdvice]);
 
   const applyMobileNavIntent = useCallback(
-    (intent, { navId } = {}) => {
+    (intent) => {
       if (!intent) return false;
       if (intent.type && intent.type !== type) handleTypeChange(intent.type);
       if (intent.mobileTab) setMobileTab(intent.mobileTab);
@@ -790,8 +779,6 @@ export default function App() {
       forecastMethod,
       historyTimeframe,
       theme,
-      explorePanels,
-      catalogScope,
       analysisPanels,
       forecastPanels,
     });
@@ -813,8 +800,6 @@ export default function App() {
     forecastMethod,
     historyTimeframe,
     theme,
-    explorePanels,
-    catalogScope,
     analysisPanels,
     forecastPanels,
   ]);
@@ -872,7 +857,6 @@ export default function App() {
   const catalogPanelLoading = loadingCatalog && !catalog;
 
   const meta = getSymbolMeta(symbol, type);
-  const categoryMeta = getCategoryMeta(type);
   const liveCryptoId =
     type === 'crypto' && ['BTC-USD', 'ETH-USD'].includes(symbol.toUpperCase())
       ? symbol.toUpperCase()
@@ -913,7 +897,6 @@ export default function App() {
   const hasQuote = Boolean(displayQuote?.price && !displayQuote?.error);
   const marketBlocking = loadingMarket && !hasQuote;
   const marketRefreshing = refreshingMarket && hasQuote;
-  const marketBusy = marketBlocking || marketRefreshing;
   const quotePanelLoading = marketBlocking;
   const chartBlocking = marketBlocking && !chartHistory.length;
   const analysisBlocking = loadingAnalysis && !analysis?.indicators;

@@ -9,7 +9,7 @@ export default function TerminalChartLegend({ picks = [], onRemove }) {
 
   return (
     <div className="terminal-legend" role="list" aria-label="Asset nel grafico">
-      {picks.map((pick, i) => (
+      {picks.map((pick) => (
         <span
           key={pick.id}
           className="terminal-legend__chip"

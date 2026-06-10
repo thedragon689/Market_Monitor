@@ -9,13 +9,6 @@ export function marketCacheKey(symbol, type) {
   return `${type}:${String(symbol).trim().toUpperCase()}`;
 }
 
-function pruneMap(map) {
-  if (map.size <= MAX_ENTRIES) return map;
-  const sorted = [...map.entries()].sort((a, b) => a[1].storedAt - b[1].storedAt);
-  const next = new Map(sorted.slice(-MAX_ENTRIES));
-  return next;
-}
-
 function readStore() {
   try {
     const raw = localStorage.getItem(LS_KEY);

@@ -611,8 +611,8 @@
     color: var(--etoro-red);
   }
 
+  /* min-height gestito dal blocco "Touch target 44px" più sotto */
   .mobile-hero__cta {
-    min-height: 2.35rem !important;
     padding: 0.4rem 0.85rem !important;
     font-size: 0.82rem !important;
     box-shadow: 0 4px 12px rgba(19, 198, 54, 0.3);
@@ -1549,7 +1549,6 @@
   }
 
   .mobile-hero__cta-secondary {
-    min-height: 2.2rem !important;
     padding: 0.35rem 0.65rem !important;
     font-size: 0.78rem !important;
   }
@@ -1750,7 +1749,7 @@
     background: transparent;
     text-align: left;
     cursor: pointer;
-    min-height: 32px;
+    min-height: var(--touch-min, 44px);
   }
 
   .mobile-overview-strip__label {

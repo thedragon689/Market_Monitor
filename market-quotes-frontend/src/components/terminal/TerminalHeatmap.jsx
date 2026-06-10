@@ -2,7 +2,7 @@ import { TERMINAL_HEATMAP_CELLS } from '../../data/terminalPanels';
 import { changeTone } from '../../utils/catalogPrice';
 import { formatPercent } from '../../utils/format';
 
-export default function TerminalHeatmap({ catalog, fx, onSelect }) {
+export default function TerminalHeatmap({ catalog, onSelect }) {
   const etfItems = catalog?.etf || [];
   const byId = Object.fromEntries(etfItems.map((i) => [i.id.toUpperCase(), i]));
 

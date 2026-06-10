@@ -126,8 +126,3 @@ export function useCryptoLiveQuote(symbolId, enabled) {
 
   return live;
 }
-
-/** @deprecated usa useCryptoLiveQuote */
-export function useBtcLiveQuote(enabled) {
-  return useCryptoLiveQuote('BTC-USD', enabled);
-}

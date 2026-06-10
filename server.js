@@ -20,7 +20,7 @@ import { fetchBitcoinLiveSnapshot } from './lib/exchanges/bitcoin.js';
 import { buildTradeAdvice } from './lib/trading/buildTradeAdvice.js';
 import { CATEGORY_SOURCES } from './lib/sources/categorySources.js';
 import { buildCommodityProfile } from './lib/commodity/buildProfile.js';
-import { isMetalType } from './lib/marketType.js';
+import { isMetalType, MARKET_TYPES } from './lib/marketType.js';
 
 // process.cwd(): ok in locale e su Netlify (niente import.meta — esbuild lo rompe).
 dotenv.config({ path: path.join(process.cwd(), '.env'), override: true });
@@ -54,6 +54,49 @@ app.use((req, res, next) => {
 });
 
 const PORT = process.env.PORT || 4000;
+
+// ── Helper di validazione/parsing condivisi tra le route ──────────────
+
+const ALLOWED_FORECAST_METHODS = [
+  'both',
+  'sma',
+  'linear',
+  'log',
+  'logreturn',
+  'all',
+  'arima',
+  'lstm',
+  'ml',
+  'prophet',
+  'commodity',
+];
+
+const MAX_QUOTES_SYMBOLS = 25;
+
+/** Numero intero con default e limiti — sostituisce i clamp duplicati. */
+function clampInt(value, fallback, min, max) {
+  return Math.min(Math.max(Number(value) || fallback, min), max);
+}
+
+/** symbol trim+uppercase e type validato. Ritorna { symbol, type } o { error }. */
+function parseMarketParams(req) {
+  const symbol = String(req.query.symbol || '').trim().toUpperCase();
+  const type = String(req.query.type || 'stock').trim().toLowerCase();
+  if (!symbol) return { error: 'Parametro "symbol" richiesto' };
+  if (!MARKET_TYPES.includes(type)) {
+    return { error: `Parametro "type" non valido. Ammessi: ${MARKET_TYPES.join(', ')}` };
+  }
+  return { symbol, type };
+}
+
+/** Method forecast normalizzato e validato. Ritorna { methods } o { error }. */
+function parseForecastMethod(req, fallback = 'all') {
+  const methods = String(req.query.method || fallback).toLowerCase();
+  if (!ALLOWED_FORECAST_METHODS.includes(methods)) {
+    return { error: `Parametro "method": ${ALLOWED_FORECAST_METHODS.join(' | ')}` };
+  }
+  return { methods };
+}
 
 function pricesFromSeries(series) {
   return series.map((p) => p.price);
@@ -237,10 +280,9 @@ app.get('/api/fx', async (_req, res) => {
 
 app.get('/api/market', async (req, res) => {
   try {
-    const { symbol, type = 'stock', limit = 90 } = req.query;
-    if (!symbol) {
-      return res.status(400).json({ error: 'Parametro "symbol" richiesto' });
-    }
+    const { symbol, type, error } = parseMarketParams(req);
+    if (error) return res.status(400).json({ error });
+    const limit = req.query.limit ?? 90;
 
     const payload = await getCachedMarket(symbol, type);
     const body = buildMarketResponse(symbol, type, limit, payload);
@@ -304,7 +346,11 @@ app.get('/api/quotes', async (req, res) => {
       return res.status(400).json({ error: 'Parametro "symbols" richiesto' });
     }
 
-    const list = symbols.split(',').map((s) => s.trim()).filter(Boolean);
+    const list = symbols
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, MAX_QUOTES_SYMBOLS);
     const { results, fx } = await fetchQuotesForSymbols(list, type, {
       getCachedMarket,
       loadFx,
@@ -335,12 +381,10 @@ app.get('/api/crypto/btc/live', async (_req, res) => {
 
 app.get('/api/history', async (req, res) => {
   try {
-    const { symbol, type = 'stock', limit = 90 } = req.query;
-    if (!symbol) {
-      return res.status(400).json({ error: 'Parametro "symbol" richiesto' });
-    }
+    const { symbol, type, error } = parseMarketParams(req);
+    if (error) return res.status(400).json({ error });
 
-    const maxPoints = Math.min(Math.max(Number(limit) || 90, 10), 120);
+    const maxPoints = clampInt(req.query.limit, 90, 10, 120);
     const { series, meta, fromCache, stale } = await getCachedMarket(symbol, type);
     const history = series.slice(-maxPoints);
 
@@ -361,39 +405,13 @@ app.get('/api/history', async (req, res) => {
 
 app.get('/api/forecast', async (req, res) => {
   try {
-    const {
-      symbol,
-      type = 'stock',
-      days = 5,
-      window = 5,
-      method = 'both',
-    } = req.query;
-    if (!symbol) {
-      return res.status(400).json({ error: 'Parametro "symbol" richiesto' });
-    }
+    const { symbol, type, error } = parseMarketParams(req);
+    if (error) return res.status(400).json({ error });
 
-    const horizonDays = Math.min(Math.max(Number(days) || 5, 1), 30);
-    const windowSize = Math.min(Math.max(Number(window) || 5, 2), 60);
-    const methods = String(method).toLowerCase();
-    const allowedMethods = [
-      'both',
-      'sma',
-      'linear',
-      'log',
-      'logreturn',
-      'all',
-      'arima',
-      'lstm',
-      'ml',
-      'prophet',
-      'commodity',
-    ];
-    if (!allowedMethods.includes(methods)) {
-      return res.status(400).json({
-        error:
-          'Parametro "method": sma | linear | log | both | all | arima | lstm | ml | prophet | commodity',
-      });
-    }
+    const horizonDays = clampInt(req.query.days, 5, 1, 30);
+    const windowSize = clampInt(req.query.window, 5, 2, 60);
+    const { methods, error: methodError } = parseForecastMethod(req, 'both');
+    if (methodError) return res.status(400).json({ error: methodError });
 
     const needsMl = ['arima', 'lstm', 'ml', 'all'].includes(methods);
     const minPoints = needsMl ? Math.max(windowSize, 30) : windowSize;
@@ -474,7 +492,7 @@ app.get('/api/forecast', async (req, res) => {
 
 app.get('/api/geopolitical/news', async (_req, res) => {
   try {
-    const limit = Math.min(Number(_req.query.limit) || 40, 80);
+    const limit = clampInt(_req.query.limit, 40, 1, 80);
     const filterGeo = _req.query.filter !== 'false';
     const payload = await fetchGeopoliticalNews({ limit, filterGeo });
     res.json(payload);
@@ -486,13 +504,14 @@ app.get('/api/geopolitical/news', async (_req, res) => {
 app.post('/api/geopolitical/forecast', async (req, res) => {
   try {
     const { symbol, news: newsBody, baseForecastPrice } = req.body || {};
-    if (!symbol || baseForecastPrice == null) {
+    const basePrice = Number(baseForecastPrice);
+    if (!symbol || !Number.isFinite(basePrice)) {
       return res.status(400).json({
-        error: 'Campi richiesti: symbol, baseForecastPrice; opzionale news[]',
+        error: 'Campi richiesti: symbol, baseForecastPrice (numerico); opzionale news[]',
       });
     }
-    const news = Array.isArray(newsBody) ? newsBody : [];
-    const result = forecastWithGeopolitics(symbol, news, Number(baseForecastPrice));
+    const news = (Array.isArray(newsBody) ? newsBody : []).slice(0, 100);
+    const result = forecastWithGeopolitics(String(symbol).trim(), news, basePrice);
     res.json(result);
   } catch (err) {
     sendError(res, err, '/api/geopolitical/forecast');
@@ -501,20 +520,13 @@ app.post('/api/geopolitical/forecast', async (req, res) => {
 
 app.get('/api/geopolitical/forecast', async (req, res) => {
   try {
-    const {
-      symbol,
-      type = 'stock',
-      days = 5,
-      window = 5,
-      method = 'all',
-    } = req.query;
-    if (!symbol) {
-      return res.status(400).json({ error: 'Parametro "symbol" richiesto' });
-    }
+    const { symbol, type, error } = parseMarketParams(req);
+    if (error) return res.status(400).json({ error });
 
-    const horizonDays = Math.min(Math.max(Number(days) || 5, 1), 30);
-    const windowSize = Math.min(Math.max(Number(window) || 5, 2), 60);
-    const methods = String(method).toLowerCase();
+    const horizonDays = clampInt(req.query.days, 5, 1, 30);
+    const windowSize = clampInt(req.query.window, 5, 2, 60);
+    const { methods, error: methodError } = parseForecastMethod(req);
+    if (methodError) return res.status(400).json({ error: methodError });
 
     const { series, meta, fromCache, stale } = await getCachedMarket(symbol, type, {
       minPoints: 2,
@@ -551,7 +563,7 @@ app.get('/api/geopolitical/forecast', async (req, res) => {
 });
 
 app.get('/api/geopolitical/sentiment', (req, res) => {
-  const text = req.query.text || req.query.q || '';
+  const text = String(req.query.text || req.query.q || '').slice(0, 5000);
   if (!text) {
     return res.status(400).json({ error: 'Parametro "text" richiesto' });
   }
@@ -563,12 +575,8 @@ app.get('/api/geopolitical/sentiment', (req, res) => {
 
 app.get('/api/commodities/profile', async (req, res) => {
   try {
-    const {
-      symbol,
-      type = 'commodity',
-      days = 5,
-      window = 20,
-    } = req.query;
+    const symbol = String(req.query.symbol || '').trim().toUpperCase();
+    const type = String(req.query.type || 'commodity').trim().toLowerCase();
     if (!symbol) {
       return res.status(400).json({ error: 'Parametro "symbol" richiesto' });
     }
@@ -578,8 +586,8 @@ app.get('/api/commodities/profile', async (req, res) => {
       });
     }
 
-    const horizonDays = Math.min(Math.max(Number(days) || 5, 1), 30);
-    const windowSize = Math.min(Math.max(Number(window) || 20, 2), 60);
+    const horizonDays = clampInt(req.query.days, 5, 1, 30);
+    const windowSize = clampInt(req.query.window, 20, 2, 60);
 
     const cacheKey = `commodity:${type}:${symbol}:${horizonDays}:${windowSize}`;
     const cached = getCache(cacheKey);
@@ -616,7 +624,13 @@ app.get('/api/commodities/profile', async (req, res) => {
 
 app.get('/api/correlations', async (req, res) => {
   try {
-    const { symbol, type = 'stock' } = req.query;
+    const symbol = String(req.query.symbol || '').trim().toUpperCase() || null;
+    const type = String(req.query.type || 'stock').trim().toLowerCase();
+    if (!MARKET_TYPES.includes(type)) {
+      return res.status(400).json({
+        error: `Parametro "type" non valido. Ammessi: ${MARKET_TYPES.join(', ')}`,
+      });
+    }
     const cacheKey = `corr:${type}:${symbol || 'macro'}`;
     const cached = getCache(cacheKey);
     if (cached) {
@@ -640,20 +654,13 @@ app.get('/api/correlations', async (req, res) => {
 
 app.get('/api/intelligence', async (req, res) => {
   try {
-    const {
-      symbol,
-      type = 'stock',
-      days = 5,
-      window = 5,
-      method = 'all',
-    } = req.query;
-    if (!symbol) {
-      return res.status(400).json({ error: 'Parametro "symbol" richiesto' });
-    }
+    const { symbol, type, error } = parseMarketParams(req);
+    if (error) return res.status(400).json({ error });
 
-    const horizonDays = Math.min(Math.max(Number(days) || 5, 1), 30);
-    const windowSize = Math.min(Math.max(Number(window) || 5, 2), 60);
-    const methods = String(method).toLowerCase();
+    const horizonDays = clampInt(req.query.days, 5, 1, 30);
+    const windowSize = clampInt(req.query.window, 5, 2, 60);
+    const { methods, error: methodError } = parseForecastMethod(req);
+    if (methodError) return res.status(400).json({ error: methodError });
 
     const { series, meta, fromCache, stale } = await getCachedMarket(symbol, type, {
       minPoints: 2,
@@ -695,12 +702,10 @@ app.get('/api/intelligence', async (req, res) => {
 
 app.get('/api/analyze', async (req, res) => {
   try {
-    const { symbol, type = 'stock', days = 5 } = req.query;
-    if (!symbol) {
-      return res.status(400).json({ error: 'Parametro "symbol" richiesto' });
-    }
+    const { symbol, type, error } = parseMarketParams(req);
+    if (error) return res.status(400).json({ error });
 
-    const horizonDays = Math.min(Math.max(Number(days) || 5, 1), 30);
+    const horizonDays = clampInt(req.query.days, 5, 1, 30);
     const analysis = await analyzeMarket(symbol, type, { horizonDays });
     const fx = await loadFx();
 
@@ -718,20 +723,13 @@ app.get('/api/analyze', async (req, res) => {
 /** Un round-trip: analyze + intelligence (geo incluso) — meno cold start su Netlify. */
 app.get('/api/analysis-bundle', async (req, res) => {
   try {
-    const {
-      symbol,
-      type = 'stock',
-      days = 5,
-      window = 5,
-      method = 'all',
-    } = req.query;
-    if (!symbol) {
-      return res.status(400).json({ error: 'Parametro "symbol" richiesto' });
-    }
+    const { symbol, type, error } = parseMarketParams(req);
+    if (error) return res.status(400).json({ error });
 
-    const horizonDays = Math.min(Math.max(Number(days) || 5, 1), 30);
-    const windowSize = Math.min(Math.max(Number(window) || 5, 2), 60);
-    const methods = String(method).toLowerCase();
+    const horizonDays = clampInt(req.query.days, 5, 1, 30);
+    const windowSize = clampInt(req.query.window, 5, 2, 60);
+    const { methods, error: methodError } = parseForecastMethod(req);
+    if (methodError) return res.status(400).json({ error: methodError });
 
     const marketPayload = await getCachedMarket(symbol, type, {
       minPoints: 2,
@@ -784,25 +782,18 @@ const ADVICE_CACHE_MS = 5 * 60 * 1000;
 
 app.get('/api/trade-advice', async (req, res) => {
   try {
-    const {
-      symbol,
-      type = 'stock',
-      days = 5,
-      window = 5,
-      method = 'all',
-    } = req.query;
-    if (!symbol) {
-      return res.status(400).json({ error: 'Parametro "symbol" richiesto' });
-    }
+    const { symbol, type, error } = parseMarketParams(req);
+    if (error) return res.status(400).json({ error });
 
-    const horizonDays = Math.min(Math.max(Number(days) || 5, 1), 30);
-    const windowSize = Math.min(Math.max(Number(window) || 5, 2), 60);
-    const methods = String(method).toLowerCase();
+    const horizonDays = clampInt(req.query.days, 5, 1, 30);
+    const windowSize = clampInt(req.query.window, 5, 2, 60);
+    const { methods, error: methodError } = parseForecastMethod(req);
+    if (methodError) return res.status(400).json({ error: methodError });
     const includeForecast = ['1', 'true', 'yes'].includes(
       String(req.query.forecast || req.query.includeForecast || '').toLowerCase()
     );
 
-    const cacheKey = `advice:${type}:${symbol.toUpperCase()}:${horizonDays}:${includeForecast}`;
+    const cacheKey = `advice:${type}:${symbol}:${horizonDays}:${includeForecast}`;
     const cached = getCache(cacheKey);
     if (cached) {
       return res.json({ ...cached, cached: true });
@@ -898,12 +889,26 @@ app.use('/api', (req, res) => {
   });
 });
 
+/** Rete di sicurezza: body JSON malformati e qualsiasi errore sfuggito ai try/catch. */
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  if (err?.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Body JSON non valido' });
+  }
+  console.error(`[unhandled] ${req.method} ${req.originalUrl}:`, err?.message || err);
+  res.status(500).json({ error: 'Errore interno del server' });
+});
+
 export default app;
 
 const isDirectRun =
   process.argv[1]?.includes('server.js') && !process.env.AWS_LAMBDA_FUNCTION_NAME;
 
 if (isDirectRun) {
+  process.on('unhandledRejection', (reason) => {
+    console.error('[unhandledRejection]', reason);
+  });
+
   const server = app.listen(PORT, () => {
     console.log(`Server avviato su http://localhost:${PORT} (Yahoo Finance)`);
   });

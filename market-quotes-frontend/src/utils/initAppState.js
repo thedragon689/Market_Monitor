@@ -1,6 +1,5 @@
 import {
   ANALYSIS_PANEL_OPTIONS,
-  EXPLORE_PANEL_OPTIONS,
   FORECAST_PANEL_OPTIONS,
   defaultPanelSet,
 } from '../data/viewChoices';
@@ -14,10 +13,6 @@ export function resolveInitialAppState() {
   const url =
     typeof window !== 'undefined' ? parseUrlState(window.location.search) : {};
 
-  const explorePanels = defaultPanelSet(
-    EXPLORE_PANEL_OPTIONS,
-    url.explorePanels ?? stored.explorePanels ?? defaults.explorePanels
-  );
   const analysisPanels = defaultPanelSet(
     ANALYSIS_PANEL_OPTIONS,
     url.analysisPanels ?? stored.analysisPanels ?? defaults.analysisPanels
@@ -39,8 +34,6 @@ export function resolveInitialAppState() {
       url.historyTimeframe ?? stored.historyTimeframe ?? defaults.historyTimeframe
     ),
     theme: stored.theme ?? defaults.theme,
-    explorePanels,
-    catalogScope: stored.catalogScope ?? defaults.catalogScope,
     analysisPanels,
     forecastPanels,
   };

@@ -25,7 +25,6 @@ export default function AppShell({
   loadingForecast,
   loadingMarket,
   isLoading,
-  isRefreshing = false,
   themeToggle,
   theme = 'dark',
   onQuickNav,

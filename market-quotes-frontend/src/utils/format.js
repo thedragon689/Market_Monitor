@@ -15,13 +15,6 @@ export function usdToEur(amountUsd, eurUsd) {
   return amountUsd / eurUsd;
 }
 
-/** Mostra prezzo in euro con USD tra parentesi, se disponibile il cambio. */
-export function formatPriceWithEur(usd, eurUsd) {
-  const eur = usdToEur(usd, eurUsd);
-  if (eur == null) return formatPrice(usd, 'USD');
-  return `${formatPrice(eur, 'EUR')} (${formatPrice(usd, 'USD')})`;
-}
-
 export function formatPercent(value) {
   if (value == null || Number.isNaN(value)) return '—';
   const n = Number(value);

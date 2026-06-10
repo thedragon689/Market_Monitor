@@ -81,17 +81,6 @@ export async function fetchMarketBatch(picks, { limit = 120 } = {}) {
   };
 }
 
-export async function fetchBootstrap(symbol, type, { limit = 120 } = {}) {
-  const params = new URLSearchParams({
-    symbol,
-    type,
-    limit: String(limit),
-  });
-  const { data } = await apiFetch(`${API_BASE}/api/bootstrap?${params}`);
-  if (data?.market) setMarketCache(symbol, type, data.market);
-  return data;
-}
-
 const prefetchInflight = new Set();
 
 export function prefetchMarket(symbol, type, { limit = 120 } = {}) {

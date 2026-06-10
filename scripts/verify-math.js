@@ -2,7 +2,7 @@
  * Verifica formule critiche — eseguire: npm run verify:math
  */
 import { linearForecast, logReturnForecast, smaForecast } from '../lib/forecastModels.js';
-import { cci, williamsR, momentum, atr, sma, bollinger, ema } from '../lib/indicators.js';
+import { cci, williamsR, momentum, atr, sma, bollinger, ema, macd } from '../lib/indicators.js';
 import { prophetForecast } from '../lib/forecast/prophetModel.js';
 import { arimaForecast } from '../lib/forecast/arimaModel.js';
 import { lstmForecast } from '../lib/forecast/lstmModel.js';
@@ -110,6 +110,15 @@ assert(mom != null && mom > 0, `momentum up>0 (got ${mom})`);
 
 const atrVal = atr(up, 14);
 assert(atrVal?.value > 0 && atrVal?.pctOfPrice > 0, 'ATR positive on varying series');
+
+const macdPrices = Array.from({ length: 40 }, (_, i) => 100 + i);
+const macdVal = macd(macdPrices, 12, 26, 9);
+assert(macdVal != null, 'MACD calcolabile (≥35 punti)');
+assert(
+  Math.abs(macdVal.histogram - (macdVal.macdLine - macdVal.signal)) < 0.0001,
+  'MACD histogram = line − signal'
+);
+assert(macdVal.macdLine > 0, `MACD line positiva su uptrend (got ${macdVal.macdLine})`);
 
 // ── Valute ───────────────────────────────────────────────────────────
 assert(inferQuoteCurrency('national', null, 'ENEL.MI') === 'EUR', 'national=EUR');
