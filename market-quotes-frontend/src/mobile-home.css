@@ -1,5 +1,5 @@
 /**
- * Mobile Home — layout mockup Valutazioni Borsa
+ * Mobile Home — layout mockup Market Monitor
  * Indici carousel · Crypto/Materie prime · header e tab bar
  */
 
@@ -27,58 +27,88 @@
       max(0.85rem, env(safe-area-inset-right, 0px));
   }
 
-  /* Header mockup */
-  .app-shell--mobile-home .app-shell__brand--home {
+  /* Header mobile unificato */
+  .app-shell--mobile .app-shell__brand--mobile {
     display: grid;
-    grid-template-columns: 2.5rem 1fr 2.5rem;
+    grid-template-columns: 2.5rem 1fr auto;
     align-items: center;
     width: 100%;
-    gap: 0.5rem;
+    gap: 0.45rem;
   }
 
-  .app-shell--mobile-home .app-shell__logo-wrap,
-  .app-shell--mobile-home .app-shell__tagline,
-  .app-shell--mobile-home .app-shell__brand > div:not(.app-shell__mobile-title-wrap) {
-    display: none !important;
-  }
-
-  .app-shell--mobile-home .app-shell__mobile-title-wrap {
+  .app-shell--mobile .app-shell__mobile-title-wrap {
     grid-column: 2;
     text-align: center;
     min-width: 0;
   }
 
-  .app-shell--mobile-home .app-shell__mobile-title {
+  .app-shell--mobile .app-shell__mobile-title {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 800;
     color: var(--text-h);
     letter-spacing: -0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .app-shell--mobile-home .app-shell__search-btn {
+  .app-shell--mobile .app-shell__mobile-actions {
     grid-column: 3;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
     justify-self: end;
+  }
+
+  .app-shell--mobile .app-shell__theme-wrap {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  .app-shell--mobile .app-shell__theme-wrap .theme-toggle {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    padding: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--mhome-card, var(--bg-elevated));
+    font-size: 1.05rem;
+  }
+
+  .app-shell--mobile .app-shell__search-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 2.5rem;
     height: 2.5rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
     padding: 0;
     border: 1.5px solid var(--mhome-blue);
     border-radius: 10px;
-    background: var(--mhome-card);
+    background: var(--mhome-card, var(--bg-elevated));
     color: var(--mhome-blue);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .app-shell--mobile-home .app-shell__search-btn svg {
+  .app-shell--mobile .app-shell__search-btn svg,
+  .app-shell--mobile .app-shell__menu-btn svg,
+  .app-shell--mobile .header-icon {
     width: 1.15rem;
     height: 1.15rem;
+    display: block;
+    flex-shrink: 0;
   }
 
   .app-shell--mobile .app-shell__menu-btn {
+    grid-column: 1;
+    justify-self: start;
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
@@ -88,7 +118,7 @@
     min-width: 2.5rem;
     min-height: 2.5rem;
     padding: 0;
-    border: 1.5px solid color-mix(in srgb, var(--text-h) 22%, var(--border));
+    border: 1.5px solid color-mix(in srgb, var(--text-h) 28%, var(--border));
     border-radius: 10px;
     background: var(--mhome-card, var(--bg-elevated));
     color: var(--text-h);
@@ -96,15 +126,9 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  .app-shell--mobile .app-shell__menu-btn svg {
-    width: 1.15rem;
-    height: 1.15rem;
-    display: block;
-  }
-
-  .app-shell--mobile-home .app-shell__menu-btn {
-    grid-column: 1;
-    justify-self: start;
+  .app-shell--mobile .app-shell__menu-btn svg line {
+    stroke: currentColor;
+    stroke-width: 2.25;
   }
 
   /* Menu scelta destinazione (icona lente) */

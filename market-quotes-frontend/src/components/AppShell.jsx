@@ -98,21 +98,35 @@ export default function AppShell({
         className="app-shell__header app-shell__header--sticky"
       >
         <div
-          className={`app-shell__brand ${isMobileHomeShell ? 'app-shell__brand--home' : ''}`}
+          className={`app-shell__brand ${isMobile ? 'app-shell__brand--mobile' : ''}`}
         >
-          <button
-            type="button"
-            className="app-shell__menu-btn"
-            aria-label="Apri menu"
-            aria-expanded={mobileMenuOpen}
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <MenuIcon size={22} />
-          </button>
-          {isMobileHomeShell ? (
-            <div className="app-shell__mobile-title-wrap">
-              <h1 className="app-shell__mobile-title">Valutazioni Borsa</h1>
-            </div>
+          {isMobile ? (
+            <>
+              <button
+                type="button"
+                className="app-shell__menu-btn"
+                aria-label="Apri menu"
+                aria-expanded={mobileMenuOpen}
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <MenuIcon size={22} />
+              </button>
+              <div className="app-shell__mobile-title-wrap">
+                <h1 className="app-shell__mobile-title">Market Monitor</h1>
+              </div>
+              <div className="app-shell__mobile-actions">
+                <button
+                  type="button"
+                  className="app-shell__search-btn"
+                  aria-label="Cerca asset"
+                  aria-expanded={searchMenuOpen}
+                  onClick={() => setSearchMenuOpen(true)}
+                >
+                  <SearchIcon size={20} />
+                </button>
+                <span className="app-shell__theme-wrap">{themeToggle}</span>
+              </div>
+            </>
           ) : (
             <>
               <span className="app-shell__logo-wrap">
@@ -122,20 +136,8 @@ export default function AppShell({
                 <strong className="app-shell__title">Market Monitor</strong>
                 <span className="app-shell__tagline">Quotazioni · Analisi · Previsioni</span>
               </div>
+              {themeToggle}
             </>
-          )}
-          {isMobileHomeShell ? (
-            <button
-              type="button"
-              className="app-shell__search-btn"
-              aria-label="Apri menu ricerca e navigazione"
-              aria-expanded={searchMenuOpen}
-              onClick={() => setSearchMenuOpen(true)}
-            >
-              <SearchIcon size={20} />
-            </button>
-          ) : (
-            themeToggle
           )}
         </div>
 
