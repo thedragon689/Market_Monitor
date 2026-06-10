@@ -2,9 +2,6 @@ import { useEffect, useRef } from 'react';
 import { APP_VIEWS } from '../data/views';
 import { PRO_NAV_ITEMS, isProNavActive } from '../data/proNav';
 import { MARKET_CATEGORIES } from '../data/categories';
-import CategoryIcon from './icons/CategoryIcon';
-import BottomNavIcon from './BottomNavIcon';
-import { SearchIcon } from './icons/HeaderIcons';
 
 const PRIMARY_CATEGORIES = MARKET_CATEGORIES.filter((c) => c.group === 'primary');
 
@@ -14,22 +11,6 @@ const DRAWER_CTAS = [
   { id: 'info', label: 'Info', action: 'info' },
   { id: 'favorites', label: 'Preferiti', action: 'favorites' },
 ];
-
-function proNavIcon(item) {
-  if (item.id === 'home') return <BottomNavIcon id="home" active />;
-  if (item.id === 'forecast') return <BottomNavIcon id="forecast" active />;
-  if (item.id === 'info') return <BottomNavIcon id="info" active />;
-  if (item.type) return <CategoryIcon id={item.type} size={20} />;
-  return <BottomNavIcon id="markets" active />;
-}
-
-function workflowIcon(stepId) {
-  if (stepId === 'explore') return <BottomNavIcon id="home" active />;
-  if (stepId === 'analysis') return <BottomNavIcon id="analysis" active />;
-  if (stepId === 'advice') return <BottomNavIcon id="advice" active />;
-  if (stepId === 'forecast') return <BottomNavIcon id="forecast" active />;
-  return null;
-}
 
 export default function MobileNavDrawer({
   open,
@@ -132,14 +113,7 @@ export default function MobileNavDrawer({
               className="mobile-drawer__cta"
               onClick={() => handleDrawerCta(cta.action)}
             >
-              <span className="mobile-drawer__cta-icon" aria-hidden>
-                {cta.id === 'search' ? (
-                  <SearchIcon size={20} />
-                ) : (
-                  <BottomNavIcon id={cta.id === 'markets' ? 'markets' : cta.id} active />
-                )}
-              </span>
-              <span className="mobile-drawer__cta-label">{cta.label}</span>
+              {cta.label}
             </button>
           ))}
         </div>
@@ -154,9 +128,6 @@ export default function MobileNavDrawer({
                   className={`mobile-drawer__btn ${isProNavActive(item, view, type) ? 'is-active' : ''}`}
                   onClick={() => handleProNav(item)}
                 >
-                  <span className="mobile-drawer__btn-icon" aria-hidden>
-                    {proNavIcon(item)}
-                  </span>
                   <span>
                     <strong>{item.label}</strong>
                   </span>
@@ -176,9 +147,6 @@ export default function MobileNavDrawer({
                   className={`mobile-drawer__btn ${view === v.id ? 'is-active' : ''}`}
                   onClick={() => handleWorkflowNav(v.id)}
                 >
-                  <span className="mobile-drawer__btn-icon mobile-drawer__btn-icon--workflow" aria-hidden>
-                    {workflowIcon(v.id)}
-                  </span>
                   <span className="mobile-drawer__step">{v.step}</span>
                   <span>
                     <strong>{v.label}</strong>
@@ -203,9 +171,6 @@ export default function MobileNavDrawer({
                     onClose?.();
                   }}
                 >
-                  <span className="mobile-drawer__chip-icon" aria-hidden>
-                    <CategoryIcon id={cat.id} size={18} />
-                  </span>
                   {cat.label}
                 </button>
               </li>
