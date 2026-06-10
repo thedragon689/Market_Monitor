@@ -51,6 +51,16 @@ export default function AssetStatsRow({
 
   const marketCap = quote?.marketCap ?? analysis?.yahooQuote?.marketCap ?? null;
 
+  const ccy = (quote?.currency || 'USD').toUpperCase();
+  const dayRange =
+    quote?.dayLow != null && quote?.dayHigh != null
+      ? `${formatPrice(quote.dayLow, ccy)} – ${formatPrice(quote.dayHigh, ccy)}`
+      : null;
+  const yearRange =
+    quote?.fiftyTwoWeekLow != null && quote?.fiftyTwoWeekHigh != null
+      ? `${formatPrice(quote.fiftyTwoWeekLow, ccy)} – ${formatPrice(quote.fiftyTwoWeekHigh, ccy)}`
+      : null;
+
   const hasQuote = Boolean(quote?.price && !quote?.error);
   const quoteLoad = loading && !hasQuote;
   const analysisLoad = loading && !analysis?.indicators;
@@ -72,13 +82,22 @@ export default function AssetStatsRow({
         loading={quoteLoad}
         refreshing={refreshing}
       />
-      <StatCard
-        label="Market cap"
-        value={fmtMarketCap(marketCap) ?? '—'}
-        sub={marketCap == null ? 'Non disponibile' : undefined}
-        loading={quoteLoad}
-        refreshing={refreshing}
-      />
+      {marketCap != null ? (
+        <StatCard
+          label="Market cap"
+          value={fmtMarketCap(marketCap)}
+          loading={quoteLoad}
+          refreshing={refreshing}
+        />
+      ) : (
+        <StatCard
+          label={dayRange ? 'Range giorno' : 'Range 52 sett.'}
+          value={dayRange ?? yearRange ?? '—'}
+          sub={!dayRange && !yearRange ? 'Non disponibile' : undefined}
+          loading={quoteLoad}
+          refreshing={refreshing}
+        />
+      )}
       <StatCard
         label="Volatilità"
         value={volPct ?? '—'}

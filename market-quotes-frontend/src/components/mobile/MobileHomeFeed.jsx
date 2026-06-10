@@ -5,6 +5,14 @@ const INDEX_IDS = ['^GSPC', '^IXIC', '^FTSEMIB', '^GDAXI', '^N225'];
 const CRYPTO_IDS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'BNB-USD'];
 const PRECIOUS_IDS = ['XAUUSD', 'XAGUSD'];
 const COMMODITY_IDS = ['WTI', 'BRENT', 'COPPER'];
+const FOREX_IDS = ['EURUSD', 'GBPUSD', 'USDJPY', 'EURGBP'];
+
+const FOREX_BRAND = {
+  EURUSD: { label: 'EUR/USD', color: '#1a56db', glyph: '€$' },
+  GBPUSD: { label: 'GBP/USD', color: '#7c3aed', glyph: '£$' },
+  USDJPY: { label: 'USD/JPY', color: '#dc2626', glyph: '$¥' },
+  EURGBP: { label: 'EUR/GBP', color: '#0e7490', glyph: '€£' },
+};
 
 const CRYPTO_BRAND = {
   'BTC-USD': { label: 'Bitcoin (BTC)', color: '#f7931a', glyph: '₿' },
@@ -108,7 +116,7 @@ function CryptoRow({ item, fx, onSelect }) {
         {chg != null && (
           <span className={`mhome-list-row__chg mhome-list-row__chg--${tone}`}>
             <span className="mhome-list-row__chg-icon" aria-hidden>
-              {tone === 'up' ? '✓' : tone === 'down' ? '✓' : '·'}
+              {tone === 'up' ? '▲' : tone === 'down' ? '▼' : '·'}
             </span>
             {chg}
           </span>
@@ -162,6 +170,53 @@ function CommodityRow({ item, fx, onSelect }) {
   );
 }
 
+function ForexRow({ item, fx, onSelect }) {
+  const brand = FOREX_BRAND[item.id.toUpperCase()] ?? {
+    label: item.name,
+    color: '#475569',
+    glyph: '¤',
+  };
+  const quote = item.quote;
+  const price = formatCurrentPrice(quote, item, fx);
+  const chg = formatChangeBadge(quote);
+  const tone = changeTone(quote?.changePercent);
+
+  return (
+    <button
+      type="button"
+      className="mhome-list-row mhome-list-row--forex"
+      onClick={() => onSelect?.(item.id, 'forex')}
+    >
+      <span
+        className="mhome-list-row__icon mhome-list-row__icon--fx"
+        style={{ background: brand.color }}
+        aria-hidden
+      >
+        {brand.glyph}
+      </span>
+      <span className="mhome-list-row__label">{brand.label}</span>
+      <span className="mhome-list-row__quote">
+        <span className="mhome-list-row__price">{price.primary}</span>
+        {chg != null && (
+          <span className={`mhome-list-row__chg mhome-list-row__chg--${tone}`}>
+            <span className="mhome-list-row__chg-icon" aria-hidden>
+              {tone === 'up' ? '▲' : tone === 'down' ? '▼' : '·'}
+            </span>
+            {chg}
+          </span>
+        )}
+      </span>
+      <Sparkline
+        className="mhome-list-row__spark"
+        points={sparkPointsFromQuote(quote)}
+        tone={tone === 'neutral' ? 'auto' : tone}
+        width={56}
+        height={28}
+      />
+    </button>
+  );
+}
+
 function SectionSkeleton({ tall = false }) {
   return (
     <div className={`mhome-skeleton${tall ? ' mhome-skeleton--tall' : ''}`} aria-hidden>
@@ -185,6 +240,7 @@ export default function MobileHomeFeed({
     ...pickFeatured(catalog?.precious, PRECIOUS_IDS, 2),
     ...pickFeatured(catalog?.commodity, COMMODITY_IDS, 3),
   ].slice(0, 4);
+  const forexPairs = pickFeatured(catalog?.forex, FOREX_IDS, 4);
 
   return (
     <div
@@ -240,6 +296,24 @@ export default function MobileHomeFeed({
           </div>
         )}
       </section>
+
+      {forexPairs.length > 0 && (
+        <section className="mhome__section">
+          <h2 className="mhome__title">Forex</h2>
+          {blocking ? (
+            <SectionSkeleton tall />
+          ) : (
+            <div className="mhome-panel">
+              {forexPairs.map((item, i) => (
+                <div key={item.id}>
+                  {i > 0 && <div className="mhome-panel__divider" aria-hidden />}
+                  <ForexRow item={item} fx={fx} onSelect={onSelectAsset} />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }

@@ -29,6 +29,7 @@ import ViewFallback from './components/ViewFallback';
 import MobileStickyActions from './components/MobileStickyActions';
 import MobileExploreHub from './components/MobileExploreHub';
 import HistoryChart from './components/HistoryChart';
+import DataSources from './components/DataSources';
 import QuotePanel from './components/QuotePanel';
 import AssetStatsRow from './components/AssetStatsRow';
 import InfoPage from './components/InfoPage';
@@ -66,7 +67,6 @@ import {
 
 const TerminalDashboard = lazy(() => import('./components/terminal/TerminalDashboard'));
 const TradeAdvice = lazy(() => import('./components/TradeAdvice'));
-const DataSources = lazy(() => import('./components/DataSources'));
 const HelpLegend = lazy(() => import('./components/HelpLegend'));
 const IntelligentAlerts = lazy(() => import('./components/IntelligentAlerts'));
 const ForecastCards = lazy(() => import('./components/ForecastCards'));
