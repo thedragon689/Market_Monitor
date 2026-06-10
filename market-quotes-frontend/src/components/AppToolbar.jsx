@@ -4,6 +4,7 @@ import { buildShareUrl, copyShareUrl } from '../utils/shareUrl';
 export default function AppToolbar({
   shareState,
   loadingMarket,
+  refreshing = false,
   quoteReady,
 }) {
   const [copied, setCopied] = useState(false);
@@ -37,9 +38,23 @@ export default function AppToolbar({
     <div className="app-toolbar">
       <div className="app-toolbar__status">
         <span
-          className={`status-pill ${loadingMarket ? 'status-pill--busy' : quoteReady ? 'status-pill--ok' : 'status-pill--idle'}`}
+          className={`status-pill ${
+            loadingMarket
+              ? 'status-pill--busy'
+              : refreshing
+                ? 'status-pill--refresh'
+                : quoteReady
+                  ? 'status-pill--ok'
+                  : 'status-pill--idle'
+          }`}
         >
-          {loadingMarket ? 'Aggiornamento…' : quoteReady ? 'Dati pronti' : 'In attesa asset'}
+          {loadingMarket
+            ? 'Caricamento…'
+            : refreshing
+              ? 'Aggiornamento…'
+              : quoteReady
+                ? 'Dati pronti'
+                : 'In attesa asset'}
         </span>
       </div>
       <div className="app-toolbar__actions">

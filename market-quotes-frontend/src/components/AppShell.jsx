@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import CategorySelector from './CategorySelector';
 import AppLogo from './AppLogo';
 import AssetSwitcher from './AssetSwitcher';
@@ -22,14 +22,39 @@ export default function AppShell({
   loadingForecast,
   loadingMarket,
   isLoading,
+  isRefreshing = false,
   themeToggle,
   theme = 'dark',
   onQuickNav,
   onInternalSection,
   onSymbolChange,
   dataFreshKey = 0,
+  isMobile = false,
+  isTerminalExplore = false,
   children,
 }) {
+  const isMobileExplore = isMobile && view === 'explore';
+  const isWorkflowView = view === 'analysis' || view === 'advice' || view === 'forecast';
+  const headerRef = useRef(null);
+
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return undefined;
+    const sync = () => {
+      document.documentElement.style.setProperty(
+        '--app-shell-header-h',
+        `${el.getBoundingClientRect().height}px`
+      );
+    };
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    window.addEventListener('resize', sync);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', sync);
+    };
+  }, [view, isMobile, isTerminalExplore, symbol, type]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const categoryMeta = getCategoryMeta(type);
   const viewIdx = getViewIndex(view);
@@ -49,8 +74,13 @@ export default function AppShell({
   };
 
   return (
-    <div className="app-shell">
-      <header className="app-shell__header app-shell__header--sticky">
+    <div
+      className={`app-shell ${isMobileExplore ? 'app-shell--mobile-explore' : ''} ${isMobile ? 'app-shell--mobile' : ''} ${isTerminalExplore ? 'app-shell--terminal' : ''} ${isWorkflowView ? 'app-shell--workflow' : ''}`}
+    >
+      <header
+        ref={headerRef}
+        className="app-shell__header app-shell__header--sticky"
+      >
         <div className="app-shell__brand">
           <button
             type="button"
@@ -82,7 +112,7 @@ export default function AppShell({
                 key={v.id}
                 type="button"
                 className={`app-shell__tab ${view === v.id ? 'is-active' : ''} ${done ? 'is-done' : ''}`}
-                onClick={() => onViewChange(v.id)}
+                onClick={() => (v.id === 'forecast' ? onGoForecast() : onViewChange(v.id))}
                 aria-current={view === v.id ? 'page' : undefined}
               >
                 <span className="app-shell__tab-step">{v.step}</span>
@@ -93,7 +123,9 @@ export default function AppShell({
           })}
         </nav>
 
-        <div className={`app-shell__asset ${dataFreshKey ? 'app-shell__asset--fresh' : ''}`}>
+        <div
+          className={`app-shell__asset ${dataFreshKey ? 'app-shell__asset--fresh' : ''} ${isMobileExplore ? 'app-shell__asset--hidden' : ''}`}
+        >
           <AssetSwitcher
             type={type}
             symbol={symbol}
@@ -134,15 +166,17 @@ export default function AppShell({
 
       <ProNavbar view={view} type={type} onNavigate={handleQuickNav} />
 
-      <Breadcrumbs
-        view={view}
-        type={type}
-        symbol={symbol}
-        assetName={assetName}
-        onNavigate={handleBreadcrumb}
-      />
+      {!isMobileExplore && !isTerminalExplore && view !== 'info' && (
+        <Breadcrumbs
+          view={view}
+          type={type}
+          symbol={symbol}
+          assetName={assetName}
+          onNavigate={handleBreadcrumb}
+        />
+      )}
 
-      {view !== 'info' && (
+      {view !== 'info' && !isMobileExplore && !isWorkflowView && !isTerminalExplore && (
         <div className="app-shell__categories">
           <CategorySelector
             type={type}
@@ -154,7 +188,10 @@ export default function AppShell({
         </div>
       )}
 
-      {isLoading && <div className="app-shell__progress" aria-hidden />}
+      <div
+        className={`app-shell__progress ${isLoading ? 'is-active' : ''}`}
+        aria-hidden={!isLoading}
+      />
 
       <main className="app-shell__main">{children}</main>
 
@@ -166,7 +203,7 @@ export default function AppShell({
               key={v.id}
               type="button"
               className={`app-shell__bottom-tab ${view === v.id ? 'is-active' : ''} ${done ? 'is-done' : ''}`}
-              onClick={() => onViewChange(v.id)}
+              onClick={() => (v.id === 'forecast' ? onGoForecast() : onViewChange(v.id))}
               aria-current={view === v.id ? 'page' : undefined}
             >
               <span className="app-shell__bottom-icon">

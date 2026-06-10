@@ -16,6 +16,8 @@ import './dark-theme.css';
 import './icons.css';
 import './design-system.css';
 import './pro-dashboard.css';
+import './desktop-polish.css';
+import './ui-stable.css';
 import AppShell from './components/AppShell';
 import StepIntro from './components/StepIntro';
 import AppToolbar from './components/AppToolbar';
@@ -26,7 +28,6 @@ import ViewFallback from './components/ViewFallback';
 import MobileStickyActions from './components/MobileStickyActions';
 import QuotePanel from './components/QuotePanel';
 import AssetStatsRow from './components/AssetStatsRow';
-import MarketOverview from './components/MarketOverview';
 import InfoPage from './components/InfoPage';
 import TrustFooter from './components/TrustFooter';
 import { normalizeTimeframe, sliceHistoryByTimeframe } from './data/chartTimeframes';
@@ -159,6 +160,8 @@ export default function App() {
 
   const fetchGen = useRef(0);
   const pendingForecast = useRef(false);
+  const analysisKeyRef = useRef('');
+  const lastPriceRef = useRef(null);
 
   const loadCategorySources = useCallback(async () => {
     try {
@@ -240,6 +243,11 @@ export default function App() {
     [type]
   );
 
+  const handleGoAnalyze = useCallback(() => {
+    prefetchMarket(symbol, type);
+    setView('analysis');
+  }, [symbol, type]);
+
   const handleSymbolChange = useCallback((id) => {
     setSymbol(id);
     setView('analysis');
@@ -259,7 +267,7 @@ export default function App() {
       const stillValid = list.some((s) => s.id === symbol);
       if (!stillValid) setSymbol(list[0].id);
       setForecast(null);
-      setAnalysis(null);
+      analysisKeyRef.current = '';
       setGeopolitical(null);
       setIntelligence(null);
       pendingForecast.current = false;
@@ -341,10 +349,15 @@ export default function App() {
 
   const loadAnalysisBundle = useCallback(
     async (sym, marketType, rate) => {
-      try {
+      const bundleKey = `${sym}:${marketType}`;
+      const isNewBundle = analysisKeyRef.current !== bundleKey;
+      if (isNewBundle) {
+        analysisKeyRef.current = bundleKey;
         setLoadingAnalysis(true);
         setLoadingIntelligence(true);
         setLoadingGeo(true);
+      }
+      try {
         loadCommodityProfile(sym, marketType);
         const params = new URLSearchParams({
           symbol: sym,
@@ -368,9 +381,11 @@ export default function App() {
         setAnalysis(null);
         setIntelligence(null);
       } finally {
-        setLoadingAnalysis(false);
-        setLoadingIntelligence(false);
-        setLoadingGeo(false);
+        if (isNewBundle) {
+          setLoadingAnalysis(false);
+          setLoadingIntelligence(false);
+          setLoadingGeo(false);
+        }
       }
     },
     [horizonDays, windowN, forecastMethod, applyIntelligence, loadCommodityProfile]
@@ -394,6 +409,16 @@ export default function App() {
       return false;
     }
 
+    const nextPrice = raw.price;
+    if (
+      lastPriceRef.current != null &&
+      nextPrice != null &&
+      lastPriceRef.current !== nextPrice
+    ) {
+      setDataFreshKey((k) => k + 1);
+    }
+    lastPriceRef.current = nextPrice;
+
     setQuote({
       ...raw,
       unit: meta.unit,
@@ -401,7 +426,6 @@ export default function App() {
       provider: data.provider,
     });
     if (data.history?.length) setHistory(data.history);
-    setDataFreshKey((k) => k + 1);
     return true;
   }, []);
 
@@ -596,29 +620,23 @@ export default function App() {
     [requestForecast, type]
   );
 
+  const goForecast = useCallback(() => {
+    setView('forecast');
+    loadForecast();
+  }, [loadForecast]);
+
   const handleViewChange = useCallback(
     (nextView) => {
+      if (nextView === 'forecast') {
+        goForecast();
+        return;
+      }
       setView(nextView);
       if (nextView === 'advice' && quote?.price && !quote?.error) {
         loadTradeAdvice(Boolean(forecast));
       }
-      if (
-        nextView === 'forecast' &&
-        !forecast &&
-        !loadingForecast &&
-        quote?.price &&
-        !quote?.error
-      ) {
-        loadForecast();
-      }
     },
-    [
-      forecast,
-      loadingForecast,
-      quote,
-      loadForecast,
-      loadTradeAdvice,
-    ]
+    [forecast, quote, goForecast, loadTradeAdvice]
   );
 
   const goAdvice = useCallback(() => {
@@ -628,17 +646,16 @@ export default function App() {
     }
   }, [quote, forecast, loadTradeAdvice]);
 
-  const goForecast = useCallback(() => {
-    setView('forecast');
-    loadForecast();
-  }, [loadForecast]);
-
   const handleQuickNav = useCallback(
     ({ view: nextView, type: nextType }) => {
       if (nextType && nextType !== type) handleTypeChange(nextType);
+      if (nextView === 'forecast') {
+        goForecast();
+        return;
+      }
       if (nextView) handleViewChange(nextView);
     },
-    [type, handleTypeChange, handleViewChange]
+    [type, handleTypeChange, handleViewChange, goForecast]
   );
 
   const handleSelectCategory = useCallback(
@@ -795,9 +812,14 @@ export default function App() {
     };
   }, [quote, cryptoLive]);
 
-  const marketBusy = loadingMarket || refreshingMarket;
-  const quotePanelLoading = loadingMarket && !displayQuote?.price;
-  const isLoading = marketBusy || loadingForecast || loadingIntelligence;
+  const hasQuote = Boolean(displayQuote?.price && !displayQuote?.error);
+  const marketBlocking = loadingMarket && !hasQuote;
+  const marketRefreshing = refreshingMarket && hasQuote;
+  const marketBusy = marketBlocking || marketRefreshing;
+  const quotePanelLoading = marketBlocking;
+  const chartBlocking = marketBlocking && !chartHistory.length;
+  const analysisBlocking = loadingAnalysis && !analysis?.indicators;
+  const isLoading = marketBlocking || (loadingForecast && view === 'forecast' && !forecast);
 
   const shareState = useMemo(
     () => ({
@@ -859,23 +881,29 @@ export default function App() {
         onGoForecast={goForecast}
         onRefresh={refreshAll}
         loadingForecast={loadingForecast}
-        loadingMarket={marketBusy}
+        loadingMarket={marketBlocking}
         isLoading={isLoading}
+        isRefreshing={marketRefreshing || loadingCatalog}
         theme={theme}
         themeToggle={<ThemeToggle theme={theme} onChange={setTheme} />}
         onQuickNav={handleQuickNav}
         onInternalSection={handleInternalSection}
         onSymbolChange={handleSymbolChange}
         dataFreshKey={dataFreshKey}
+        isMobile={isMobile}
+        isTerminalExplore={isTerminalExplore}
       >
         {!(isMobile && view === 'explore') &&
           !isTerminalExplore &&
           view !== 'info' && <StepIntro view={view} />}
-        <AppToolbar
-          shareState={shareState}
-          loadingMarket={marketBusy}
-          quoteReady={quoteReady}
-        />
+        {!(isMobile && view === 'explore') && (
+          <AppToolbar
+            shareState={shareState}
+            loadingMarket={marketBlocking}
+            refreshing={marketRefreshing || (loadingCatalog && Boolean(catalog))}
+            quoteReady={quoteReady}
+          />
+        )}
         {alerts}
 
 
@@ -938,30 +966,17 @@ export default function App() {
               quote={displayQuote}
               fx={fx}
               loadingCatalog={catalogPanelLoading}
-              loadingMarket={marketBusy}
+              loadingMarket={marketBlocking}
               quotesBySymbol={quotesBySymbol}
               onSelectAsset={handleSelectAsset}
               onSelectCategory={handleSelectCategory}
-              onAnalyze={() => handleViewChange('analysis')}
+              onAnalyze={handleGoAnalyze}
               onWatchlistSelect={handleSelectAsset}
               onTypeChange={handleTypeChange}
               onRefresh={refreshAll}
               onForecast={goForecast}
             />
           </Suspense>
-        )}
-
-        {isTerminalExplore && (
-          <div className="home-overview">
-            <MarketOverview
-              catalog={catalog}
-              summary={catalogSummary}
-              loading={catalogPanelLoading}
-              fx={fx}
-              onSelectCategory={handleSelectCategory}
-              onSelectAsset={handleSelectAsset}
-            />
-          </div>
         )}
 
         {isTerminalExplore && (
@@ -976,7 +991,7 @@ export default function App() {
             loadingGeo={geoLoading}
             onSelectAsset={handleSelectAsset}
             onRefresh={refreshAll}
-            loadingMarket={marketBusy}
+            loadingMarket={marketBlocking}
             timeframe={historyTimeframe}
             onTimeframeChange={setHistoryTimeframe}
             onTypeChange={handleTypeChange}
@@ -998,13 +1013,16 @@ export default function App() {
             />
             </Suspense>
 
-            <section className="asset-dashboard app-card">
+            <section
+              className={`asset-dashboard app-card ${marketRefreshing ? 'asset-dashboard--refreshing' : ''}`}
+            >
               <QuotePanel
                 variant="hero"
                 quote={displayQuote}
                 type={type}
                 symbol={symbol}
                 loading={quotePanelLoading}
+                refreshing={marketRefreshing}
                 fx={fx}
                 freshKey={dataFreshKey}
                 onGoExplore={() => handleViewChange('explore')}
@@ -1012,7 +1030,8 @@ export default function App() {
               <AssetStatsRow
                 quote={displayQuote}
                 analysis={analysis}
-                loading={quotePanelLoading || loadingAnalysis}
+                loading={quotePanelLoading || analysisBlocking}
+                refreshing={marketRefreshing || (loadingAnalysis && Boolean(analysis?.indicators))}
                 type={type}
                 symbol={symbol}
                 fx={fx}
@@ -1022,7 +1041,8 @@ export default function App() {
                   <HistoryChart
                     history={chartHistory}
                     title={`Andamento · ${meta.name}`}
-                    loading={quotePanelLoading && !chartHistory.length}
+                    loading={chartBlocking}
+                    refreshing={marketRefreshing && chartHistory.length > 0}
                     fx={fx}
                     meta={meta}
                     type={type}
@@ -1119,7 +1139,8 @@ export default function App() {
                     <Suspense fallback={<PanelFallback />}>
                     <TechnicalIndicators
                       analysis={analysis}
-                      loading={loadingAnalysis || loadingMarket}
+                      loading={analysisBlocking}
+                      refreshing={loadingAnalysis && Boolean(analysis?.indicators)}
                       fx={fx}
                       type={type}
                       symbol={symbol}
@@ -1308,7 +1329,7 @@ export default function App() {
           onViewChange={handleViewChange}
           onForecast={goForecast}
           loadingForecast={loadingForecast}
-          loadingMarket={loadingMarket}
+          loadingMarket={marketBlocking}
           assetName={meta.name}
           hasForecast={Boolean(forecast)}
         />

@@ -1638,6 +1638,216 @@
   text-align: center;
 }
 
+/* ── Mobile explore: layout eToro (no duplicati shell) ── */
+@media (max-width: 899px) {
+  .app-shell--mobile-explore .app-shell__asset--hidden {
+    display: none !important;
+  }
+
+  .app-shell--mobile-explore .app-shell__header {
+    padding-bottom: 0.5rem;
+  }
+
+  .app--mobile .breadcrumbs {
+    display: none;
+  }
+
+  .view-footer--advice {
+    display: none !important;
+  }
+
+  /* Touch target 44px */
+  .mobile-hero__cta,
+  .mobile-hero__cta-secondary,
+  .app-shell__asset-actions .btn,
+  .mobile-explore__filter,
+  .mobile-explore__refresh,
+  .panel-choices__chip {
+    min-height: var(--touch-min, 44px) !important;
+  }
+
+  .mobile-explore__search-clear {
+    width: var(--touch-min, 44px);
+    height: var(--touch-min, 44px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Hero impilato su schermi stretti */
+  .mobile-hero {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .mobile-hero__side {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.25rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .mobile-hero__actions {
+    display: flex;
+    gap: 0.4rem;
+    width: auto;
+  }
+
+  .mobile-hero__cta,
+  .mobile-hero__cta-secondary {
+    flex: 1;
+    min-width: 7rem;
+  }
+
+  /* Search sticky sotto header compatto */
+  .mobile-explore__search-wrap {
+    top: calc(env(safe-area-inset-top, 0px) + 3.6rem);
+    z-index: 35;
+  }
+
+  /* Overview strip 2×2 */
+  .mobile-overview-strip {
+    margin: 0;
+  }
+
+  .mobile-overview-strip__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .mobile-overview-strip__card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.65rem 0.7rem;
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.12s, transform 0.1s;
+  }
+
+  .mobile-overview-strip__card.is-active {
+    border-color: var(--etoro-green);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--etoro-green) 35%, transparent);
+  }
+
+  .mobile-overview-strip__card:active {
+    transform: scale(0.98);
+  }
+
+  .mobile-overview-strip__head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    min-height: 32px;
+  }
+
+  .mobile-overview-strip__label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text-h);
+  }
+
+  .mobile-overview-strip__asset {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 0.1rem 0.35rem;
+    align-items: center;
+    width: 100%;
+    padding: 0.35rem 0;
+    border: none;
+    border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    min-height: 44px;
+  }
+
+  .mobile-overview-strip__asset code {
+    grid-row: 1 / -1;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--text-muted);
+  }
+
+  .mobile-overview-strip__price {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--text-h);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mobile-overview-strip__chg {
+    font-size: 0.72rem;
+    font-weight: 700;
+    justify-self: end;
+  }
+
+  .mobile-overview-strip__chg--up {
+    color: var(--up);
+  }
+
+  .mobile-overview-strip__chg--down {
+    color: var(--down);
+  }
+
+  .mobile-overview-strip__asset .sparkline {
+    grid-column: 2 / -1;
+    justify-self: end;
+  }
+
+  .mobile-overview-strip__empty {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .mobile-overview-strip--loading .skeleton {
+    min-height: 7rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .mobile-explore {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .mobile-explore__movers {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .mobile-explore__list-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+  }
+
+  .mobile-explore__refresh {
+    margin-left: auto;
+    min-width: 44px;
+    padding: 0.4rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    font-size: 1rem;
+    cursor: pointer;
+  }
+}
+
 /* Desktop: nascondi bottom nav */
 @media (min-width: 900px) {
   .app-shell__bottom-nav {

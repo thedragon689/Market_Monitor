@@ -1,8 +1,14 @@
-/* ── Pro Navbar ── */
+/* ── Pro Navbar (desktop only — mobile usa bottom nav + drawer) ── */
+@media (max-width: 899px) {
+  .pro-nav {
+    display: none;
+  }
+}
+
 .pro-nav {
   position: sticky;
-  top: var(--app-shell-header-h, 0);
-  z-index: 40;
+  top: var(--app-shell-header-h, 0px);
+  z-index: 45;
   background: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(10px);
@@ -70,9 +76,15 @@
   }
 }
 
-@media (min-width: 960px) {
+@media (min-width: 900px) {
   .asset-stats {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .asset-stats .stat-card:nth-child(5) {
+    grid-column: 1 / -1;
   }
 }
 
@@ -441,19 +453,6 @@
     min-height: 48px;
   }
 
-  .mobile-hero__price {
-    font-size: clamp(1.65rem, 7vw, 2.15rem);
-    font-weight: 800;
-    letter-spacing: -0.02em;
-  }
-
-  .mobile-hero__chg {
-    font-size: 0.95rem;
-    padding: 0.3rem 0.6rem;
-    border-radius: 999px;
-    font-weight: 700;
-  }
-
   .chart-card__head {
     flex-direction: column;
     align-items: stretch;
@@ -465,10 +464,6 @@
     gap: 0.5rem;
   }
 
-  .pro-nav__link {
-    font-size: 0.8rem;
-    padding: 0.5rem 0.75rem;
-  }
 }
 
 @keyframes panel-fade-in {

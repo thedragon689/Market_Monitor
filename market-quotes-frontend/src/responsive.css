@@ -16,6 +16,9 @@
   --app-max-xl: 1320px;
   --app-max-xxl: 1440px;
   --app-max-wide: 1560px;
+  --app-max-width: var(--app-max);
+  --app-gutter: var(--gutter);
+  --app-shell-header-h: 0px;
   --gutter: 1rem;
   --gutter-lg: 1.5rem;
   --gutter-xl: 2rem;

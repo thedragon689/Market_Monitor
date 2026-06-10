@@ -21,7 +21,15 @@ function fmtMarketCap(v) {
   return `$${n.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 }
 
-export default function AssetStatsRow({ quote, analysis, loading, type, symbol, fx }) {
+export default function AssetStatsRow({
+  quote,
+  analysis,
+  loading,
+  refreshing = false,
+  type,
+  symbol,
+  fx,
+}) {
   const meta = getSymbolMeta(symbol, type);
   const display = quote?.price ? buildDisplayPricing(meta, quote, fx) : null;
   const mainPrice =
@@ -43,32 +51,40 @@ export default function AssetStatsRow({ quote, analysis, loading, type, symbol, 
 
   const marketCap = quote?.marketCap ?? analysis?.yahooQuote?.marketCap ?? null;
 
+  const hasQuote = Boolean(quote?.price && !quote?.error);
+  const quoteLoad = loading && !hasQuote;
+  const analysisLoad = loading && !analysis?.indicators;
+
   return (
     <div className="asset-stats" aria-label="Statistiche asset">
-      <StatCard label="Prezzo" value={mainPrice ?? '—'} loading={loading} />
+      <StatCard label="Prezzo" value={mainPrice ?? '—'} loading={quoteLoad} refreshing={refreshing} />
       <StatCard
         label="Variazione"
         value={pct != null ? formatPercent(pct) : '—'}
         tone={tone}
-        loading={loading}
+        loading={quoteLoad}
+        refreshing={refreshing}
       />
       <StatCard
         label="Volume"
         value={fmtVolume(quote?.volume) ?? '—'}
         sub={quote?.volume == null ? 'Non disponibile' : undefined}
-        loading={loading}
+        loading={quoteLoad}
+        refreshing={refreshing}
       />
       <StatCard
         label="Market cap"
         value={fmtMarketCap(marketCap) ?? '—'}
         sub={marketCap == null ? 'Non disponibile' : undefined}
-        loading={loading}
+        loading={quoteLoad}
+        refreshing={refreshing}
       />
       <StatCard
         label="Volatilità"
         value={volPct ?? '—'}
         sub={atr != null ? `ATR ${Number(atr.value ?? atr).toFixed(2)}` : undefined}
-        loading={loading}
+        loading={analysisLoad}
+        refreshing={refreshing && !analysisLoad}
       />
     </div>
   );

@@ -104,6 +104,7 @@ export default function HistoryChart({
   forecast,
   onRequestForecast,
   forecastLoading,
+  refreshing = false,
 }) {
   const isMobile = useMobileLayout();
   const [fullscreen, setFullscreen] = useState(false);
@@ -143,7 +144,7 @@ export default function HistoryChart({
     return { data: enriched, rawByDate: rawMap, prevByDate: prevMap, histCount: rows.length };
   }, [history, fx, meta, currency, overlays, forecast]);
 
-  if (loading) {
+  if (loading && !data.length) {
     return (
       <div className="chart-card chart-card--loading">
         <div className="skeleton skeleton--chart" />
@@ -175,7 +176,7 @@ export default function HistoryChart({
 
   return (
     <div
-      className={`chart-card chart-card--history ${fullscreen ? 'chart-card--fullscreen' : ''}`}
+      className={`chart-card chart-card--history ${fullscreen ? 'chart-card--fullscreen' : ''} ${refreshing ? 'chart-card--refreshing' : ''}`}
     >
       <div className="chart-card__head">
         <div>

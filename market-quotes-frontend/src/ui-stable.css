@@ -1,0 +1,96 @@
+/**
+ * Anti-flicker: mantieni contenuto visibile durante refresh in background.
+ */
+
+.quote-panel--refreshing,
+.asset-dashboard--refreshing .quote-panel,
+.chart-card--refreshing {
+  opacity: 0.97;
+  transition: opacity 0.2s ease;
+}
+
+.quote-panel--refreshing::after,
+.asset-dashboard--refreshing::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--accent) 6%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: ui-refresh-sheen 1.4s ease infinite;
+  opacity: 0.35;
+}
+
+.asset-dashboard {
+  position: relative;
+}
+
+.quote-panel {
+  position: relative;
+}
+
+@keyframes ui-refresh-sheen {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.stat-card--refreshing .stat-card__value {
+  opacity: 0.75;
+}
+
+.indicators-panel--refreshing {
+  opacity: 0.9;
+}
+
+/* Niente fade-in ripetuti su ogni re-render card */
+.view-panel,
+.app-card,
+.market-overview {
+  animation: none !important;
+}
+
+.app-shell__progress {
+  transition: opacity 0.25s ease;
+}
+
+.app-shell__progress:not(.is-active) {
+  opacity: 0;
+  height: 0;
+  margin: 0;
+  pointer-events: none;
+  animation: none;
+}
+
+.status-pill--refresh {
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.status-pill--refresh::before {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quote-panel--refreshing::after,
+  .asset-dashboard--refreshing::after,
+  .skeleton,
+  .quote-stat-cards--pulse,
+  .app-shell__asset--fresh .app-shell__asset-strip {
+    animation: none !important;
+  }
+
+  .quote-panel--refreshing,
+  .chart-card--refreshing {
+    opacity: 1;
+  }
+}

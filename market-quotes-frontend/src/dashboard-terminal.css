@@ -17,7 +17,10 @@
 .app--terminal .app-shell__categories,
 .app--terminal .quick-nav,
 .app--terminal .breadcrumbs,
-.app--terminal .app-toolbar {
+.app--terminal .app-toolbar,
+.app--terminal .pro-nav,
+.app--terminal .view-footer--explore,
+.app--terminal .home-overview {
   display: none !important;
 }
 
@@ -785,13 +788,15 @@
 }
 
 /* ── Responsive ── */
+@media (max-width: 1200px) {
+  .terminal-dashboard__layout {
+    grid-template-columns: 36px minmax(200px, 0.9fr) minmax(0, 1.35fr) minmax(200px, 0.9fr) 36px;
+  }
+}
+
 @media (max-width: 1024px) {
   .terminal-dashboard__layout {
-    grid-template-columns: 36px 1fr 1fr 36px;
-  }
-
-  .terminal-dashboard__col--left {
-    display: none;
+    grid-template-columns: 36px minmax(180px, 0.85fr) minmax(0, 1.25fr) minmax(180px, 0.85fr) 36px;
   }
 }
 

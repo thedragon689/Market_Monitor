@@ -44,12 +44,14 @@ export default function QuotePanel({
   onGoExplore,
   variant = 'default',
   freshKey = 0,
+  refreshing = false,
 }) {
   const meta = getSymbolMeta(symbol, type);
   const live = quote?.liveExchanges;
   const isHero = variant === 'hero';
+  const hasQuote = Boolean(quote?.price && !quote?.error);
 
-  if (loading) {
+  if (loading && !hasQuote) {
     return (
       <div className="quote-panel quote-panel--loading">
         <div className="skeleton skeleton--title" />
@@ -59,7 +61,7 @@ export default function QuotePanel({
     );
   }
 
-  if (!quote || quote.error) {
+  if (!hasQuote) {
     return (
       <div className="quote-panel quote-panel--empty">
         <EmptyState
@@ -89,7 +91,9 @@ export default function QuotePanel({
   const delta = changeForDisplay(changeVal, display, fx);
 
   return (
-    <article className={`quote-panel quote-panel--${summary.tone} ${isHero ? 'quote-panel--hero' : ''}`}>
+    <article
+      className={`quote-panel quote-panel--${summary.tone} ${isHero ? 'quote-panel--hero' : ''} ${refreshing ? 'quote-panel--refreshing' : ''}`}
+    >
       <header className="quote-panel__header">
         <div>
           {!isHero && (
@@ -145,7 +149,7 @@ export default function QuotePanel({
       )}
 
       {isHero && (
-        <div key={freshKey} className="quote-stat-cards quote-stat-cards--pulse">
+        <div className={`quote-stat-cards ${freshKey > 0 ? 'quote-stat-cards--pulse' : ''}`}>
           {quote.changePercent != null && (
             <div className={`quote-stat-card quote-stat-card--${summary.tone}`}>
               <span className="quote-stat-card__icon" aria-hidden>📈</span>

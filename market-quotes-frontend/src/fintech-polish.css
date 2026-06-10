@@ -122,13 +122,7 @@
   padding: 1.25rem;
 }
 
-@media (min-width: 900px) {
-  .asset-dashboard {
-    grid-template-columns: minmax(260px, 1fr) minmax(0, 1.6fr);
-    align-items: start;
-    gap: 1.5rem;
-  }
-}
+/* Desktop asset-dashboard grid: desktop-polish.css */
 
 .asset-dashboard__chart-tools {
   display: flex;
@@ -178,12 +172,7 @@
   margin-top: 0.75rem;
 }
 
-.quote-panel--hero .quote-panel__price {
-  font-size: clamp(2.75rem, 7vw, 4rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1;
-}
+/* Hero quote: pro-dashboard.css */
 
 .quote-panel__price--up {
   color: var(--up);

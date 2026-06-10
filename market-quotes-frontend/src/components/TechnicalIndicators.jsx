@@ -22,6 +22,7 @@ function formatNum(value, digits = 2) {
 export default function TechnicalIndicators({
   analysis,
   loading,
+  refreshing = false,
   fx,
   type,
   symbol,
@@ -54,7 +55,7 @@ export default function TechnicalIndicators({
     ind.rsi14 == null ? '' : ind.rsi14 >= 70 ? ' overbought' : ind.rsi14 <= 30 ? ' oversold' : '';
 
   return (
-    <div className="indicators-panel">
+    <div className={`indicators-panel ${refreshing ? 'indicators-panel--refreshing' : ''}`}>
       <dl className="indicators-grid">
         {visible.ema !== false && (
           <>
