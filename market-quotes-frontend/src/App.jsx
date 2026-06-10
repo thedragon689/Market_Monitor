@@ -12,6 +12,7 @@ import './responsive.css';
 import './ui-polish.css';
 import './fintech-polish.css';
 import './mobile-etoro.css';
+import './mobile-home.css';
 import './dark-theme.css';
 import './icons.css';
 import './design-system.css';
@@ -26,6 +27,8 @@ import ViewFooter from './components/ViewFooter';
 import ThemeToggle from './components/ThemeToggle';
 import ViewFallback from './components/ViewFallback';
 import MobileStickyActions from './components/MobileStickyActions';
+import MobileExploreHub from './components/MobileExploreHub';
+import HistoryChart from './components/HistoryChart';
 import QuotePanel from './components/QuotePanel';
 import AssetStatsRow from './components/AssetStatsRow';
 import InfoPage from './components/InfoPage';
@@ -53,6 +56,7 @@ import {
 } from './utils/marketCache';
 import { savePersistedState } from './utils/persist';
 import { syncUrlState } from './utils/urlState';
+import { resolveMobileNavIntent, resolveMobileTabIntent } from './utils/navIntent';
 import { resolveInitialAppState } from './utils/initAppState';
 import { useMobileLayout } from './hooks/useMobileLayout';
 import {
@@ -62,8 +66,6 @@ import {
 } from './data/symbols';
 
 const TerminalDashboard = lazy(() => import('./components/terminal/TerminalDashboard'));
-const MobileExploreHub = lazy(() => import('./components/MobileExploreHub'));
-const HistoryChart = lazy(() => import('./components/HistoryChart'));
 const TradeAdvice = lazy(() => import('./components/TradeAdvice'));
 const DataSources = lazy(() => import('./components/DataSources'));
 const HelpLegend = lazy(() => import('./components/HelpLegend'));
@@ -122,6 +124,9 @@ export default function App() {
   });
   const [dataFreshKey, setDataFreshKey] = useState(0);
   const [theme, setTheme] = useState(INIT.theme);
+  const [mobileTab, setMobileTab] = useState('home');
+  const [mobileSearchFocus, setMobileSearchFocus] = useState(false);
+  const isMobile = useMobileLayout();
 
   const [quote, setQuote] = useState(INIT_MARKET?.quote ?? null);
   const [history, setHistory] = useState(INIT_MARKET?.history ?? []);
@@ -148,6 +153,7 @@ export default function App() {
   const [catalogSummary, setCatalogSummary] = useState(INIT_CATALOG?.summary ?? null);
   const [catalogUpdatedAt, setCatalogUpdatedAt] = useState(INIT_CATALOG?.updatedAt ?? null);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
+  const [refreshingCatalog, setRefreshingCatalog] = useState(false);
   const [explorePanels, setExplorePanels] = useState(INIT.explorePanels);
   const [catalogScope, setCatalogScope] = useState(INIT.catalogScope);
   const [analysisPanels, setAnalysisPanels] = useState(INIT.analysisPanels);
@@ -162,6 +168,11 @@ export default function App() {
   const pendingForecast = useRef(false);
   const analysisKeyRef = useRef('');
   const lastPriceRef = useRef(null);
+  const catalogRef = useRef(catalog);
+
+  useEffect(() => {
+    catalogRef.current = catalog;
+  }, [catalog]);
 
   const loadCategorySources = useCallback(async () => {
     try {
@@ -192,11 +203,16 @@ export default function App() {
 
   const loadCatalog = useCallback(
     async ({ force = false } = {}) => {
-      const hydrated = force ? null : getCatalogCache();
-      if (hydrated?.catalog) {
-        applyCatalogPayload(hydrated);
-      } else {
+      const cached = getCatalogCache();
+      const hasCatalog = Boolean(catalogRef.current || cached?.catalog);
+
+      if (cached?.catalog) {
+        applyCatalogPayload(cached);
+      }
+      if (!hasCatalog) {
         setLoadingCatalog(true);
+      } else if (force) {
+        setRefreshingCatalog(true);
       }
 
       try {
@@ -207,6 +223,7 @@ export default function App() {
         /* catalog opzionale */
       } finally {
         setLoadingCatalog(false);
+        setRefreshingCatalog(false);
       }
     },
     [applyCatalogPayload]
@@ -271,9 +288,6 @@ export default function App() {
       setGeopolitical(null);
       setIntelligence(null);
       pendingForecast.current = false;
-      if (view === 'explore') {
-        setCompetitorQuotes({});
-      }
     },
     [symbol, view]
   );
@@ -646,8 +660,35 @@ export default function App() {
     }
   }, [quote, forecast, loadTradeAdvice]);
 
+  const applyMobileNavIntent = useCallback(
+    (intent, { navId } = {}) => {
+      if (!intent) return false;
+      if (intent.type && intent.type !== type) handleTypeChange(intent.type);
+      if (intent.mobileTab) setMobileTab(intent.mobileTab);
+      if (intent.mobileSearchFocus != null) setMobileSearchFocus(intent.mobileSearchFocus);
+      if (intent.view === 'forecast') {
+        goForecast();
+        return true;
+      }
+      if (intent.view) setView(intent.view);
+      if (intent.view === 'advice' && quote?.price && !quote?.error) {
+        loadTradeAdvice(Boolean(forecast));
+      }
+      return true;
+    },
+    [type, handleTypeChange, goForecast, quote, forecast, loadTradeAdvice]
+  );
+
   const handleQuickNav = useCallback(
-    ({ view: nextView, type: nextType }) => {
+    ({ view: nextView, type: nextType, id: navId }) => {
+      if (isMobile) {
+        const intent = resolveMobileNavIntent({
+          view: nextView,
+          type: nextType,
+          navId,
+        });
+        if (intent && applyMobileNavIntent(intent)) return;
+      }
       if (nextType && nextType !== type) handleTypeChange(nextType);
       if (nextView === 'forecast') {
         goForecast();
@@ -655,15 +696,72 @@ export default function App() {
       }
       if (nextView) handleViewChange(nextView);
     },
-    [type, handleTypeChange, handleViewChange, goForecast]
+    [
+      isMobile,
+      type,
+      handleTypeChange,
+      handleViewChange,
+      goForecast,
+      applyMobileNavIntent,
+    ]
   );
+
+  const handleGoExplore = useCallback(() => {
+    if (isMobile) {
+      applyMobileNavIntent(resolveMobileNavIntent({ view: 'explore' }));
+      return;
+    }
+    handleViewChange('explore');
+  }, [isMobile, applyMobileNavIntent, handleViewChange]);
 
   const handleSelectCategory = useCallback(
     (catId) => {
+      if (isMobile) {
+        applyMobileNavIntent(
+          resolveMobileNavIntent({ view: 'explore', type: catId })
+        );
+        return;
+      }
       handleTypeChange(catId);
       setView('explore');
     },
-    [handleTypeChange]
+    [isMobile, applyMobileNavIntent, handleTypeChange]
+  );
+
+  const handleMobileTabChange = useCallback(
+    (tab) => {
+      const intent = resolveMobileTabIntent(tab);
+      if (tab === 'info') {
+        setView('info');
+        return;
+      }
+      setMobileTab(intent.mobileTab);
+      setMobileSearchFocus(false);
+      if (view !== 'explore') setView('explore');
+    },
+    [view]
+  );
+
+  const handleMobileSearchAction = useCallback(
+    (action) => {
+      if (action === 'markets') {
+        setMobileTab('markets');
+        setMobileSearchFocus(true);
+        if (view !== 'explore') setView('explore');
+        return;
+      }
+      if (action === 'info') {
+        setMobileSearchFocus(false);
+        setView('info');
+        return;
+      }
+      if (action === 'favorites') {
+        setMobileTab('favorites');
+        setMobileSearchFocus(false);
+        if (view !== 'explore') setView('explore');
+      }
+    },
+    [view]
   );
 
   const handleInternalSection = useCallback(
@@ -855,7 +953,6 @@ export default function App() {
     </div>
   );
 
-  const isMobile = useMobileLayout();
   const isTerminalExplore = view === 'explore' && !isMobile;
 
   useEffect(() => {
@@ -892,11 +989,14 @@ export default function App() {
         dataFreshKey={dataFreshKey}
         isMobile={isMobile}
         isTerminalExplore={isTerminalExplore}
+        mobileTab={mobileTab}
+        onMobileTabChange={handleMobileTabChange}
+        onMobileSearchAction={handleMobileSearchAction}
       >
-        {!(isMobile && view === 'explore') &&
+        {!(isMobile && (view === 'explore' || view === 'info')) &&
           !isTerminalExplore &&
           view !== 'info' && <StepIntro view={view} />}
-        {!(isMobile && view === 'explore') && (
+        {!(isMobile && (view === 'explore' || view === 'info')) && (
           <AppToolbar
             shareState={shareState}
             loadingMarket={marketBlocking}
@@ -956,27 +1056,25 @@ export default function App() {
         )}
 
         {view === 'explore' && isMobile && (
-          <Suspense fallback={<PanelFallback label="Caricamento mercati…" tall />}>
-            <MobileExploreHub
-              type={type}
-              symbol={symbol}
-              catalog={catalog}
-              catalogSummary={catalogSummary}
-              catalogUpdatedAt={catalogUpdatedAt}
-              quote={displayQuote}
-              fx={fx}
-              loadingCatalog={catalogPanelLoading}
-              loadingMarket={marketBlocking}
-              quotesBySymbol={quotesBySymbol}
-              onSelectAsset={handleSelectAsset}
-              onSelectCategory={handleSelectCategory}
-              onAnalyze={handleGoAnalyze}
-              onWatchlistSelect={handleSelectAsset}
-              onTypeChange={handleTypeChange}
-              onRefresh={refreshAll}
-              onForecast={goForecast}
-            />
-          </Suspense>
+          <MobileExploreHub
+            tab={mobileTab}
+            type={type}
+            symbol={symbol}
+            catalog={catalog}
+            catalogSummary={catalogSummary}
+            quote={displayQuote}
+            fx={fx}
+            loadingCatalog={catalogPanelLoading}
+            refreshingCatalog={refreshingCatalog}
+            loadingMarket={marketBlocking}
+            refreshingMarket={marketRefreshing}
+            quotesBySymbol={quotesBySymbol}
+            onSelectAsset={handleSelectAsset}
+            onSelectCategory={handleSelectCategory}
+            onTypeChange={handleTypeChange}
+            onRefresh={refreshAll}
+            searchFocus={mobileSearchFocus}
+          />
         )}
 
         {isTerminalExplore && (
@@ -1025,7 +1123,7 @@ export default function App() {
                 refreshing={marketRefreshing}
                 fx={fx}
                 freshKey={dataFreshKey}
-                onGoExplore={() => handleViewChange('explore')}
+                onGoExplore={handleGoExplore}
               />
               <AssetStatsRow
                 quote={displayQuote}
@@ -1037,7 +1135,6 @@ export default function App() {
                 fx={fx}
               />
               <div className="asset-dashboard__chart">
-                <Suspense fallback={<PanelFallback label="Caricamento grafico…" tall />}>
                   <HistoryChart
                     history={chartHistory}
                     title={`Andamento · ${meta.name}`}
@@ -1058,7 +1155,6 @@ export default function App() {
                     onRequestForecast={() => loadForecast({ navigate: false })}
                     forecastLoading={loadingForecast}
                   />
-                </Suspense>
               </div>
             </section>
 

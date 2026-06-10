@@ -55,8 +55,43 @@
 /* Niente fade-in ripetuti su ogni re-render card */
 .view-panel,
 .app-card,
-.market-overview {
+.market-overview,
+.mobile-explore,
+.mobile-explore .app-card,
+.mobile-hero,
+.mobile-overview-strip,
+.mobile-overview-strip__card,
+.mobile-asset-row,
+.mhome,
+.mhome-index-card,
+.mhome-panel,
+.mhome-list-row {
   animation: none !important;
+}
+
+.mhome-skeleton .skeleton {
+  min-height: 5.5rem;
+}
+
+.mobile-hero {
+  position: relative;
+}
+
+.mobile-hero--refreshing {
+  opacity: 0.97;
+  transition: opacity 0.2s ease;
+}
+
+.mobile-overview-strip--refreshing {
+  opacity: 0.97;
+}
+
+.mobile-market-strip--refreshing .mobile-market-strip__pill {
+  opacity: 0.85;
+}
+
+.mobile-explore--refreshing-catalog .mobile-explore__list-count {
+  opacity: 0.7;
 }
 
 .app-shell__progress {

@@ -35,10 +35,32 @@ export default function MobileNavDrawer({
 
   const handleProNav = (item) => {
     if (onQuickNav) {
-      onQuickNav({ view: item.view, type: item.type });
+      onQuickNav({ id: item.id, view: item.view, type: item.type });
     } else {
       if (item.type && item.type !== type) onTypeChange?.(item.type);
-      if (item.view) onViewChange?.(item.view);
+      if (item.view === 'forecast') onViewChange?.('forecast');
+      else if (item.view) onViewChange?.(item.view);
+    }
+    onClose?.();
+  };
+
+  const handleWorkflowNav = (stepId) => {
+    if (onQuickNav) {
+      onQuickNav({ view: stepId });
+    } else if (stepId === 'forecast') {
+      onViewChange?.('forecast');
+    } else {
+      onViewChange?.(stepId);
+    }
+    onClose?.();
+  };
+
+  const handleCategoryNav = (catId) => {
+    if (onQuickNav) {
+      onQuickNav({ view: 'explore', type: catId });
+    } else {
+      onTypeChange?.(catId);
+      onViewChange?.('explore');
     }
     onClose?.();
   };
@@ -92,10 +114,7 @@ export default function MobileNavDrawer({
                 <button
                   type="button"
                   className={`mobile-drawer__btn ${view === v.id ? 'is-active' : ''}`}
-                  onClick={() => {
-                    onViewChange?.(v.id);
-                    onClose?.();
-                  }}
+                  onClick={() => handleWorkflowNav(v.id)}
                 >
                   <span className="mobile-drawer__step">{v.step}</span>
                   <span>
@@ -117,7 +136,7 @@ export default function MobileNavDrawer({
                   type="button"
                   className={`mobile-drawer__chip ${type === cat.id ? 'is-active' : ''}`}
                   onClick={() => {
-                    onTypeChange?.(cat.id);
+                    handleCategoryNav(cat.id);
                     onClose?.();
                   }}
                 >

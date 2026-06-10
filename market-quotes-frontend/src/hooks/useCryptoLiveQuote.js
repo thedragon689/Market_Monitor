@@ -23,6 +23,7 @@ export function useCryptoLiveQuote(symbolId, enabled) {
     status: 'idle',
   });
   const mounted = useRef(true);
+  const prevConfigRef = useRef(null);
   const config = STREAMS[symbolId?.toUpperCase()];
 
   useEffect(() => {
@@ -35,10 +36,21 @@ export function useCryptoLiveQuote(symbolId, enabled) {
   useEffect(() => {
     if (!enabled || !config) {
       setLive({ binance: null, kraken: null, status: 'idle' });
+      prevConfigRef.current = null;
       return undefined;
     }
 
-    setLive({ binance: null, kraken: null, status: 'connecting' });
+    const configChanged = prevConfigRef.current !== config;
+    prevConfigRef.current = config;
+    setLive((s) => {
+      if (configChanged) {
+        return { binance: null, kraken: null, status: 'connecting' };
+      }
+      return {
+        ...s,
+        status: s.binance || s.kraken ? 'live' : 'connecting',
+      };
+    });
     let binanceWs;
     let krakenWs;
 

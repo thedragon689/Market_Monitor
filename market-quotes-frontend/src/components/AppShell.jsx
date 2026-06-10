@@ -6,8 +6,11 @@ import BottomNavIcon from './BottomNavIcon';
 import Breadcrumbs from './Breadcrumbs';
 import ProNavbar from './ProNavbar';
 import MobileNavDrawer from './MobileNavDrawer';
+import MobileSearchMenu from './MobileSearchMenu';
+import { MenuIcon, SearchIcon } from './icons/HeaderIcons';
 import { getCategoryMeta } from '../data/categories';
 import { APP_VIEWS, getViewIndex } from '../data/views';
+import { MOBILE_NAV_TABS, getMobileTabActive } from '../data/mobileNav';
 
 export default function AppShell({
   view,
@@ -31,9 +34,14 @@ export default function AppShell({
   dataFreshKey = 0,
   isMobile = false,
   isTerminalExplore = false,
+  mobileTab = 'home',
+  onMobileTabChange,
+  onMobileSearchAction,
   children,
 }) {
   const isMobileExplore = isMobile && view === 'explore';
+  const isMobileHomeShell = isMobile && (view === 'explore' || view === 'info');
+  const mobileNavActive = getMobileTabActive(view, mobileTab);
   const isWorkflowView = view === 'analysis' || view === 'advice' || view === 'forecast';
   const headerRef = useRef(null);
 
@@ -56,10 +64,15 @@ export default function AppShell({
     };
   }, [view, isMobile, isTerminalExplore, symbol, type]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchMenuOpen, setSearchMenuOpen] = useState(false);
   const categoryMeta = getCategoryMeta(type);
   const viewIdx = getViewIndex(view);
 
   const handleBreadcrumb = ({ view: nextView, type: nextType }) => {
+    if (onQuickNav && (nextView || nextType)) {
+      onQuickNav({ view: nextView, type: nextType });
+      return;
+    }
     if (nextView) onViewChange(nextView);
     if (nextType && nextType !== type) onTypeChange(nextType);
   };
@@ -75,13 +88,15 @@ export default function AppShell({
 
   return (
     <div
-      className={`app-shell ${isMobileExplore ? 'app-shell--mobile-explore' : ''} ${isMobile ? 'app-shell--mobile' : ''} ${isTerminalExplore ? 'app-shell--terminal' : ''} ${isWorkflowView ? 'app-shell--workflow' : ''}`}
+      className={`app-shell ${isMobileExplore ? 'app-shell--mobile-explore' : ''} ${isMobileHomeShell ? 'app-shell--mobile-home' : ''} ${isMobile ? 'app-shell--mobile' : ''} ${isTerminalExplore ? 'app-shell--terminal' : ''} ${isWorkflowView ? 'app-shell--workflow' : ''}`}
     >
       <header
         ref={headerRef}
         className="app-shell__header app-shell__header--sticky"
       >
-        <div className="app-shell__brand">
+        <div
+          className={`app-shell__brand ${isMobileHomeShell ? 'app-shell__brand--home' : ''}`}
+        >
           <button
             type="button"
             className="app-shell__menu-btn"
@@ -89,16 +104,36 @@ export default function AppShell({
             aria-expanded={mobileMenuOpen}
             onClick={() => setMobileMenuOpen(true)}
           >
-            ☰
+            <MenuIcon size={22} />
           </button>
-          <span className="app-shell__logo-wrap">
-            <AppLogo className="app-shell__logo" size={56} theme={theme} />
-          </span>
-          <div>
-            <strong className="app-shell__title">Market Monitor</strong>
-            <span className="app-shell__tagline">Quotazioni · Analisi · Previsioni</span>
-          </div>
-          {themeToggle}
+          {isMobileHomeShell ? (
+            <div className="app-shell__mobile-title-wrap">
+              <h1 className="app-shell__mobile-title">Valutazioni Borsa</h1>
+            </div>
+          ) : (
+            <>
+              <span className="app-shell__logo-wrap">
+                <AppLogo className="app-shell__logo" size={56} theme={theme} />
+              </span>
+              <div>
+                <strong className="app-shell__title">Market Monitor</strong>
+                <span className="app-shell__tagline">Quotazioni · Analisi · Previsioni</span>
+              </div>
+            </>
+          )}
+          {isMobileHomeShell ? (
+            <button
+              type="button"
+              className="app-shell__search-btn"
+              aria-label="Apri menu ricerca e navigazione"
+              aria-expanded={searchMenuOpen}
+              onClick={() => setSearchMenuOpen(true)}
+            >
+              <SearchIcon size={20} />
+            </button>
+          ) : (
+            themeToggle
+          )}
         </div>
 
         <nav
@@ -196,18 +231,27 @@ export default function AppShell({
       <main className="app-shell__main">{children}</main>
 
       <nav className="app-shell__bottom-nav" aria-label="Navigazione mobile">
-        {APP_VIEWS.map((v, i) => {
-          const done = i < viewIdx;
+        {(isMobile ? MOBILE_NAV_TABS : APP_VIEWS).map((v, i) => {
+          const done = !isMobile && i < viewIdx;
+          const active = isMobile ? mobileNavActive === v.id : view === v.id;
+          const handleClick = () => {
+            if (isMobile) {
+              onMobileTabChange?.(v.id);
+              return;
+            }
+            if (v.id === 'forecast') onGoForecast();
+            else onViewChange(v.id);
+          };
           return (
             <button
               key={v.id}
               type="button"
-              className={`app-shell__bottom-tab ${view === v.id ? 'is-active' : ''} ${done ? 'is-done' : ''}`}
-              onClick={() => (v.id === 'forecast' ? onGoForecast() : onViewChange(v.id))}
-              aria-current={view === v.id ? 'page' : undefined}
+              className={`app-shell__bottom-tab ${active ? 'is-active' : ''} ${done ? 'is-done' : ''}`}
+              onClick={handleClick}
+              aria-current={active ? 'page' : undefined}
             >
               <span className="app-shell__bottom-icon">
-                <BottomNavIcon id={v.id} active={view === v.id} />
+                <BottomNavIcon id={v.id} active={active} />
               </span>
               <span className="app-shell__bottom-label">{v.label}</span>
             </button>
@@ -224,6 +268,14 @@ export default function AppShell({
         onTypeChange={onTypeChange}
         onQuickNav={handleQuickNav}
       />
+
+      {isMobileHomeShell && (
+        <MobileSearchMenu
+          open={searchMenuOpen}
+          onClose={() => setSearchMenuOpen(false)}
+          onSelect={onMobileSearchAction}
+        />
+      )}
     </div>
   );
 }

@@ -1,19 +1,23 @@
 import { formatPrice } from '../utils/format';
 
-export default function MobileMarketStrip({ summary, fx, updatedAt, loading }) {
+export default function MobileMarketStrip({ summary, fx, updatedAt, loading, refreshing = false }) {
   const quoted = summary
     ? Object.values(summary).reduce((n, s) => n + (s?.quoted ?? 0), 0)
     : null;
+  const blocking = loading && !summary;
 
   return (
-    <div className="mobile-market-strip" role="status">
+    <div
+      className={`mobile-market-strip${refreshing ? ' mobile-market-strip--refreshing' : ''}`}
+      role="status"
+    >
       <span className="mobile-market-strip__pill">
-        {loading ? '…' : `${quoted ?? '—'} live`}
+        {blocking ? '…' : `${quoted ?? '—'} live`}
       </span>
       {fx?.eurUsd != null && (
         <span className="mobile-market-strip__fx">€/$ {formatPrice(fx.eurUsd, 'USD')}</span>
       )}
-      {updatedAt && !loading && (
+      {updatedAt && !blocking && (
         <time className="mobile-market-strip__time" dateTime={updatedAt}>
           {new Date(updatedAt).toLocaleTimeString('it-IT', {
             hour: '2-digit',

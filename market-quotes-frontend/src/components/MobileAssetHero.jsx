@@ -8,6 +8,7 @@ export default function MobileAssetHero({
   quote,
   fx,
   loading,
+  refreshing = false,
   onAnalyze,
   onForecast,
 }) {
@@ -18,7 +19,10 @@ export default function MobileAssetHero({
   const tone = changeTone(q?.changePercent);
 
   return (
-    <section className="mobile-hero" aria-label="Asset selezionato">
+    <section
+      className={`mobile-hero${refreshing ? ' mobile-hero--refreshing' : ''}`}
+      aria-label="Asset selezionato"
+    >
       <div className={`mobile-hero__avatar mobile-hero__avatar--${type}`} aria-hidden>
         <CategoryIcon id={type} size={24} />
       </div>

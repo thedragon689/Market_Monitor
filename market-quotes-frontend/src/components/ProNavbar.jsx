@@ -12,6 +12,7 @@ export default function ProNavbar({ view, type, onNavigate }) {
                 className={`pro-nav__link ${isProNavActive(item, view, type) ? 'is-active' : ''}`}
                 onClick={() =>
                   onNavigate?.({
+                    id: item.id,
                     view: item.view,
                     type: item.type,
                   })

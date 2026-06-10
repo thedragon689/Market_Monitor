@@ -23,14 +23,16 @@ function sparkPointsFromQuote(quote) {
 export default function MobileOverviewStrip({
   catalog,
   loading,
+  refreshing = false,
   fx,
   activeType,
   onSelectCategory,
   onSelectAsset,
 }) {
   const categories = MARKET_CATEGORIES.filter((c) => STRIP_IDS.includes(c.id));
+  const blocking = loading && !catalog;
 
-  if (loading && !catalog) {
+  if (blocking) {
     return (
       <div className="mobile-overview-strip mobile-overview-strip--loading">
         <div className="skeleton skeleton--block" />
@@ -39,7 +41,10 @@ export default function MobileOverviewStrip({
   }
 
   return (
-    <section className="mobile-overview-strip" aria-label="Mercati principali">
+    <section
+      className={`mobile-overview-strip${refreshing ? ' mobile-overview-strip--refreshing' : ''}`}
+      aria-label="Mercati principali"
+    >
       <div className="mobile-overview-strip__grid">
         {categories.map((cat) => {
           const asset = topAsset(catalog, cat.id);
