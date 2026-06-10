@@ -37,6 +37,9 @@ export default function AppShell({
   mobileTab = 'home',
   onMobileTabChange,
   onMobileSearchAction,
+  onSelectAsset,
+  catalog,
+  fx,
   children,
 }) {
   const isMobileExplore = isMobile && view === 'explore';
@@ -267,13 +270,21 @@ export default function AppShell({
         onViewChange={onViewChange}
         onTypeChange={onTypeChange}
         onQuickNav={handleQuickNav}
+        onOpenSearchMenu={() => {
+          setMobileMenuOpen(false);
+          setSearchMenuOpen(true);
+        }}
+        onQuickAction={onMobileSearchAction}
       />
 
-      {isMobileHomeShell && (
+      {isMobile && (
         <MobileSearchMenu
           open={searchMenuOpen}
           onClose={() => setSearchMenuOpen(false)}
           onSelect={onMobileSearchAction}
+          onSelectAsset={onSelectAsset}
+          catalog={catalog}
+          fx={fx}
         />
       )}
     </div>

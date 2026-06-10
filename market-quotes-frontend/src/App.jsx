@@ -992,6 +992,9 @@ export default function App() {
         mobileTab={mobileTab}
         onMobileTabChange={handleMobileTabChange}
         onMobileSearchAction={handleMobileSearchAction}
+        onSelectAsset={handleSelectAsset}
+        catalog={catalog}
+        fx={fx}
       >
         {!(isMobile && (view === 'explore' || view === 'info')) &&
           !isTerminalExplore &&
