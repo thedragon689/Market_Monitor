@@ -7,7 +7,7 @@ import Breadcrumbs from './Breadcrumbs';
 import ProNavbar from './ProNavbar';
 import MobileNavDrawer from './MobileNavDrawer';
 import MobileSearchMenu from './MobileSearchMenu';
-import { MenuIcon, SearchIcon } from './icons/HeaderIcons';
+import { SearchIcon } from './icons/HeaderIcons';
 import { getCategoryMeta } from '../data/categories';
 import { APP_VIEWS, getViewIndex } from '../data/views';
 import { MOBILE_NAV_TABS, getMobileTabActive } from '../data/mobileNav';
@@ -103,12 +103,12 @@ export default function AppShell({
             <>
               <button
                 type="button"
-                className="app-shell__menu-btn"
+                className="app-shell__menu-btn app-shell__menu-btn--logo"
                 aria-label="Apri menu"
                 aria-expanded={mobileMenuOpen}
                 onClick={() => setMobileMenuOpen(true)}
               >
-                <MenuIcon size={22} />
+                <AppLogo size={30} theme={theme} title="" />
               </button>
               <div className="app-shell__mobile-title-wrap">
                 <h1 className="app-shell__mobile-title">Market Monitor</h1>

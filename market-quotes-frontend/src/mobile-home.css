@@ -131,6 +131,25 @@
     stroke-width: 2.25;
   }
 
+  /* Variante logo: l'icona dell'app sostituisce le linee hamburger */
+  .app-shell--mobile .app-shell__menu-btn--logo {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .app-shell--mobile .app-shell__menu-btn--logo svg {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
+  }
+
+  .app-shell--mobile .app-shell__menu-btn--logo:active svg {
+    transform: scale(0.92);
+    transition: transform 0.08s ease;
+  }
+
   /* Menu scelta destinazione (icona lente) */
   .mobile-search-menu {
     position: fixed;
