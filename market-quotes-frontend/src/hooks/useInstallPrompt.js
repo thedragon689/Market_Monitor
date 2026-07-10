@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
+import { isIos, isStandalonePwa, supportsNativeInstall } from '../utils/pwaPlatform';
 
 const VISIT_KEY = 'mm:visits';
 const DISMISS_KEY = 'mm:install-dismissed';
-const MIN_VISITS = 3;
 
 /**
- * Add to Home Screen intelligente: cattura `beforeinstallprompt` e mostra
- * il prompt solo dopo almeno MIN_VISITS visite e se non già installato/rifiutato.
+ * Installazione PWA:
+ * - Android/Chrome: cattura beforeinstallprompt
+ * - iOS: mostra guida manuale (Share → Aggiungi a Home)
  */
 export function useInstallPrompt() {
   const [deferred, setDeferred] = useState(null);
+  const [iosGuide, setIosGuide] = useState(false);
   const [canInstall, setCanInstall] = useState(false);
 
   useEffect(() => {
+    if (isStandalonePwa()) return;
+
     try {
       const visits = Number(localStorage.getItem(VISIT_KEY) || '0') + 1;
       localStorage.setItem(VISIT_KEY, String(visits));
@@ -20,23 +24,32 @@ export function useInstallPrompt() {
       /* ignore */
     }
 
+    let dismissed = false;
+    try {
+      dismissed = localStorage.getItem(DISMISS_KEY) === '1';
+    } catch {
+      /* ignore */
+    }
+    if (dismissed) return;
+
+    if (isIos()) {
+      setIosGuide(true);
+      setCanInstall(true);
+      return undefined;
+    }
+
+    if (!supportsNativeInstall()) return undefined;
+
     const onBeforeInstall = (e) => {
       e.preventDefault();
       setDeferred(e);
-      let visits = 0;
-      let dismissed = false;
-      try {
-        visits = Number(localStorage.getItem(VISIT_KEY) || '0');
-        dismissed = localStorage.getItem(DISMISS_KEY) === '1';
-      } catch {
-        /* ignore */
-      }
-      if (visits >= MIN_VISITS && !dismissed) setCanInstall(true);
+      setCanInstall(true);
     };
 
     const onInstalled = () => {
       setCanInstall(false);
       setDeferred(null);
+      setIosGuide(false);
     };
 
     window.addEventListener('beforeinstallprompt', onBeforeInstall);
@@ -48,16 +61,19 @@ export function useInstallPrompt() {
   }, []);
 
   const promptInstall = useCallback(async () => {
-    if (!deferred) return null;
-    deferred.prompt();
-    const choice = await deferred.userChoice;
-    setDeferred(null);
-    setCanInstall(false);
-    return choice?.outcome ?? null;
+    if (deferred) {
+      deferred.prompt();
+      const choice = await deferred.userChoice;
+      setDeferred(null);
+      setCanInstall(false);
+      return choice?.outcome ?? null;
+    }
+    return null;
   }, [deferred]);
 
   const dismiss = useCallback(() => {
     setCanInstall(false);
+    setIosGuide(false);
     try {
       localStorage.setItem(DISMISS_KEY, '1');
     } catch {
@@ -65,5 +81,12 @@ export function useInstallPrompt() {
     }
   }, []);
 
-  return { canInstall, promptInstall, dismiss };
+  return {
+    canInstall,
+    iosGuide,
+    hasNativePrompt: Boolean(deferred),
+    promptInstall,
+    dismiss,
+    isStandalone: isStandalonePwa(),
+  };
 }

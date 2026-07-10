@@ -1,6 +1,7 @@
 {
   "name": "Market Monitor",
   "short_name": "MarketMon",
+  "id": "/",
   "description": "Quotazioni, analisi tecnica e previsioni multi-asset con contesto geopolitico",
   "start_url": "/",
   "scope": "/",

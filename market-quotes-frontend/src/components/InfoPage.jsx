@@ -1,5 +1,6 @@
 import ForecastDisclaimerInfo from './ForecastDisclaimerInfo';
 import DataSources from './DataSources';
+import PwaInstallHelp from './PwaInstallHelp';
 import { APP_VERSION } from '../config/version';
 
 const SOURCES = [
@@ -21,6 +22,8 @@ export default function InfoPage({ type, marketMeta, categoryConfig }) {
       </header>
 
       <section className="info-page__grid">
+        <PwaInstallHelp />
+
         <article className="info-page__card app-card">
           <h2>Disclaimer informativo</h2>
           <p>
