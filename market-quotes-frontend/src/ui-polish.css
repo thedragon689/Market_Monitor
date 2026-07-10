@@ -116,7 +116,7 @@
 }
 
 .app__warning {
-  border-left: 4px solid #d97706;
+  border-left: 4px solid var(--warning);
   padding-left: 0.85rem;
 }
 

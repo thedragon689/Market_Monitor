@@ -5,10 +5,10 @@
 
 @media (max-width: 899px) {
   :root {
-    --mhome-bg: #f3f4f6;
-    --mhome-card: #ffffff;
-    --mhome-title: #6b7280;
-    --mhome-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    --mhome-bg: var(--bg);
+    --mhome-card: var(--bg-elevated);
+    --mhome-title: var(--text);
+    --mhome-shadow: var(--shadow-card);
   }
 
   .app-shell--mobile-home .app-shell__main {
@@ -136,7 +136,7 @@
     position: absolute;
     inset: 0;
     border: none;
-    background: rgba(15, 23, 42, 0.45);
+    background: color-mix(in srgb, var(--bg) 55%, transparent);
     cursor: pointer;
   }
 
@@ -149,7 +149,7 @@
     padding: 1rem 1rem 0.85rem;
     border-radius: 18px 18px 16px 16px;
     background: var(--mhome-card);
-    box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.18);
+    box-shadow: var(--shadow-md);
   }
 
   .mobile-search-menu__head {
@@ -188,7 +188,7 @@
     padding: 0.65rem 2.5rem 0.65rem 2.45rem;
     border: 1.5px solid color-mix(in srgb, var(--accent) 45%, var(--border));
     border-radius: 12px;
-    background: var(--bg-elevated, #fff);
+    background: var(--bg-elevated);
     font: inherit;
     font-size: 0.95rem;
     color: var(--text-h);
