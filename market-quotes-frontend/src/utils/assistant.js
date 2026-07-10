@@ -349,17 +349,17 @@ export function buildLocalAnswer(text, context = {}) {
     return { reply: HELP, confidence: 1 };
   }
 
-  // Guida all'app: funzionamento, sezioni, tutorial
-  if (isAppGuideQuestion(norm)) {
-    const guide = buildAppGuideAnswer(norm);
-    return { reply: guide.reply, confidence: guide.confidence, guideTopic: guide.topicId };
-  }
-
   // Spiegazione esplicita di un concetto/indicatore ("cos'è l'RSI?", "come funziona il MACD?")
   const concept = findConcept(norm);
   const isConceptQuestion = has(norm, ["cos'e", 'cos e', 'che cos', 'come funziona', 'spiega', 'significa', 'definizione']);
   if (concept && isConceptQuestion) {
     return { reply: concept.answer, confidence: 0.95, conceptId: concept.id };
+  }
+
+  // Guida all'app: funzionamento, sezioni, tutorial
+  if (isAppGuideQuestion(norm)) {
+    const guide = buildAppGuideAnswer(norm);
+    return { reply: guide.reply, confidence: guide.confidence, guideTopic: guide.topicId };
   }
 
   // Watchlist (nessun intent dedicato nel dataset: gestita a parole chiave)

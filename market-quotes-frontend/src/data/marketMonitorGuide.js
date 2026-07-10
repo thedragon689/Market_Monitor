@@ -14,7 +14,7 @@ export const APP_GUIDE_TOPICS = [
   {
     id: 'overview',
     keywords: [
-      'market monitor', 'cos e', "cos'e", 'che cos', 'a cosa serve', 'obiettivi', 'missione',
+      'market monitor', 'che cos', 'a cosa serve', 'obiettivi', 'missione',
       'presentazione', 'panoramica', 'in generale', 'overview', 'introduzione', 'cosa fa',
       'funzionamento', 'come funziona', 'come si usa', 'tutorial', 'guida', 'spiega l app',
       'spiega app', 'cosa puoi fare', 'funzionalita', 'funzionalità',
@@ -49,7 +49,7 @@ export const APP_GUIDE_TOPICS = [
   {
     id: 'analysis',
     keywords: [
-      'analisi', 'indicator', 'rsi', 'macd', 'intelligence', 'correlaz', 'regime', 'rischio',
+      'analisi', 'indicator', 'intelligence', 'correlaz', 'regime', 'rischio',
       'geopolit', 'sentiment', 'terminal', 'commodity', 'avvisi intelligent', 'trade advice',
       'consiglio operativo', 'consigli',
     ],
@@ -162,6 +162,14 @@ export function findAppGuideTopic(norm) {
 /** True se la domanda riguarda il funzionamento dell'app. */
 export function isAppGuideQuestion(norm) {
   if (!norm?.trim()) return false;
+
+  const conceptCue = norm.includes("cos'e") || norm.includes('cos e') || norm.includes('che cos') || norm.includes('significa');
+  const finConcept =
+    /(rsi|macd|sma|ema|bollinger|arima|lstm|prophet|volatilit|fibonacci|correlaz|supporto|resistenza|p\/e|pe ratio)/.test(
+      norm
+    );
+  if (conceptCue && finConcept) return false;
+
   const hasTrigger = APP_GUIDE_TRIGGERS.some((t) => norm.includes(t));
   const hasApp = norm.includes('market monitor') || norm.includes('app') || norm.includes('piattaforma');
   const isHow = norm.includes('come funziona') || norm.includes('come si usa') || norm.includes('cosa fa');
