@@ -1,5 +1,5 @@
 /**
- * Design system leggero — palette, tipografia, spaziature (tema dark default).
+ * Design system leggero — palette indigo fintech, tipografia, spaziature.
  */
 :root {
   --ds-space-1: 0.25rem;
@@ -19,12 +19,9 @@
   --ds-font-body: 1rem;
   --ds-font-caption: 0.82rem;
 
-  --ds-shadow-card: var(--shadow-md);
+  --ds-shadow-card: var(--shadow-card, var(--shadow-md));
+  --ds-radius-card: var(--radius-card, var(--ds-radius-md));
   --ds-border: var(--border);
-}
-
-html[data-theme='dark'] {
-  --ds-surface-glass: color-mix(in srgb, var(--surface) 88%, transparent);
 }
 
 /* Chart overlay palette */
@@ -105,4 +102,10 @@ html[data-theme='dark'] {
   html {
     scroll-behavior: smooth;
   }
+}
+
+/* Token 3D condivisi (ui-charts-3d.css) */
+:root {
+  --ui-perspective: 920px;
+  --ui-corr-depth-max: 22px;
 }

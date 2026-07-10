@@ -1,13 +1,23 @@
 import {
   CLASSIC_METHOD_IDS,
-  DESKTOP_METHOD_SECTIONS,
+  DESKTOP_FORECAST_TILES,
   FORECAST_METHOD_GROUPS,
   FORECAST_METHOD_META,
+  ML_METHOD_IDS,
   defaultMethodForGroup,
   getMethodMeta,
   historyWarning,
+  isTileActive,
   methodToGroup,
 } from '../data/forecastMethods';
+import { getSymbolMeta } from '../data/symbols';
+import { inferNativeCurrency } from '../utils/nativeCurrency';
+import {
+  formatTilePreviewLabel,
+  getTileMethodData,
+  getTileMlPreviews,
+} from '../utils/forecastMethodPreview';
+import ForecastPrice from './ForecastPrice';
 
 function historyReady(minHistory, historyLength) {
   return historyLength == null || historyLength <= 0 || historyLength >= minHistory;
@@ -19,37 +29,6 @@ function MethodLinePreview({ chartKey }) {
       className={`forecast-method-option__preview forecast-method-option__preview--${chartKey}`}
       aria-hidden
     />
-  );
-}
-
-function MethodOption({ id, value, onChange, historyLength, wide = false }) {
-  const meta = FORECAST_METHOD_META[id];
-  const active = value === id;
-  const ready = historyReady(meta.minHistory, historyLength);
-
-  return (
-    <button
-      type="button"
-      className={`forecast-method-option forecast-method-option--${meta.chartKey || id} ${active ? 'is-active' : ''} ${ready ? '' : 'is-disabled'} ${wide ? 'forecast-method-option--wide' : ''}`}
-      aria-pressed={active}
-      onClick={() => onChange(id)}
-    >
-      <span className="forecast-method-option__top">
-        <MethodLinePreview chartKey={meta.chartKey || id} />
-        {meta.badge && <span className="forecast-method-option__badge">{meta.badge}</span>}
-      </span>
-      <span className="forecast-method-option__title">{meta.label}</span>
-      <span className="forecast-method-option__hint">{meta.hint}</span>
-      {meta.detail && (
-        <span className="forecast-method-option__detail">{meta.detail}</span>
-      )}
-      <span className="forecast-method-option__foot">
-        <span className="forecast-method-option__output">{meta.output}</span>
-        <span className="forecast-method-option__req">
-          {ready ? `${meta.minHistory}+ gg` : `≥ ${meta.minHistory} gg`}
-        </span>
-      </span>
-    </button>
   );
 }
 
@@ -69,56 +48,207 @@ function HistoryBadge({ historyLength }) {
   );
 }
 
-function DesktopPicker({ value, onChange, historyLength, warning, meta }) {
+function TileDataRow({ preview, fx, meta, currency, tag }) {
+  if (!preview) return null;
+  if (preview.kind === 'error') {
+    return (
+      <span className="forecast-method-tile__data forecast-method-tile__data--error">
+        {preview.message}
+      </span>
+    );
+  }
   return (
-    <div className="forecast-method-picker forecast-method-picker--desktop">
-      <div className="forecast-method-picker__desktop-head">
-        <div>
-          <span className="forecast-method-picker__label">Tipo di valore da calcolare</span>
-          <p className="forecast-method-picker__desktop-lead">
-            Scegli cosa stimare sul prezzo futuro. Ogni opzione produce un risultato diverso nel
-            grafico e nelle card sotto.
-          </p>
-        </div>
+    <span className="forecast-method-tile__data-row">
+      <span className="forecast-method-tile__data-tag">{tag}</span>
+      <ForecastPrice
+        usd={preview.value}
+        fx={fx}
+        meta={meta}
+        currency={currency}
+        as="span"
+      />
+    </span>
+  );
+}
+
+function WireframeTile({
+  tile,
+  value,
+  onChange,
+  historyLength,
+  forecast,
+  fx,
+  meta,
+  currency,
+  forecastLoading,
+}) {
+  const active = isTileActive(tile.id, value);
+  const tileMeta = FORECAST_METHOD_META[tile.methodId];
+  const ready = historyReady(tileMeta.minHistory, historyLength);
+  const methodData = getTileMethodData(tile.id, forecast);
+  const preview = formatTilePreviewLabel(methodData);
+  const mlPreviews = tile.isMlGroup ? getTileMlPreviews(forecast) : [];
+  const mlRows = mlPreviews.map(({ key, label, method }) => ({
+    key,
+    label,
+    preview: formatTilePreviewLabel(method),
+  }));
+  const hasMlData = mlRows.some((r) => r.preview?.kind !== 'error');
+  const hasMlErrors = mlPreviews.some((r) => r.method?.error);
+
+  return (
+    <button
+      type="button"
+      className={`forecast-method-tile forecast-method-tile--${tile.chartKey} ${active ? 'is-active' : ''} ${ready ? '' : 'is-disabled'} ${tile.isMlGroup ? 'forecast-method-tile--ml' : ''}`}
+      aria-pressed={active}
+      onClick={() => onChange(tile.methodId)}
+    >
+      <MethodLinePreview chartKey={tile.chartKey} />
+      <span className="forecast-method-tile__label">{tile.label}</span>
+      <span className="forecast-method-tile__hint">{tile.hint}</span>
+      {forecastLoading && (
+        <span className="forecast-method-tile__data forecast-method-tile__data--loading skeleton skeleton--line" />
+      )}
+      {!forecastLoading && tile.isMlGroup && mlRows.length > 0 && (
+        <span className="forecast-method-tile__data-group">
+          {mlRows.map(({ key, label, preview: p }) =>
+            p ? (
+              <TileDataRow
+                key={key}
+                preview={p}
+                tag={label}
+                fx={fx}
+                meta={meta}
+                currency={currency}
+              />
+            ) : null
+          )}
+        </span>
+      )}
+      {!forecastLoading && !tile.isMlGroup && preview && (
+        <span className="forecast-method-tile__data">
+          <TileDataRow
+            preview={preview}
+            tag={preview.kind === 'level' ? 'Media' : 'Domani'}
+            fx={fx}
+            meta={meta}
+            currency={currency}
+          />
+        </span>
+      )}
+      {!forecastLoading && tile.isMlGroup && !hasMlData && hasMlErrors && (
+        <span className="forecast-method-tile__data forecast-method-tile__data--error">
+          Storico insufficiente per ARIMA/LSTM
+        </span>
+      )}
+      {!forecastLoading &&
+        !preview &&
+        (!tile.isMlGroup || !mlRows.length) &&
+        !(tile.isMlGroup && hasMlErrors) && (
+        <span className="forecast-method-tile__data forecast-method-tile__data--pending">
+          {forecast ? 'Dato non disponibile' : 'Calcola per i dati'}
+        </span>
+      )}
+    </button>
+  );
+}
+
+function MlSubOptions({ value, onChange, historyLength }) {
+  return (
+    <div className="forecast-method-picker__ml-sub" role="group" aria-label="Varianti machine learning">
+      {ML_METHOD_IDS.map((id) => {
+        const m = FORECAST_METHOD_META[id];
+        const active = value === id;
+        const ready = historyReady(m.minHistory, historyLength);
+        return (
+          <button
+            key={id}
+            type="button"
+            className={`forecast-method-picker__ml-chip ${active ? 'is-active' : ''} ${ready ? '' : 'is-disabled'}`}
+            aria-pressed={active}
+            onClick={() => onChange(id)}
+          >
+            {m.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function DesktopPicker({
+  value,
+  onChange,
+  historyLength,
+  warning,
+  meta,
+  forecast,
+  forecastLoading,
+  type,
+  symbol,
+  quote,
+  fx,
+}) {
+  const mlActive = methodToGroup(value) === 'ml';
+  const assetMeta = getSymbolMeta(symbol, type);
+  const currency = inferNativeCurrency(type, quote, symbol);
+
+  return (
+    <div className="forecast-method-picker forecast-method-picker--desktop forecast-method-picker--wireframe">
+      <div className="forecast-method-picker__wireframe-head">
+        <h3 className="forecast-method-picker__wireframe-title">Storico e previsioni</h3>
         <div className="forecast-method-picker__desktop-meta">
           <HistoryBadge historyLength={historyLength} />
           <span className="forecast-method-picker__active">
-            Selezionato: <strong>{meta.label}</strong>
+            <strong>{meta.label}</strong>
           </span>
         </div>
       </div>
 
-      <div className="forecast-method-picker__desktop-sections">
-        {DESKTOP_METHOD_SECTIONS.map((section) => (
-          <section
-            key={section.id}
-            className={`forecast-method-picker__section forecast-method-picker__section--${section.id} ${section.wide ? 'forecast-method-picker__section--wide' : ''}`}
-            aria-labelledby={`forecast-section-${section.id}`}
-          >
-            <header className="forecast-method-picker__section-head">
-              <h4 id={`forecast-section-${section.id}`} className="forecast-method-picker__section-title">
-                {section.title}
-              </h4>
-              <p className="forecast-method-picker__section-sub">{section.subtitle}</p>
-            </header>
-            <div
-              className={`forecast-method-picker__option-grid ${section.wide ? 'forecast-method-picker__option-grid--wide' : ''}`}
-              role="group"
-              aria-label={section.title}
-            >
-              {section.ids.map((id) => (
-                <MethodOption
-                  key={id}
-                  id={id}
-                  value={value}
-                  onChange={onChange}
-                  historyLength={historyLength}
-                  wide={section.wide}
-                />
-              ))}
-            </div>
-          </section>
+      <div className="forecast-method-picker__wireframe-grid" role="group" aria-label="Metodi di previsione">
+        {DESKTOP_FORECAST_TILES.map((tile) => (
+          <WireframeTile
+            key={tile.id}
+            tile={tile}
+            value={value}
+            onChange={onChange}
+            historyLength={historyLength}
+            forecast={forecast}
+            fx={fx}
+            meta={assetMeta}
+            currency={currency}
+            forecastLoading={forecastLoading}
+          />
         ))}
+      </div>
+
+      {mlActive && (
+        <MlSubOptions value={value} onChange={onChange} historyLength={historyLength} />
+      )}
+
+      {value === 'all' && (
+        <p className="forecast-method-picker__all-inline" role="status">
+          Confronto completo attivo — tutti i metodi sul grafico.
+        </p>
+      )}
+
+      <div className="forecast-method-picker__wireframe-extra">
+        <button
+          type="button"
+          className={`forecast-method-picker__all-btn ${value === 'all' ? 'is-active' : ''}`}
+          onClick={() => onChange('all')}
+        >
+          Confronta tutti i metodi
+        </button>
+        {(value === 'linear' || value === 'both') && (
+          <button
+            type="button"
+            className={`forecast-method-picker__all-btn ${value === 'both' ? 'is-active' : ''}`}
+            onClick={() => onChange('both')}
+          >
+            SMA + regressione insieme
+          </button>
+        )}
       </div>
 
       {warning && (
@@ -300,6 +430,12 @@ export default function ForecastMethodPicker({
   onChange,
   historyLength,
   layout = 'mobile',
+  forecast = null,
+  forecastLoading = false,
+  type,
+  symbol,
+  quote,
+  fx,
 }) {
   const warning = historyWarning(value, historyLength);
   const meta = getMethodMeta(value);
@@ -312,6 +448,12 @@ export default function ForecastMethodPicker({
         historyLength={historyLength}
         warning={warning}
         meta={meta}
+        forecast={forecast}
+        forecastLoading={forecastLoading}
+        type={type}
+        symbol={symbol}
+        quote={quote}
+        fx={fx}
       />
     );
   }

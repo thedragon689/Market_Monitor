@@ -1,4 +1,5 @@
 import { formatShortDate } from '../utils/format';
+import { PanelWidgetSkeleton } from './ui/DataWidgetSkeleton';
 
 function SentimentBadge({ sentiment }) {
   if (!sentiment) return null;
@@ -24,7 +25,13 @@ export default function GeopoliticalNews({ geo, loading }) {
   const articles = geo?.news ?? geo?.articles ?? geo?.newsMeta?.articles ?? [];
 
   if (loading && !articles.length) {
-    return <p className="geo-news__loading">Caricamento notizie ANSA, Reuters, BBC…</p>;
+    return (
+      <PanelWidgetSkeleton
+        className="geo-news__loading"
+        label="Caricamento notizie ANSA, BBC, Guardian…"
+        lines={4}
+      />
+    );
   }
 
   if (!articles.length) {

@@ -219,7 +219,7 @@ export const LEGEND_SECTIONS = [
       {
         term: 'Finestra N — ambito per metodo',
         description:
-          'N controlla SMA e regressione (min 2 giorni). ARIMA/LSTM ignorano N se <18/28 e usano tutta la serie disponibile. Log-return usa l’intera serie per la media dei rendimenti.',
+          'N controlla SMA, regressione e log-return (min 2 giorni). ARIMA/LSTM ignorano N se <18/28 e usano tutta la serie disponibile.',
       },
       {
         term: 'Prophet (commodity)',

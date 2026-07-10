@@ -5,6 +5,9 @@ export const PRO_NAV_ITEMS = [
   { id: 'index', label: 'Indici', view: 'explore', type: 'index' },
   { id: 'commodity', label: 'Materie Prime', view: 'explore', type: 'commodity' },
   { id: 'forex', label: 'Forex', view: 'explore', type: 'forex' },
+  { id: 'watchlist', label: 'Watchlist', view: 'watchlist' },
+  { id: 'dashboard', label: 'Dashboard', view: 'dashboard' },
+  { id: 'portfolio', label: 'Portfolio', view: 'portfolio' },
   { id: 'etf', label: 'ETF', view: 'explore', type: 'etf' },
   { id: 'macro', label: 'Macro', view: 'explore', type: 'macro' },
   { id: 'forecast', label: 'Previsioni', view: 'forecast' },
@@ -13,6 +16,9 @@ export const PRO_NAV_ITEMS = [
 
 export function isProNavActive(item, view, type) {
   if (item.view === 'info') return view === 'info';
+  if (item.view === 'portfolio') return view === 'portfolio';
+  if (item.view === 'watchlist') return view === 'watchlist';
+  if (item.view === 'dashboard') return view === 'dashboard';
   if (item.id === 'home') return view === 'explore';
   if (item.type) return view === 'explore' && type === item.type;
   if (item.view === 'forecast') return view === 'forecast';

@@ -25,11 +25,11 @@ function isApiUp() {
   });
 }
 
-async function waitForApi(maxMs = 8000) {
+async function waitForApi(maxMs = 20000) {
   const start = Date.now();
   while (Date.now() - start < maxMs) {
     if (await isApiUp()) return true;
-    await new Promise((r) => setTimeout(r, 250));
+    await new Promise((r) => setTimeout(r, 400));
   }
   return false;
 }
@@ -44,7 +44,7 @@ async function ensureApi() {
   }
 
   console.log('\n  API: avvio server su http://localhost:4000 …\n');
-  apiProc = spawn('node', ['server.js'], {
+  apiProc = spawn('node', ['server.mjs'], {
     cwd: rootDir,
     stdio: 'inherit',
     env: process.env,
@@ -54,8 +54,9 @@ async function ensureApi() {
   const ok = await waitForApi();
   if (!ok) {
     console.warn(
-      '\n  ⚠ API non risponde su :4000. Le richieste /api resteranno in 502.\n' +
-        '     Prova dalla root: npm run dev\n'
+      '\n  ⚠ API non risponde su :4000 (health timeout).\n' +
+        '     Dalla root del progetto: npm run dev:stop && npm run dev\n' +
+        '     Se persiste: lsof -ti :4000 | xargs kill -9\n'
     );
   }
 }
@@ -71,6 +72,8 @@ process.on('SIGINT', () => cleanup(0));
 process.on('SIGTERM', () => cleanup(0));
 
 await ensureApi();
+
+await import('./clean-vite-cache.mjs');
 
 const vite = spawn('node', ['node_modules/vite/bin/vite.js'], {
   cwd: frontendDir,

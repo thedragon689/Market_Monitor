@@ -2,6 +2,7 @@
  * Verifica formule critiche — eseguire: npm run verify:math
  */
 import { linearForecast, logReturnForecast, smaForecast } from '../lib/forecastModels.js';
+import { buildForecastResponse } from '../lib/forecastApi.js';
 import { cci, williamsR, momentum, atr, sma, bollinger, ema, macd } from '../lib/indicators.js';
 import { prophetForecast } from '../lib/forecast/prophetModel.js';
 import { arimaForecast } from '../lib/forecast/arimaModel.js';
@@ -48,6 +49,13 @@ assert(logFc?.forecasts?.length === 2, 'log-return horizon=2');
 assert(
   logFc.forecasts[0].price > 106 && logFc.forecasts[1].price > logFc.forecasts[0].price,
   'log-return compound up'
+);
+
+const logWindow = logReturnForecast([90, 100, 102, 104, 106], 2, 3);
+assert(logWindow?.window === 3, `log-return window=3 (got ${logWindow?.window})`);
+assert(
+  logWindow.forecasts[0].price > 106,
+  'log-return windowed still compounds from last price'
 );
 
 // Overlay grafico: ultimo punto finestra = slope*N+intercept
@@ -163,6 +171,8 @@ assert(
 const rf1 = randomForestPredict(trend, {}, 1);
 const rf2 = randomForestPredict(trend, {}, 1);
 assert(rf1?.nextPrice === rf2?.nextPrice, 'Random Forest deterministico');
+assert(rf1?.target === 'log_return', 'Random Forest target log-return');
+assert(rf1?.nextPrice > trend[trend.length - 1], `RF uptrend (got ${rf1?.nextPrice})`);
 
 const hybrid = hybridForecast({
   prices: trend,
@@ -177,6 +187,33 @@ assert(hybrid.forecasts.length === 3, 'Hybrid horizon=3');
 
 const hvol = historicalVolatility(trend, 20);
 assert(hvol?.annualized > 0, `Historical vol annualized>0 (got ${hvol?.annualized})`);
+
+// ── Ensemble pesato + intervalli di confidenza ───────────────────────
+const ensSeries = Array.from({ length: 60 }, (_, i) => 100 + i * 0.8 + Math.sin(i / 3) * 2);
+const ensRes = buildForecastResponse(ensSeries, { windowSize: 10, horizonDays: 5, methods: 'all' });
+const ens = ensRes.methods.ensemble;
+assert(ens && !ens.error, 'Ensemble calcolabile con method=all');
+assert(ens.forecasts?.length === 5, `Ensemble horizon=5 (got ${ens?.forecasts?.length})`);
+const ensWSum = ens.members.reduce((a, m) => a + m.weight, 0);
+assertNear(ensWSum, 1, 0.001, 'Ensemble pesi normalizzati (somma=1)');
+assert(ens.members.length >= 2, 'Ensemble combina ≥2 modelli');
+const bandsOk = ens.forecasts.every(
+  (f) =>
+    f.lower95 <= f.lower80 &&
+    f.lower80 <= f.price &&
+    f.price <= f.upper80 &&
+    f.upper80 <= f.upper95
+);
+assert(bandsOk, 'Ensemble IC ordinati (lower95≤lower80≤price≤upper80≤upper95)');
+const widen =
+  ens.forecasts[4].upper95 - ens.forecasts[4].lower95 >=
+  ens.forecasts[0].upper95 - ens.forecasts[0].lower95;
+assert(widen, 'Ensemble bande si allargano con l’orizzonte (σ·√h)');
+assert(
+  buildForecastResponse(ensSeries, { windowSize: 10, horizonDays: 5, methods: 'both' }).methods
+    .ensemble === undefined,
+  'Ensemble assente con method=both (solo all/ensemble)'
+);
 
 // ── Soglie minime dati ───────────────────────────────────────────────
 assert(arimaForecast(trend.slice(0, 10), 2) === null, 'ARIMA rejects <18 points');

@@ -68,6 +68,8 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--ds-space-3, 0.75rem);
   margin-top: var(--ds-space-4, 1rem);
+  width: 100%;
+  min-width: 0;
 }
 
 @media (min-width: 640px) {
@@ -78,7 +80,7 @@
 
 @media (min-width: 900px) {
   .asset-stats {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   }
 }
 
@@ -89,6 +91,9 @@
 }
 
 .stat-card {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   padding: 0.75rem 0.9rem;
   border-radius: var(--ds-radius-md, 12px);
   background: color-mix(in srgb, var(--code-bg) 65%, var(--surface));
@@ -103,14 +108,21 @@
   letter-spacing: 0.04em;
   color: var(--text-muted);
   margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .stat-card__value {
   display: block;
-  font-size: 1.05rem;
+  font-size: clamp(0.82rem, 1.6vw, 1.05rem);
   font-weight: 800;
   color: var(--text-h);
   font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .stat-card__sub {
@@ -118,6 +130,10 @@
   font-size: 0.72rem;
   color: var(--text-muted);
   margin-top: 0.15rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .stat-card--up .stat-card__value {

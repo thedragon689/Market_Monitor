@@ -1,6 +1,7 @@
 import { getSymbolMeta } from '../data/symbols';
 import ForecastPrice from './ForecastPrice';
 import { formatPrice } from '../utils/format';
+import { PanelWidgetSkeleton } from './ui/DataWidgetSkeleton';
 
 function IndicatorRow({ label, children }) {
   return (
@@ -33,11 +34,12 @@ export default function TechnicalIndicators({
 
   if (loading && !ind) {
     return (
-      <div className="indicators-panel indicators-panel--loading">
-        <div className="skeleton skeleton--line" />
-        <div className="skeleton skeleton--line" />
-        <div className="skeleton skeleton--line" />
-      </div>
+      <PanelWidgetSkeleton
+        className="indicators-panel indicators-panel--loading"
+        label="Calcolo indicatori tecnici…"
+        lines={5}
+        withHeader={false}
+      />
     );
   }
 

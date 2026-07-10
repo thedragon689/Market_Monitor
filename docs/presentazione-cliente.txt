@@ -1,0 +1,220 @@
+================================================================================
+  MARKET MONITOR — Presentazione per il cliente
+  Piattaforma di analisi e monitoraggio dei mercati finanziari
+================================================================================
+
+1. COS'È L'APPLICAZIONE
+--------------------------------------------------------------------------------
+
+Market Monitor è un'applicazione web che consente di consultare quotazioni,
+analizzare titoli e materie prime, ottenere una sintesi orientativa su acquisto/
+vendita/mantenimento, calcolare scenari previsionali e — opzionalmente — gestire
+un portfolio personale con monitoraggio del profitto/perdita (P/L).
+
+L'app NON esegue ordini in borsa, NON gestisce denaro reale e NON sostituisce
+un consulente finanziario abilitato. È uno strumento informativo e di supporto
+alle decisioni, basato su dati di mercato pubblici e modelli statistici.
+
+
+2. A CHI SI RIVOLGE
+--------------------------------------------------------------------------------
+
+  • Investitori retail che vogliono un quadro rapido su azioni, ETF, indici,
+    forex, crypto, metalli e materie prime
+  • Utenti che seguono la Borsa Italiana (FTSE MIB) e i mercati internazionali
+  • Chi desidera confrontare più metodi di previsione sullo stesso grafico
+  • Chi vuole tenere traccia delle proprie posizioni con alert automatici
+    (modulo Portfolio, attivabile con database cloud)
+
+
+3. FLUSSO DI UTILIZZO (4 PASSI)
+--------------------------------------------------------------------------------
+
+  PASSO 1 — SCEGLI
+  Seleziona la categoria di mercato (azioni, nazionali, crypto, metalli, ecc.)
+  e l'asset da analizzare. Catalogo navigabile, ricerca rapida e confronto tra
+  più titoli.
+
+  PASSO 2 — ANALIZZA
+  Visualizza quotazione aggiornata, grafico storico, indicatori tecnici
+  (SMA, EMA, RSI, MACD, Bande di Bollinger), correlazioni tra asset,
+  contesto geopolitico e news con sentiment. Prezzi mostrati in euro con
+  riferimento al dollaro quando disponibile il cambio EUR/USD.
+
+  PASSO 3 — CONSIGLI
+  Sintesi automatica che combina segnali tecnici, regime di mercato, profilo
+  di rischio, impatto geopolitico e — se richiesto — le previsioni. Il risultato
+  è un orientamento del tipo: acquisto, vendita, accumulo, riduzione o
+  mantenimento, con spiegazione dei fattori che lo determinano.
+
+  PASSO 4 — PREVEDI
+  Calcolo di scenari futuri su orizzonte personalizzabile (1–30 giorni),
+  con scelta del metodo e della finestra storica (N giorni). I risultati
+  compaiono sul grafico insieme allo storico.
+
+  MODULO AGGIUNTIVO — PORTFOLIO
+  Registrazione utente, inserimento posizioni, transazioni acquisto/vendita,
+  calcolo P/L per singolo asset e aggregato, grafico andamento nel tempo,
+  alert via Telegram o WhatsApp quando si superano soglie di guadagno/perdita.
+
+
+4. CATEGORIE DI MERCATO COPERTE
+--------------------------------------------------------------------------------
+
+  Principali
+  • Azioni internazionali (USA, Europa, Africa)
+  • Azioni nazionali — Borsa Italiana (es. ENI, Intesa, Ferrari, Leonardo)
+  • Indici globali (S&P 500, Nasdaq, DAX, Nikkei, …)
+  • Forex (coppie valutarie major)
+  • Materie prime (energia, metalli industriali, agricoli)
+  • Metalli preziosi (oro, argento, platino, palladio — anche in €/grammo)
+  • ETF (broad market, settoriali, commodity)
+  • Criptovalute (Bitcoin, Ethereum e altcoin)
+
+  Avanzate
+  • Volatilità (VIX e indici correlati)
+  • Tassi e obbligazioni (Treasury, bond ETF)
+  • Macro (inflazione, dollaro, proxy ETF)
+  • Sentiment (risk-on / risk-off)
+
+
+5. FUNZIONALITÀ DI ANALISI
+--------------------------------------------------------------------------------
+
+  Quotazioni e grafici
+  • Prezzo attuale, variazione % giornaliera, storico con time frame (1D, 1W,
+    1M, 3M, 1A)
+  • Overlay tecnici: EMA, SMA, Bande di Bollinger
+  • Per le crypto BTC/ETH: stream live da Binance e Kraken (con fallback via
+    server se la connessione WebSocket non è disponibile)
+
+  Indicatori tecnici
+  • SMA, EMA, RSI, MACD, Bande di Bollinger, ATR, momentum, CCI, Williams %R
+
+  Intelligence avanzata
+  • Correlazioni tra asset (Pearson su rendimenti log)
+  • Rilevamento regime di mercato (trend, laterale, stress)
+  • Profilo di rischio (volatilità, beta, drawdown)
+  • Impatto geopolitico da news con classificazione e sentiment
+  • Dashboard commodity con curva forward, volatilità storica, profilo macro
+
+  Vista Terminal
+  • Pannello multi-mercato in stile desk professionale: indici, settori ETF,
+    valute, crypto, commodities, macro e sentiment in un'unica schermata
+
+
+6. CONSIGLI ACQUISTO / VENDITA
+--------------------------------------------------------------------------------
+
+Il motore di consiglio aggrega più pilastri:
+
+  • Segnali tecnici (RSI, MACD, medie mobili, Bollinger)
+  • Previsioni (se attivate)
+  • Regime e correlazioni
+  • Rischio e volatilità
+  • Contesto geopolitico
+
+Per ogni asset viene mostrata:
+  • Azione suggerita (acquisto, vendita, mantieni, ecc.)
+  • Forza dei segnali rialzisti / ribassisti / neutri
+  • Motivazioni in linguaggio chiaro
+  • Dettaglio tecnico espandibile
+
+IMPORTANTE: il consiglio è generato automaticamente da algoritmi. Non è
+personalizzato sul profilo dell'investitore né costituisce raccomandazione
+finanziaria.
+
+
+7. PREVISIONI E MODELLI
+--------------------------------------------------------------------------------
+
+  Metodi classici (veloci, pochi giorni di storico)
+  • Media mobile semplice (SMA) — stima costante all'ultima media
+  • Regressione lineare — estrapolazione del trend sulla finestra N
+  • Log-return — media dei rendimenti giornalieri composti
+
+  Machine learning (richiedono più storico: 18–30+ giorni)
+  • ARIMA — modelli di serie temporale con selezione automatica dell'ordine
+  • LSTM — rete neurale leggera sui rendimenti recenti
+  • Prophet — stagionalità (utile su commodities)
+
+  Confronto
+  • Possibilità di visualizzare più metodi sullo stesso grafico
+  • Integrazione opzionale con componente geopolitica nelle previsioni
+
+  ML avanzato (pannello Intelligence)
+  • Regressione polinomiale
+  • Random Forest su feature di mercato, sentiment e volatilità
+
+
+8. MODULO PORTFOLIO (opzionale)
+--------------------------------------------------------------------------------
+
+Richiede configurazione database cloud (Neon PostgreSQL) e variabili ambiente.
+
+  • Registrazione e accesso utente sicuro (password cifrate, token JWT)
+  • Aggiunta asset con quantità, prezzo medio, soglie alert
+  • Transazioni acquisto/vendita con ricalcolo automatico del prezzo medio
+  • Dashboard con valore totale, P/L assoluto e percentuale (in EUR, con
+    conversione multi-valuta)
+  • Grafico storico del portfolio (snapshot automatici ogni 5 minuti)
+  • Dettaglio per asset con storico transazioni e grafico prezzo
+  • Notifiche Telegram e/o WhatsApp su soglie P/L
+  • Collegamento rapido «Analizza» verso il flusso principale dell'app
+
+
+9. FONTI DATI
+--------------------------------------------------------------------------------
+
+  • Yahoo Finance — quotazioni e storici (fonte principale)
+  • Stooq — fallback quando Yahoo non risponde
+  • Binance / Kraken — crypto spot e stream live
+  • FCS API — metalli e commodities (se configurata)
+  • Feed news — contesto geopolitico e sentiment
+
+I dati possono essere in cache per migliorare le prestazioni. In alcuni casi
+le quotazioni sono ritardate o stimate: verificare sempre le fonti ufficiali
+prima di operare.
+
+
+10. ARCHITETTURA TECNICA (sintesi)
+--------------------------------------------------------------------------------
+
+  • Frontend: applicazione web React (Vite), responsive desktop e mobile
+  • Backend: API REST Node.js / Express
+  • Deploy: Netlify (frontend + serverless functions) oppure installazione
+    locale con npm run dev
+  • Database portfolio: Neon PostgreSQL (serverless)
+  • Monitor portfolio: job schedulato ogni 5 minuti (alert + storico)
+
+L'applicazione è pensata per funzionare come sito pubblico consultabile da
+browser, senza installazione da parte dell'utente finale.
+
+
+11. NOTE LEGALI E LIMITAZIONI
+--------------------------------------------------------------------------------
+
+  • Finalità esclusivamente informative ed educative
+  • Nessuna garanzia su accuratezza, completezza o tempestività dei dati
+  • I modelli previsionali possono essere imprecisi, specialmente in alta
+    volatilità
+  • L'utente è l'unico responsabile delle proprie decisioni di investimento
+  • L'app non è un intermediario finanziario e non esegue ordini
+
+
+12. RIEPILOGO VALORE PER IL CLIENTE
+--------------------------------------------------------------------------------
+
+  ✓ Unico punto di accesso per molte classi di asset
+  ✓ Interfaccia guidata in 4 passi, intuitiva anche su mobile
+  ✓ Analisi tecnica, macro, geo e rischio integrate
+  ✓ Previsioni multi-metodo confrontabili sullo stesso grafico
+  ✓ Sintesi operativa orientativa (acquisto/vendita/mantieni)
+  ✓ Portfolio personale con P/L e alert (su richiesta)
+  ✓ Trasparenza su fonti, modelli e limiti legali
+
+
+================================================================================
+  Documento generato per presentazione commerciale — Market Monitor
+  Per aggiornamenti tecnici o demo live, contattare il team di sviluppo.
+================================================================================

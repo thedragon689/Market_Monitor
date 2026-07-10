@@ -179,7 +179,7 @@ if (sources?.data?.categories) ok('sources — categorie fonti');
 if (geo?.data) {
   const articles = geo.data.articles ?? geo.data.news ?? [];
   if (articles.length) ok(`geo news — ${articles.length} articoli`);
-  else warn('geo news — feed vuoto (Reuters può fallire in dev)');
+  else warn('geo news — feed vuoto (verifica rete o feed RSS)');
 }
 if (catalog?.data?.catalog) {
   const types = Object.keys(catalog.data.catalog).length;

@@ -18,10 +18,20 @@
 .app--terminal .quick-nav,
 .app--terminal .breadcrumbs,
 .app--terminal .app-toolbar,
-.app--terminal .pro-nav,
 .app--terminal .view-footer--explore,
 .app--terminal .home-overview {
   display: none !important;
+}
+
+.app--terminal .pro-nav {
+  border-bottom: 1px solid var(--terminal-border);
+  background: color-mix(in srgb, var(--code-bg) 55%, var(--terminal-panel));
+}
+
+.app--terminal .pro-nav__link {
+  min-height: 38px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
 }
 
 .app--terminal .app-shell__header {
@@ -120,6 +130,12 @@
 .terminal-btn:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
   background: var(--accent-soft);
+}
+
+.terminal-btn--portfolio {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: var(--accent-soft);
+  color: var(--accent-hover);
 }
 
 /* ── Status bar ── */
@@ -552,6 +568,15 @@
 /* ── Performance chart ── */
 .terminal-chart {
   padding: 0.35rem 0.55rem 0.75rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.terminal-chart__stage {
+  width: 100%;
+  height: 300px;
+  min-height: 300px;
+  min-width: 0;
 }
 
 .terminal-chart__toolbar {
@@ -583,6 +608,16 @@
   font-size: 0.8rem;
   color: var(--terminal-muted);
   text-align: center;
+}
+
+.terminal-chart__empty--error {
+  color: var(--down, #f85149);
+}
+
+.terminal-chart__hint {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  color: var(--terminal-muted);
 }
 
 .terminal-chart__loading {

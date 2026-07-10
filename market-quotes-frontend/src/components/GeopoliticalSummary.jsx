@@ -1,8 +1,11 @@
 import ForecastPrice from './ForecastPrice';
+import { PanelWidgetSkeleton } from './ui/DataWidgetSkeleton';
 
 export default function GeopoliticalSummary({ geo, fx, meta, loading }) {
   if (loading && !geo) {
-    return <div className="geo-summary geo-summary--loading">Analisi geopolitica…</div>;
+    return (
+      <PanelWidgetSkeleton className="geo-summary geo-summary--loading" label="Analisi geopolitica…" lines={3} />
+    );
   }
   if (!geo) return null;
 

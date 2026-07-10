@@ -28,10 +28,25 @@ export default function BottomNavIcon({ id, active }) {
           <path d="M7 14h4" />
         </svg>
       );
+    case 'portfolio':
+      return (
+        <svg {...common}>
+          <rect x="3" y="7" width="18" height="14" rx="2" />
+          <path d="M7 11h10" />
+          <path d="M7 15h6" />
+          <circle cx="17" cy="15" r="2" />
+        </svg>
+      );
     case 'favorites':
       return (
         <svg {...common}>
           <path d="M12 20.5s-7-4.6-7-10a4 4 0 0 1 7-2.5 4 4 0 0 1 7 2.5c0 5.4-7 10-7 10z" />
+        </svg>
+      );
+    case 'watchlist':
+      return (
+        <svg {...common}>
+          <path d="M12 3.5l2.6 5.3 5.9.9-4.25 4.15 1 5.85L12 17.9 6.75 20.6l1-5.85L3.5 9.7l5.9-.9z" />
         </svg>
       );
     case 'info':

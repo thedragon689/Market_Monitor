@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { prefetchMarkets } from '../../utils/fetchMarket';
 import CategoryIcon from '../icons/CategoryIcon';
 import RefreshIcon from '../icons/RefreshIcon';
 import SearchIcon from '../icons/SearchIcon';
@@ -65,16 +66,19 @@ export default function TerminalDashboard({
   onTimeframeChange,
   onTypeChange,
   selectedSymbol,
+  onOpenPortfolio,
 }) {
   const [search, setSearch] = useState('');
   const [chartPicks, setChartPicks] = useState(DEFAULT_CHART_PICKS);
   const [activeRail, setActiveRail] = useState('indices');
 
   const coloredPicks = useMemo(() => pickWithColors(chartPicks), [chartPicks]);
-  const { seriesById, chartData, loading: loadingChart } = useCompareHistories(
-    coloredPicks,
-    timeframe
-  );
+  const { seriesById, chartData, loading: loadingChart, error: chartError, partial: chartPartial } =
+    useCompareHistories(coloredPicks, timeframe);
+
+  useEffect(() => {
+    prefetchMarkets(chartPicks, { limit: 120 });
+  }, [chartPicks]);
 
   const articles = geoNews?.news ?? geoNews?.articles ?? [];
   const quotedTotal = countQuoted(catalogSummary);
@@ -177,6 +181,15 @@ export default function TerminalDashboard({
               Attivo: <code>{selectedSymbol}</code>
             </span>
           )}
+          {onOpenPortfolio && (
+            <button
+              type="button"
+              className="terminal-btn terminal-btn--portfolio"
+              onClick={onOpenPortfolio}
+            >
+              Portfolio
+            </button>
+          )}
           <button
             type="button"
             className="terminal-btn"
@@ -227,12 +240,14 @@ export default function TerminalDashboard({
             <TerminalNewsFeed articles={articles} loading={loadingGeo} />
           </TerminalWidget>
 
-          <TerminalWidget title="Performance comparata" panelId="chart">
+          <TerminalWidget title="Performance personalizzata" panelId="chart">
             <TerminalChartLegend picks={coloredPicks} onRemove={handleRemoveChart} />
             <TerminalPerformanceChart
               chartData={chartData}
               seriesById={seriesById}
-              loading={loadingChart || loadingCatalog}
+              loading={loadingChart}
+              error={chartError}
+              partial={chartPartial}
               timeframe={timeframe}
               onTimeframeChange={onTimeframeChange}
             />

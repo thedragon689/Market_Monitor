@@ -54,7 +54,7 @@ export default function Sparkline({
 
   return (
     <svg
-      className={`sparkline sparkline--${resolvedTone} ${filled ? 'sparkline--filled' : ''} ${className}`.trim()}
+      className={`sparkline sparkline--depth sparkline--${resolvedTone} ${filled ? 'sparkline--filled' : ''} ${className}`.trim()}
       width={width}
       height={height}
       viewBox={`0 0 ${width} ${height}`}

@@ -1,3 +1,5 @@
+import { TableWidgetSkeleton } from './ui/DataWidgetSkeleton';
+
 const GROUP_LABELS = {
   asset: 'Confronto asset selezionato',
   macro: 'Benchmark di mercato',
@@ -51,20 +53,27 @@ function CorrelationTable({ title, rows }) {
 function CorrelationCards({ cells }) {
   if (!cells?.length) return null;
   return (
-    <div className="market-corr__cards">
-      {cells.map((c) => (
-        <div
-          key={c.id}
-          className={`market-corr__card market-corr__card--${c.tone}`}
-          style={{ opacity: 0.55 + (c.intensity || 0) * 0.45 }}
-        >
-          <span className="market-corr__card-label">{c.label}</span>
-          <strong className="market-corr__card-value">
-            {c.value != null ? c.value.toFixed(2) : '—'}
-          </strong>
-          <span className="market-corr__card-hint">{c.interpretation || c.role}</span>
-        </div>
-      ))}
+    <div className="market-corr__heatmap-block">
+      <h4 className="market-corr__block-title">Mappa correlazioni</h4>
+      <div className="market-corr__heatmap-3d" aria-label="Heatmap correlazioni">
+        {cells.map((c) => {
+          const depth = Math.round((c.intensity ?? 0.5) * 100);
+          return (
+            <div
+              key={c.id}
+              className={`market-corr__tile market-corr__tile--${c.tone}`}
+              style={{ '--corr-depth': depth }}
+              title={`${c.label} · ρ ${c.value != null ? c.value.toFixed(2) : '—'}`}
+            >
+              <span className="market-corr__tile-label">{c.label}</span>
+              <strong className="market-corr__tile-value">
+                {c.value != null ? c.value.toFixed(2) : '—'}
+              </strong>
+              <span className="market-corr__tile-hint">{c.interpretation || c.role}</span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -79,7 +88,10 @@ export default function MarketCorrelations({ intelligence, correlations, loading
   if (loading && !pairs.length) {
     return (
       <section className="market-corr market-corr--loading">
-        <p>Calcolo correlazioni e benchmark di confronto…</p>
+        <TableWidgetSkeleton
+          label="Calcolo correlazioni e benchmark di confronto…"
+          rows={6}
+        />
       </section>
     );
   }

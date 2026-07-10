@@ -59,6 +59,9 @@ export function buildForecastChartData(history, forecast, fx, meta, currency) {
     prophet: null,
     arima: null,
     lstm: null,
+    ensemble: null,
+    ensBand80: null,
+    ensBand95: null,
     kind: 'history',
     index: i + 1,
   }));
@@ -70,18 +73,26 @@ export function buildForecastChartData(history, forecast, fx, meta, currency) {
   const prophetPoints = forecastPoints(forecast?.methods?.prophet);
   const arimaPoints = forecastPoints(forecast?.methods?.arima);
   const lstmPoints = forecastPoints(forecast?.methods?.lstm);
+  const ensemblePoints = forecastPoints(forecast?.methods?.ensemble);
   const maxLen = Math.max(
     smaPoints.length,
     linearPoints.length,
     logPoints.length,
     prophetPoints.length,
     arimaPoints.length,
-    lstmPoints.length
+    lstmPoints.length,
+    ensemblePoints.length
   );
+
+  const band = (pt, lowKey, highKey) => {
+    if (!pt || pt[lowKey] == null || pt[highKey] == null) return null;
+    return [cv(pt[lowKey]), cv(pt[highKey])];
+  };
 
   const future = [];
   for (let k = 0; k < maxLen; k++) {
     const offset = k + 1;
+    const ens = ensemblePoints[k];
     future.push({
       key: `f-${offset}`,
       date: null,
@@ -93,6 +104,9 @@ export function buildForecastChartData(history, forecast, fx, meta, currency) {
       prophet: cv(prophetPoints[k]?.price ?? null),
       arima: cv(arimaPoints[k]?.price ?? null),
       lstm: cv(lstmPoints[k]?.price ?? null),
+      ensemble: cv(ens?.price ?? null),
+      ensBand80: band(ens, 'lower80', 'upper80'),
+      ensBand95: band(ens, 'lower95', 'upper95'),
       kind: 'forecast',
       index: historyLength + offset,
     });
@@ -107,6 +121,12 @@ export function buildForecastChartData(history, forecast, fx, meta, currency) {
     if (bridge.sma != null && head.sma == null) head.sma = bridge.sma;
     if (bridge.linear != null && head.linear == null) head.linear = bridge.linear;
     if (head.actual == null) head.actual = bridge.actual;
+    // Aggancia linea ensemble e bande al prezzo reale più recente.
+    if (head.ensemble != null && bridge.actual != null) {
+      bridge.ensemble = bridge.actual;
+      bridge.ensBand80 = [bridge.actual, bridge.actual];
+      bridge.ensBand95 = [bridge.actual, bridge.actual];
+    }
   }
 
   return { data: [...trimmed, ...future], historyLength };
@@ -155,13 +175,15 @@ export function buildForecastRawByKey(history, forecast, trimmedLen = TRIM_DAYS)
   const prophetPts = forecastPoints(forecast?.methods?.prophet);
   const arimaPts = forecastPoints(forecast?.methods?.arima);
   const lstmPts = forecastPoints(forecast?.methods?.lstm);
+  const ensPts = forecastPoints(forecast?.methods?.ensemble);
   const maxLen = Math.max(
     smaPts.length,
     linPts.length,
     logPts.length,
     prophetPts.length,
     arimaPts.length,
-    lstmPts.length
+    lstmPts.length,
+    ensPts.length
   );
   const lastHist = history?.[history.length - 1];
 
@@ -174,6 +196,7 @@ export function buildForecastRawByKey(history, forecast, trimmedLen = TRIM_DAYS)
       prophet: prophetPts[k]?.price ?? null,
       arima: arimaPts[k]?.price ?? null,
       lstm: lstmPts[k]?.price ?? null,
+      ensemble: ensPts[k]?.price ?? null,
     };
   }
 
@@ -193,6 +216,7 @@ export function forecastSeriesMeta(forecast) {
   const hasProphet = Boolean(m.prophet && !m.prophet.error && m.prophet.forecasts?.length);
   const hasArima = Boolean(m.arima && !m.arima.error && m.arima.forecasts?.length);
   const hasLstm = Boolean(m.lstm && !m.lstm.error && m.lstm.forecasts?.length);
+  const hasEnsemble = Boolean(m.ensemble && !m.ensemble.error && m.ensemble.forecasts?.length);
 
   const overlays = [
     hasSma && 'sma',
@@ -201,6 +225,7 @@ export function forecastSeriesMeta(forecast) {
     hasProphet && 'prophet',
     hasArima && 'arima',
     hasLstm && 'lstm',
+    hasEnsemble && 'ensemble',
   ].filter(Boolean);
 
   const count = overlays.length;
@@ -215,6 +240,7 @@ export function forecastSeriesMeta(forecast) {
     hasProphet,
     hasArima,
     hasLstm,
+    hasEnsemble,
     classicWidth,
     overlayWidth,
     mlWidth: count >= 5 ? 2.1 : 2.35,

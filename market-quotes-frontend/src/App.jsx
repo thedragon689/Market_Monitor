@@ -1,5 +1,4 @@
 import {
-  lazy,
   Suspense,
   useCallback,
   useEffect,
@@ -13,19 +12,21 @@ import './ui-polish.css';
 import './fintech-polish.css';
 import './mobile-etoro.css';
 import './mobile-home.css';
-import './dark-theme.css';
 import './icons.css';
 import './design-system.css';
+import './ui-charts-3d.css';
 import './pro-dashboard.css';
 import './desktop-polish.css';
 import './ui-stable.css';
+import './portfolio.css';
+import './dashboard-terminal.css';
 import AppShell from './components/AppShell';
 import StepIntro from './components/StepIntro';
 import AppToolbar from './components/AppToolbar';
 import PanelChoices from './components/PanelChoices';
 import ViewFooter from './components/ViewFooter';
-import ThemeToggle from './components/ThemeToggle';
 import ViewFallback from './components/ViewFallback';
+import PortfolioViewFallback from './components/portfolio/PortfolioViewFallback';
 import MobileStickyActions from './components/MobileStickyActions';
 import MobileExploreHub from './components/MobileExploreHub';
 import HistoryChart from './components/HistoryChart';
@@ -34,6 +35,7 @@ import QuotePanel from './components/QuotePanel';
 import AssetStatsRow from './components/AssetStatsRow';
 import InfoPage from './components/InfoPage';
 import TrustFooter from './components/TrustFooter';
+import ChatWidget from './components/chat/ChatWidget';
 import { normalizeTimeframe, sliceHistoryByTimeframe } from './data/chartTimeframes';
 import { catalogToQuoteMap } from './utils/catalogPrice';
 import {
@@ -65,24 +67,31 @@ import {
   symbolIdsForType,
 } from './data/symbols';
 
-const TerminalDashboard = lazy(() => import('./components/terminal/TerminalDashboard'));
-const TradeAdvice = lazy(() => import('./components/TradeAdvice'));
-const HelpLegend = lazy(() => import('./components/HelpLegend'));
-const IntelligentAlerts = lazy(() => import('./components/IntelligentAlerts'));
-const ForecastCards = lazy(() => import('./components/ForecastCards'));
-const ForecastControls = lazy(() => import('./components/ForecastControls'));
-const CompetitorBoard = lazy(() => import('./components/CompetitorBoard'));
-const TechnicalIndicators = lazy(() => import('./components/TechnicalIndicators'));
-const CommodityDashboard = lazy(() => import('./components/CommodityDashboard'));
-const GeopoliticalNews = lazy(() => import('./components/GeopoliticalNews'));
-const GeopoliticalSummary = lazy(() => import('./components/GeopoliticalSummary'));
-const MarketCorrelations = lazy(() => import('./components/MarketCorrelations'));
-const AdvancedDashboard = lazy(() => import('./components/AdvancedDashboard'));
-const MlForecastPanel = lazy(() => import('./components/MlForecastPanel'));
-const ForecastPreview = lazy(() => import('./components/ForecastPreview'));
-const IndicatorToggles = lazy(() => import('./components/IndicatorToggles'));
-const ForecastChart = lazy(() => import('./components/ForecastChart'));
-const GeopoliticalImpactChart = lazy(
+import { lazyWithRetry } from './utils/lazyWithRetry';
+import TerminalDashboard from './components/terminal/TerminalDashboard';
+
+const TradeAdvice = lazyWithRetry(() => import('./components/TradeAdvice'));
+const HelpLegend = lazyWithRetry(() => import('./components/HelpLegend'));
+const IntelligentAlerts = lazyWithRetry(() => import('./components/IntelligentAlerts'));
+const ForecastCards = lazyWithRetry(() => import('./components/ForecastCards'));
+const ForecastControls = lazyWithRetry(() => import('./components/ForecastControls'));
+const CompetitorBoard = lazyWithRetry(() => import('./components/CompetitorBoard'));
+const TechnicalIndicators = lazyWithRetry(() => import('./components/TechnicalIndicators'));
+const CommodityDashboard = lazyWithRetry(() => import('./components/CommodityDashboard'));
+const PortfolioPage = lazyWithRetry(() => import('./components/portfolio/PortfolioPage'));
+const WatchlistPanel = lazyWithRetry(() => import('./components/watchlist/WatchlistPanel'));
+const DashboardLayout = lazyWithRetry(() => import('./components/dashboard/DashboardLayout'));
+const CandlestickChart = lazyWithRetry(() => import('./components/CandlestickChart'));
+const GeopoliticalNews = lazyWithRetry(() => import('./components/GeopoliticalNews'));
+const GeopoliticalSummary = lazyWithRetry(() => import('./components/GeopoliticalSummary'));
+const MarketCorrelations = lazyWithRetry(() => import('./components/MarketCorrelations'));
+const AdvancedDashboard = lazyWithRetry(() => import('./components/AdvancedDashboard'));
+const AnalyticsToolkit = lazyWithRetry(() => import('./components/AnalyticsToolkit'));
+const MlForecastPanel = lazyWithRetry(() => import('./components/MlForecastPanel'));
+const ForecastPreview = lazyWithRetry(() => import('./components/ForecastPreview'));
+const IndicatorToggles = lazyWithRetry(() => import('./components/IndicatorToggles'));
+const ForecastChart = lazyWithRetry(() => import('./components/ForecastChart'));
+const GeopoliticalImpactChart = lazyWithRetry(
   () => import('./components/GeopoliticalImpactChart')
 );
 
@@ -104,6 +113,7 @@ export default function App() {
   const [historyTimeframe, setHistoryTimeframe] = useState(
     normalizeTimeframe(INIT.historyTimeframe)
   );
+  const [chartMode, setChartMode] = useState('line');
   const [showChartIndicators] = useState(true);
   const [chartOverlays, setChartOverlays] = useState({
     ema20: true,
@@ -122,7 +132,6 @@ export default function App() {
     bollinger: true,
   });
   const [dataFreshKey, setDataFreshKey] = useState(0);
-  const [theme, setTheme] = useState(INIT.theme);
   const [mobileTab, setMobileTab] = useState('home');
   const [mobileSearchFocus, setMobileSearchFocus] = useState(false);
   const isMobile = useMobileLayout();
@@ -171,6 +180,26 @@ export default function App() {
     catalogRef.current = catalog;
   }, [catalog]);
 
+  // Deep link da notifiche push (Service Worker → NAVIGATE).
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return undefined;
+    const onSwMessage = (event) => {
+      if (event.data?.type !== 'NAVIGATE' || !event.data.url) return;
+      try {
+        const u = new URL(event.data.url, window.location.origin);
+        const nextView = u.searchParams.get('view');
+        if (nextView) setView(nextView);
+        const sym = u.searchParams.get('symbol');
+        if (sym) setSymbol(sym);
+        window.history.replaceState({}, '', u.pathname + u.search);
+      } catch {
+        /* ignore */
+      }
+    };
+    navigator.serviceWorker.addEventListener('message', onSwMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', onSwMessage);
+  }, []);
+
   const loadCategorySources = useCallback(async () => {
     try {
       const { data } = await apiFetch(`${API_BASE}/api/sources`, { optional: true });
@@ -213,7 +242,10 @@ export default function App() {
       }
 
       try {
-        const { data } = await apiFetch(`${API_BASE}/api/catalog`, { optional: true });
+        const catalogUrl = force
+          ? `${API_BASE}/api/catalog?refresh=1`
+          : `${API_BASE}/api/catalog`;
+        const { data } = await apiFetch(catalogUrl, { optional: true });
         if (!data?.catalog) return;
         applyCatalogPayload(data);
       } catch {
@@ -570,7 +602,7 @@ export default function App() {
         type,
         days: String(horizonDays),
         window: String(windowN),
-        method: forecastMethod,
+        method: 'all',
         geo: 'true',
       });
       const { data } = await apiFetch(`${API_BASE}/api/forecast?${params}`);
@@ -724,6 +756,18 @@ export default function App() {
         setView('info');
         return;
       }
+      if (tab === 'portfolio') {
+        setView('portfolio');
+        setMobileTab('portfolio');
+        setMobileSearchFocus(false);
+        return;
+      }
+      if (tab === 'watchlist') {
+        setView('watchlist');
+        setMobileTab('watchlist');
+        setMobileSearchFocus(false);
+        return;
+      }
       setMobileTab(intent.mobileTab);
       setMobileSearchFocus(false);
       if (view !== 'explore') setView('explore');
@@ -742,6 +786,12 @@ export default function App() {
       if (action === 'info') {
         setMobileSearchFocus(false);
         setView('info');
+        return;
+      }
+      if (action === 'portfolio') {
+        setView('portfolio');
+        setMobileTab('portfolio');
+        setMobileSearchFocus(false);
         return;
       }
       if (action === 'favorites') {
@@ -766,10 +816,6 @@ export default function App() {
   );
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
-
-  useEffect(() => {
     savePersistedState({
       view,
       type,
@@ -778,7 +824,6 @@ export default function App() {
       horizonDays,
       forecastMethod,
       historyTimeframe,
-      theme,
       analysisPanels,
       forecastPanels,
     });
@@ -799,10 +844,17 @@ export default function App() {
     horizonDays,
     forecastMethod,
     historyTimeframe,
-    theme,
     analysisPanels,
     forecastPanels,
   ]);
+
+  useEffect(() => {
+    if (view !== 'dashboard') return;
+    if (!quote?.price || quote?.error) return;
+    if (!forecast && !loadingForecast) {
+      loadForecast();
+    }
+  }, [view, quote, forecast, loadingForecast, loadForecast]);
 
   useEffect(() => {
     loadCategorySources();
@@ -821,7 +873,13 @@ export default function App() {
   }, [symbol, type, loadMarketData]);
 
   useEffect(() => {
-    if (catalog?.[type]?.length) prefetchMarkets(catalog[type], type);
+    if (!catalog?.[type]?.length) return;
+    const hasQuotes = catalog[type].some((item) => item.quote?.price != null);
+    if (!hasQuotes) return;
+    prefetchMarkets(
+      catalog[type].map((item) => ({ ...item, type })),
+      { limit: 120 }
+    );
   }, [catalog, type]);
 
   useEffect(() => {
@@ -938,11 +996,6 @@ export default function App() {
 
   const isTerminalExplore = view === 'explore' && !isMobile;
 
-  useEffect(() => {
-    if (isTerminalExplore) {
-      import('./dashboard-terminal.css');
-    }
-  }, [isTerminalExplore]);
   const showAnalysisLegend = analysisPanels.includes('legend');
   const showForecastLegend = forecastPanels.includes('legend');
 
@@ -964,8 +1017,6 @@ export default function App() {
         loadingMarket={marketBlocking}
         isLoading={isLoading}
         isRefreshing={marketRefreshing || loadingCatalog}
-        theme={theme}
-        themeToggle={<ThemeToggle theme={theme} onChange={setTheme} />}
         onQuickNav={handleQuickNav}
         onInternalSection={handleInternalSection}
         onSymbolChange={handleSymbolChange}
@@ -979,10 +1030,15 @@ export default function App() {
         catalog={catalog}
         fx={fx}
       >
-        {!(isMobile && (view === 'explore' || view === 'info')) &&
+        {!(isMobile && (view === 'explore' || view === 'info' || view === 'portfolio' || view === 'watchlist')) &&
           !isTerminalExplore &&
-          view !== 'info' && <StepIntro view={view} />}
-        {!(isMobile && (view === 'explore' || view === 'info')) && (
+          view !== 'info' &&
+          view !== 'portfolio' &&
+          view !== 'watchlist' &&
+          !(view === 'forecast' && !isMobile) && <StepIntro view={view} />}
+        {!(isMobile && (view === 'explore' || view === 'info' || view === 'portfolio' || view === 'watchlist')) &&
+          view !== 'portfolio' &&
+          view !== 'watchlist' && (
           <AppToolbar
             shareState={shareState}
             loadingMarket={marketBlocking}
@@ -1064,7 +1120,6 @@ export default function App() {
         )}
 
         {isTerminalExplore && (
-          <Suspense fallback={<PanelFallback label="Caricamento dashboard…" tall />}>
           <TerminalDashboard
             catalog={catalog}
             catalogSummary={catalogSummary}
@@ -1081,8 +1136,8 @@ export default function App() {
             onTypeChange={handleTypeChange}
             selectedSymbol={symbol}
             selectedType={type}
+            onOpenPortfolio={() => handleQuickNav({ view: 'portfolio' })}
           />
-          </Suspense>
         )}
 
         {view === 'analysis' && (
@@ -1121,28 +1176,93 @@ export default function App() {
                 fx={fx}
               />
               <div className="asset-dashboard__chart">
-                  <HistoryChart
-                    history={chartHistory}
-                    title={`Andamento · ${meta.name}`}
-                    loading={chartBlocking}
-                    refreshing={marketRefreshing && chartHistory.length > 0}
-                    fx={fx}
-                    meta={meta}
-                    type={type}
-                    symbol={symbol}
-                    quote={displayQuote}
-                    timeframe={historyTimeframe}
-                    onTimeframeChange={setHistoryTimeframe}
-                    showIndicators={showChartIndicators}
-                    analysis={analysis}
-                    chartOverlays={chartOverlays}
-                    onChartOverlaysChange={setChartOverlays}
-                    forecast={forecast}
-                    onRequestForecast={() => loadForecast({ navigate: false })}
-                    forecastLoading={loadingForecast}
-                  />
+                  <div className="chart-mode-switch" role="group" aria-label="Tipo di grafico">
+                    <button
+                      type="button"
+                      className={`chart-mode-switch__btn ${chartMode === 'line' ? 'is-active' : ''}`}
+                      onClick={() => setChartMode('line')}
+                      aria-pressed={chartMode === 'line'}
+                    >
+                      Linea
+                    </button>
+                    <button
+                      type="button"
+                      className={`chart-mode-switch__btn ${chartMode === 'candles' ? 'is-active' : ''}`}
+                      onClick={() => setChartMode('candles')}
+                      aria-pressed={chartMode === 'candles'}
+                    >
+                      Candele
+                    </button>
+                  </div>
+                  {chartMode === 'candles' ? (
+                    <Suspense fallback={<PanelFallback tall />}>
+                      <CandlestickChart symbol={symbol} type={type} />
+                    </Suspense>
+                  ) : (
+                    <HistoryChart
+                      history={chartHistory}
+                      title={`Andamento · ${meta.name}`}
+                      loading={chartBlocking}
+                      refreshing={marketRefreshing && chartHistory.length > 0}
+                      fx={fx}
+                      meta={meta}
+                      type={type}
+                      symbol={symbol}
+                      quote={displayQuote}
+                      timeframe={historyTimeframe}
+                      onTimeframeChange={setHistoryTimeframe}
+                      showIndicators={showChartIndicators}
+                      analysis={analysis}
+                      chartOverlays={chartOverlays}
+                      onChartOverlaysChange={setChartOverlays}
+                      forecast={forecast}
+                      onRequestForecast={() => loadForecast({ navigate: false })}
+                      forecastLoading={loadingForecast}
+                    />
+                  )}
               </div>
             </section>
+
+            {(analysisPanels.includes('indicators') ||
+              analysisPanels.includes('correlations')) && (
+              <div className="app__grid app__grid--duo app__grid--analysis-stack">
+                {analysisPanels.includes('indicators') && (
+                  <section className="app-card app-card--technical">
+                    <h3 className="view-panel__subtitle">Analisi tecnica</h3>
+                    <Suspense fallback={null}>
+                      <IndicatorToggles
+                        value={indicatorToggles}
+                        onChange={setIndicatorToggles}
+                        disabled={loadingAnalysis || loadingMarket}
+                      />
+                    </Suspense>
+                    <Suspense fallback={<PanelFallback />}>
+                    <TechnicalIndicators
+                      analysis={analysis}
+                      loading={analysisBlocking}
+                      refreshing={loadingAnalysis && Boolean(analysis?.indicators)}
+                      fx={fx}
+                      type={type}
+                      symbol={symbol}
+                      visible={indicatorToggles}
+                    />
+                    </Suspense>
+                  </section>
+                )}
+
+                {analysisPanels.includes('correlations') && (
+                  <section className="app-card app-card--correlations">
+                    <h3 className="view-panel__subtitle">Correlazioni · {meta.name}</h3>
+                    <Suspense fallback={<PanelFallback />}>
+                    <MarketCorrelations
+                      intelligence={intelligence}
+                      loading={loadingIntelligence || loadingMarket}
+                    />
+                    </Suspense>
+                  </section>
+                )}
+              </div>
+            )}
 
             {isMobile ? (
               <MobileStickyActions
@@ -1205,47 +1325,6 @@ export default function App() {
               </Suspense>
             )}
 
-            {(analysisPanels.includes('indicators') ||
-              analysisPanels.includes('correlations')) && (
-              <div className="app__grid app__grid--duo">
-                {analysisPanels.includes('indicators') && (
-                  <section className="app-card">
-                    <h3 className="view-panel__subtitle">Analisi tecnica</h3>
-                    <Suspense fallback={null}>
-                      <IndicatorToggles
-                        value={indicatorToggles}
-                        onChange={setIndicatorToggles}
-                        disabled={loadingAnalysis || loadingMarket}
-                      />
-                    </Suspense>
-                    <Suspense fallback={<PanelFallback />}>
-                    <TechnicalIndicators
-                      analysis={analysis}
-                      loading={analysisBlocking}
-                      refreshing={loadingAnalysis && Boolean(analysis?.indicators)}
-                      fx={fx}
-                      type={type}
-                      symbol={symbol}
-                      visible={indicatorToggles}
-                    />
-                    </Suspense>
-                  </section>
-                )}
-
-                {analysisPanels.includes('correlations') && (
-                  <section className="app-card app-card--correlations">
-                    <h3 className="view-panel__subtitle">Correlazioni · {meta.name}</h3>
-                    <Suspense fallback={<PanelFallback />}>
-                    <MarketCorrelations
-                      intelligence={intelligence}
-                      loading={loadingIntelligence || loadingMarket}
-                    />
-                    </Suspense>
-                  </section>
-                )}
-              </div>
-            )}
-
             {analysisPanels.includes('compare') && (
               <section className="app-card app-card--flush">
                 <Suspense fallback={<PanelFallback tall />}>
@@ -1298,41 +1377,55 @@ export default function App() {
                 </Suspense>
               </section>
             )}
+
+            {(analysisPanels.includes('analytics') || analysisPanels.includes('geo')) && (
+              <Suspense fallback={<PanelFallback />}>
+                <AnalyticsToolkit
+                  symbol={symbol}
+                  type={type}
+                  anomalies={intelligence?.anomalies}
+                />
+              </Suspense>
+            )}
           </div>
         )}
 
         {view === 'forecast' && (
           <div className="view-panel view-panel--forecast">
-            {forecastPanels.includes('params') && (
-              <Suspense fallback={<PanelFallback />}>
-              <ForecastControls
-                variant="panel"
-                windowN={windowN}
-                setWindowN={setWindowN}
-                horizonDays={horizonDays}
-                setHorizonDays={setHorizonDays}
-                forecastMethod={forecastMethod}
-                setForecastMethod={setForecastMethod}
-                onRefresh={refreshAll}
-                onForecast={goForecast}
-                loadingMarket={loadingMarket}
-                loadingCatalog={loadingCatalog}
-                loadingForecast={loadingForecast}
-                busy={isLoading}
-                symbol={symbol}
-                assetName={meta.name}
-                historyLength={history?.length ?? 0}
-              />
-              </Suspense>
-            )}
+            <section className="app-card app-card--forecast-wireframe">
+              {forecastPanels.includes('params') && (
+                <Suspense fallback={<PanelFallback />}>
+                  <ForecastControls
+                    variant="panel"
+                    windowN={windowN}
+                    setWindowN={setWindowN}
+                    horizonDays={horizonDays}
+                    setHorizonDays={setHorizonDays}
+                    forecastMethod={forecastMethod}
+                    setForecastMethod={setForecastMethod}
+                    onRefresh={refreshAll}
+                    onForecast={goForecast}
+                    loadingMarket={loadingMarket}
+                    loadingCatalog={loadingCatalog}
+                    loadingForecast={loadingForecast}
+                    busy={isLoading}
+                    symbol={symbol}
+                    assetName={meta.name}
+                    type={type}
+                    historyLength={history?.length ?? 0}
+                    forecast={forecast}
+                    quote={displayQuote}
+                    fx={fx}
+                  />
+                </Suspense>
+              )}
 
-            <section className="app-card app-card--forecast-split">
-              <div className="app__grid app__grid--forecast">
+              <div className="forecast-wireframe__chart">
                 <Suspense fallback={<PanelFallback />}>
                   <ForecastChart
                     history={history}
                     forecast={forecast}
-                    loading={loadingForecast}
+                    loading={loadingForecast && !history?.length && !forecast}
                     fx={fx}
                     type={type}
                     symbol={symbol}
@@ -1341,6 +1434,9 @@ export default function App() {
                     forecastLoading={loadingForecast || loadingMarket}
                   />
                 </Suspense>
+              </div>
+
+              <div className="forecast-wireframe__cards">
                 <Suspense fallback={<PanelFallback />}>
                   <ForecastCards
                     forecast={forecast}
@@ -1349,6 +1445,7 @@ export default function App() {
                     type={type}
                     symbol={symbol}
                     quote={displayQuote}
+                    history={history}
                   />
                 </Suspense>
               </div>
@@ -1404,6 +1501,37 @@ export default function App() {
           />
         )}
 
+        {view === 'portfolio' && (
+          <Suspense fallback={<PortfolioViewFallback />}>
+            <PortfolioPage onSelectAsset={handleSelectAsset} />
+          </Suspense>
+        )}
+
+        {view === 'watchlist' && (
+          <div className="view-panel view-panel--watchlist">
+            <Suspense fallback={<PanelFallback tall />}>
+              <WatchlistPanel onSelectAsset={handleSelectAsset} />
+            </Suspense>
+          </div>
+        )}
+
+        {view === 'dashboard' && (
+          <div className="view-panel view-panel--dashboard">
+            <Suspense fallback={<PanelFallback tall />}>
+              <DashboardLayout
+                symbol={symbol}
+                type={type}
+                quote={displayQuote}
+                analysis={analysis}
+                intelligence={intelligence}
+                forecast={forecast}
+                loading={quotePanelLoading || analysisBlocking}
+                fx={fx}
+              />
+            </Suspense>
+          </div>
+        )}
+
         <TrustFooter />
 
         <ViewFooter
@@ -1416,6 +1544,35 @@ export default function App() {
           hasForecast={Boolean(forecast)}
         />
       </AppShell>
+
+      <ChatWidget
+        getContext={() => {
+          let watchlist = [];
+          let hasPortfolio = false;
+          try {
+            const raw = localStorage.getItem('mm:watchlist');
+            const parsed = raw ? JSON.parse(raw) : [];
+            if (Array.isArray(parsed)) watchlist = parsed;
+          } catch {
+            /* ignore */
+          }
+          try {
+            hasPortfolio = Boolean(localStorage.getItem('market-monitor-portfolio-token'));
+          } catch {
+            /* ignore */
+          }
+          return { view, symbol, type, assetName: meta.name, watchlist, hasPortfolio };
+        }}
+        onAction={(action) => {
+          if (action?.type !== 'navigate') return;
+          if (action.symbol) {
+            if (action.view === 'forecast') requestForecast(action.symbol, action.symbolType);
+            else handleSelectAsset(action.symbol, action.symbolType);
+          } else if (action.view) {
+            handleQuickNav({ view: action.view });
+          }
+        }}
+      />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import {
 } from 'recharts';
 import { formatShortDate } from '../utils/format';
 import MlForecastPanel from './MlForecastPanel';
+import { PanelWidgetSkeleton } from './ui/DataWidgetSkeleton';
 
 const REGIME_CLASS = {
   bull: 'regime--bull',
@@ -67,7 +68,10 @@ function CorrelationHeatmap({ cells, correlationMeta }) {
             <div
               key={c.id}
               className={`adv-dash__heat-cell adv-dash__heat-cell--${c.tone}`}
-              style={{ opacity: 0.45 + (c.intensity || 0) * 0.55 }}
+              style={{
+                '--heat-intensity': c.intensity ?? 0.5,
+                opacity: 0.45 + (c.intensity || 0) * 0.55,
+              }}
               title={`${c.label} · ${c.interpretation || ''}`}
             >
               <span className="adv-dash__heat-label">{c.label}</span>
@@ -105,7 +109,10 @@ function CorrelationHeatmap({ cells, correlationMeta }) {
             <div
               key={c.id}
               className={`adv-dash__heat-cell adv-dash__heat-cell--${c.tone}`}
-              style={{ opacity: 0.45 + (c.intensity || 0) * 0.55 }}
+              style={{
+                '--heat-intensity': c.intensity ?? 0.5,
+                opacity: 0.45 + (c.intensity || 0) * 0.55,
+              }}
               title={c.label}
             >
               <span className="adv-dash__heat-label">{c.label}</span>
@@ -197,7 +204,13 @@ function AlertsList({ alerts }) {
 
 export default function AdvancedDashboard({ intelligence, loading }) {
   if (loading && !intelligence) {
-    return <div className="adv-dash adv-dash--loading">Caricamento intelligence engine…</div>;
+    return (
+      <PanelWidgetSkeleton
+        className="adv-dash adv-dash--loading"
+        label="Caricamento intelligence engine…"
+        lines={5}
+      />
+    );
   }
   if (!intelligence) return null;
 

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <title>GitHub — Market Monitor</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        margin: 0;
+        background: #0d1117;
+        color: #e6edf3;
+      }
+    </style>
+  </head>
+  <body>
+    <p id="msg">Accesso GitHub in corso…</p>
+    <script>
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        const error = params.get('error_description') || params.get('error');
+        const payload = error
+          ? { type: 'github-oauth', error }
+          : { type: 'github-oauth', code };
+        if (window.opener) {
+          window.opener.postMessage(payload, window.location.origin);
+          window.close();
+        } else {
+          document.getElementById('msg').textContent = error
+            ? 'Errore: ' + error
+            : 'Finestra di login chiusa. Torna all\'app e riprova.';
+        }
+      })();
+    </script>
+  </body>
+</html>

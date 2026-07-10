@@ -1,8 +1,9 @@
 import {
+  Area,
   CartesianGrid,
+  ComposedChart,
   Legend,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -57,10 +58,28 @@ function ChartTooltip({ active, payload, fx, meta, rawByKey, currency }) {
     );
   };
 
+  const bandRow = () => {
+    const b = row.ensBand95;
+    if (!Array.isArray(b) || b[0] == null || b[1] == null) return null;
+    const fmt = (v) =>
+      fx?.eurUsd ? formatForecastDual(v, fx, meta, currency).primary : String(v);
+    return (
+      <p className="chart-tooltip__row chart-tooltip__row--ensemble-band">
+        <span className="chart-tooltip__swatch" aria-hidden />
+        <span className="chart-tooltip__row-label">IC 95%</span>
+        <strong>
+          {fmt(b[0])} – {fmt(b[1])}
+        </strong>
+      </p>
+    );
+  };
+
   return (
     <div className="chart-tooltip chart-tooltip--forecast">
       <p className="chart-tooltip__date">{row.label}</p>
       {rowLine('actual', 'Reale')}
+      {rowLine('ensemble', 'Ensemble')}
+      {bandRow()}
       {rowLine('sma', 'Media mobile')}
       {rowLine('linear', 'Regressione')}
       {rowLine('logReturn', 'Log-return')}
@@ -75,6 +94,8 @@ function ChartLegend({ payload }) {
   if (!payload?.length) return null;
   const labels = {
     actual: 'Prezzo reale',
+    ensemble: 'Ensemble',
+    ensBand95: 'Intervallo 80/95%',
     sma: 'Media mobile',
     linear: 'Regressione lineare',
     logReturn: 'Log-return',
@@ -108,7 +129,7 @@ export default function ForecastChart({
   const meta = getSymbolMeta(symbol, type);
   const currency = inferNativeCurrency(type, quote, symbol);
 
-  if (loading) {
+  if (loading && !history?.length && !forecast) {
     return (
       <div className="chart-card chart-card--loading">
         <div className="skeleton skeleton--chart" />
@@ -116,16 +137,19 @@ export default function ForecastChart({
     );
   }
 
-  if (!forecast) {
+  const hasHistory = Boolean(history?.length);
+  const hasForecast = Boolean(forecast);
+
+  if (!hasHistory && !hasForecast) {
     return (
       <div className="chart-card chart-card--empty chart-card--cta">
         <div className="chart-card__empty-icon" aria-hidden>
           ◈
         </div>
-        <h3>Nessuna previsione ancora</h3>
+        <h3>Nessun dato ancora</h3>
         <p>
-          Scegli un asset dal catalogo e premi <strong>Prevedi</strong>, oppure calcola qui sotto
-          con i parametri impostati.
+          Scegli un asset dal catalogo e aggiorna le quotazioni, poi calcola la previsione con i
+          parametri impostati.
         </p>
         <button
           type="button"
@@ -139,35 +163,57 @@ export default function ForecastChart({
     );
   }
 
-  const { data } = buildForecastChartData(history, forecast, fx, meta, currency);
+  const { data } = buildForecastChartData(history ?? [], forecast, fx, meta, currency);
   if (!data.length) return null;
 
-  const rawByKey = buildForecastRawByKey(history, forecast);
+  const rawByKey = buildForecastRawByKey(history ?? [], forecast);
   const series = forecastSeriesMeta(forecast);
 
   const values = data.flatMap((d) =>
-    [d.actual, d.sma, d.linear, d.logReturn, d.prophet, d.arima, d.lstm].filter((v) => v != null)
+    [
+      d.actual,
+      d.sma,
+      d.linear,
+      d.logReturn,
+      d.prophet,
+      d.arima,
+      d.lstm,
+      d.ensemble,
+      ...(Array.isArray(d.ensBand95) ? d.ensBand95 : []),
+    ].filter((v) => v != null)
   );
   const [yMin, yMax] = chartYDomain(values, 0.08);
   const isGram = meta.pricingKind === 'perGramTroy' || meta.pricingKind === 'perGramLb';
 
   const subtitleParts = [chartAxisHint(fx, meta)];
-  if (series.hasSma) subtitleParts.push('verde = SMA');
-  if (series.hasLinear) subtitleParts.push('arancione = regressione');
-  if (series.hasLogReturn) subtitleParts.push('teal = log-return');
-  if (series.hasProphet) subtitleParts.push('indaco = Prophet');
-  if (series.hasArima) subtitleParts.push('viola = ARIMA');
-  if (series.hasLstm) subtitleParts.push('rosa = LSTM');
+  if (!hasForecast) {
+    subtitleParts.push(`${history?.length ?? 0} giorni di storico`);
+    subtitleParts.push('calcola per le proiezioni');
+  } else {
+    if (series.hasSma) subtitleParts.push('verde = SMA');
+    if (series.hasLinear) subtitleParts.push('arancione = regressione');
+    if (series.hasLogReturn) subtitleParts.push('teal = log-return');
+    if (series.hasProphet) subtitleParts.push('indaco = Prophet');
+    if (series.hasArima) subtitleParts.push('viola = ARIMA');
+    if (series.hasLstm) subtitleParts.push('rosa = LSTM');
+    if (series.hasEnsemble) subtitleParts.push('ciano = ensemble ±IC');
+  }
 
   return (
-    <div className="chart-card chart-card--forecast">
-      <div className="chart-card__head">
-        <h3 className="chart-card__title">Storico e previsioni</h3>
+    <div className="chart-card chart-card--forecast chart-card--depth">
+      <div className="chart-card__head chart-card__head--minimal">
         <ForecastDisclaimerInfo />
       </div>
       <p className="chart-card__subtitle">{subtitleParts.join(' · ')}</p>
+      {!hasForecast && hasHistory && (
+        <p className="chart-card__forecast-hint">
+          Storico caricato. Premi <strong>Calcola previsione</strong> per visualizzare gli scenari
+          sul grafico e nei riquadri metodo.
+        </p>
+      )}
+      <div className="chart-card__stage chart-card__stage--3d">
       <ResponsiveContainer width="100%" height={320}>
-        <LineChart data={data} margin={{ top: 10, right: 14, left: 2, bottom: 4 }}>
+        <ComposedChart data={data} margin={{ top: 10, right: 14, left: 2, bottom: 4 }}>
           <defs>
             <filter id="forecastLineGlow" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="1.2" result="blur" />
@@ -205,6 +251,36 @@ export default function ForecastChart({
             }
           />
           <Legend content={<ChartLegend />} />
+
+          {series.hasEnsemble && (
+            <Area
+              type="monotone"
+              dataKey="ensBand95"
+              name="ensBand95"
+              stroke="none"
+              fill="var(--chart-ensemble-band)"
+              fillOpacity={1}
+              connectNulls
+              isAnimationActive={false}
+              legendType="none"
+              activeDot={false}
+            />
+          )}
+
+          {series.hasEnsemble && (
+            <Area
+              type="monotone"
+              dataKey="ensBand80"
+              name="ensBand80"
+              stroke="none"
+              fill="var(--chart-ensemble-band-strong)"
+              fillOpacity={1}
+              connectNulls
+              isAnimationActive={false}
+              legendType="none"
+              activeDot={false}
+            />
+          )}
 
           {series.hasSma && (
             <Line
@@ -300,6 +376,23 @@ export default function ForecastChart({
             />
           )}
 
+          {series.hasEnsemble && (
+            <Line
+              type="monotone"
+              dataKey="ensemble"
+              name="ensemble"
+              stroke="var(--chart-ensemble)"
+              strokeWidth={series.mlWidth + 0.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              dot={forecastDot}
+              activeDot={{ r: 5, stroke: 'var(--bg-elevated)', strokeWidth: 2 }}
+              connectNulls
+              isAnimationActive={false}
+              style={{ filter: 'url(#forecastLineGlow)' }}
+            />
+          )}
+
           <Line
             type="monotone"
             dataKey="actual"
@@ -313,8 +406,9 @@ export default function ForecastChart({
             connectNulls={false}
             isAnimationActive={false}
           />
-        </LineChart>
+        </ComposedChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }

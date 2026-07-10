@@ -9,7 +9,7 @@ const DRAWER_CTAS = [
   { id: 'search', label: 'Cerca', action: 'openSearch' },
   { id: 'markets', label: 'Mercati', action: 'markets' },
   { id: 'info', label: 'Info', action: 'info' },
-  { id: 'favorites', label: 'Preferiti', action: 'favorites' },
+  { id: 'portfolio', label: 'Portfolio', action: 'portfolio' },
 ];
 
 export default function MobileNavDrawer({

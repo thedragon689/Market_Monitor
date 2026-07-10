@@ -65,7 +65,10 @@
 .mhome,
 .mhome-index-card,
 .mhome-panel,
-.mhome-list-row {
+.mhome-list-row,
+.portfolio-page,
+.portfolio-dashboard,
+.portfolio-dashboard .app-card {
   animation: none !important;
 }
 

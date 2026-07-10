@@ -52,14 +52,14 @@ export default function AssetStatsRow({
   const marketCap = quote?.marketCap ?? analysis?.yahooQuote?.marketCap ?? null;
 
   const ccy = (quote?.currency || 'USD').toUpperCase();
-  const dayRange =
-    quote?.dayLow != null && quote?.dayHigh != null
-      ? `${formatPrice(quote.dayLow, ccy)} – ${formatPrice(quote.dayHigh, ccy)}`
-      : null;
-  const yearRange =
-    quote?.fiftyTwoWeekLow != null && quote?.fiftyTwoWeekHigh != null
-      ? `${formatPrice(quote.fiftyTwoWeekLow, ccy)} – ${formatPrice(quote.fiftyTwoWeekHigh, ccy)}`
-      : null;
+  const dayLowFmt =
+    quote?.dayLow != null ? formatPrice(quote.dayLow, ccy) : null;
+  const dayHighFmt =
+    quote?.dayHigh != null ? formatPrice(quote.dayHigh, ccy) : null;
+  const yearLowFmt =
+    quote?.fiftyTwoWeekLow != null ? formatPrice(quote.fiftyTwoWeekLow, ccy) : null;
+  const yearHighFmt =
+    quote?.fiftyTwoWeekHigh != null ? formatPrice(quote.fiftyTwoWeekHigh, ccy) : null;
 
   const hasQuote = Boolean(quote?.price && !quote?.error);
   const quoteLoad = loading && !hasQuote;
@@ -89,11 +89,27 @@ export default function AssetStatsRow({
           loading={quoteLoad}
           refreshing={refreshing}
         />
+      ) : dayLowFmt && dayHighFmt ? (
+        <StatCard
+          label="Range giorno"
+          value={dayLowFmt}
+          sub={`↑ ${dayHighFmt}`}
+          loading={quoteLoad}
+          refreshing={refreshing}
+        />
+      ) : yearLowFmt && yearHighFmt ? (
+        <StatCard
+          label="Range 52 sett."
+          value={yearLowFmt}
+          sub={`↑ ${yearHighFmt}`}
+          loading={quoteLoad}
+          refreshing={refreshing}
+        />
       ) : (
         <StatCard
-          label={dayRange ? 'Range giorno' : 'Range 52 sett.'}
-          value={dayRange ?? yearRange ?? '—'}
-          sub={!dayRange && !yearRange ? 'Non disponibile' : undefined}
+          label="Range giorno"
+          value="—"
+          sub="Non disponibile"
           loading={quoteLoad}
           refreshing={refreshing}
         />

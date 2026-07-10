@@ -1,0 +1,270 @@
+/* Candlestick TradingView-style — token design system (dark/light). */
+.candle {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+  width: 100%;
+}
+
+.candle__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 0.75rem);
+  flex-wrap: wrap;
+}
+
+.candle__ranges,
+.candle__overlays {
+  display: inline-flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.candle__range {
+  min-width: 2.4rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--bg-elevated);
+  color: var(--text-muted, var(--text));
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s ease-out, border-color 0.2s ease-out, background 0.2s ease-out;
+}
+
+.candle__range:hover {
+  color: var(--text-h, var(--text));
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.candle__range.is-active {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.candle__range--intraday:not(.is-active) {
+  border-style: dashed;
+}
+
+.candle__overlay {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--bg-elevated);
+  color: var(--text-muted, var(--text));
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease-out, border-color 0.2s ease-out;
+}
+
+.candle__overlay-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  opacity: 0.45;
+}
+
+.candle__overlay.is-active .candle__overlay-dot {
+  opacity: 1;
+}
+
+.candle__canvas-wrap {
+  position: relative;
+  width: 100%;
+  min-height: 260px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 12px);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bg-elevated) 60%, transparent);
+}
+
+.candle__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.candle__state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-muted, var(--text));
+  font-size: 0.85rem;
+  background: color-mix(in srgb, var(--bg-elevated) 70%, transparent);
+}
+
+.candle__toolbar--secondary {
+  margin-top: -0.35rem;
+}
+
+.candle__tools {
+  display: inline-flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.candle__compare-input {
+  width: 7.5rem;
+  padding: 0.28rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 0.72rem;
+}
+
+.candle__tool {
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--bg-elevated);
+  color: var(--text-muted, var(--text));
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.candle__tool.is-active,
+.candle__tool:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.candle__tool:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.candle__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.candle__tooltip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--glass-bg, var(--bg-elevated));
+  font-family: var(--font-data, monospace);
+  font-size: 0.75rem;
+  color: var(--text-h, var(--text));
+}
+
+.candle__pane {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 12px);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bg-elevated) 60%, transparent);
+  min-height: 88px;
+}
+
+.candle__pane-label {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.5rem;
+  z-index: 2;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.candle__pane-canvas {
+  height: 88px;
+  width: 100%;
+}
+
+.candle__draw-hint {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warning) 18%, var(--bg-elevated));
+  color: var(--warning);
+  font-size: 0.72rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.candle__state--skel {
+  background: transparent;
+}
+
+.candle__state--error {
+  color: var(--down);
+}
+
+.candle__state--refresh {
+  inset: auto 0.5rem 0.5rem auto;
+  width: auto;
+  height: auto;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  background: var(--bg-elevated);
+}
+
+
+.candle__hint {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--text-muted, var(--text));
+  opacity: 0.85;
+}
+
+.candle__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-right: 0.5rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--up-soft, rgba(63, 185, 80, 0.14));
+  color: var(--up);
+  font-weight: 700;
+  opacity: 1;
+}
+
+.candle__live-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--up);
+  animation: candle-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes candle-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.75);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .candle__live-dot {
+    animation: none;
+  }
+}

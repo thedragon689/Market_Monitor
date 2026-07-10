@@ -1,16 +1,14 @@
-/** Logo SVG scalabile — tema chiaro/scuro, desktop e mobile */
+/** Logo SVG scalabile — variante chiara */
 export default function AppLogoMark({
   size = 56,
-  theme = 'dark',
   className = '',
   title = 'Market Monitor',
 }) {
-  const light = theme === 'light';
-  const uid = `logo-${light ? 'l' : 'd'}-${size}`;
+  const uid = `logo-l-${size}`;
 
   return (
     <svg
-      className={`app-logo-mark ${light ? 'app-logo-mark--light' : 'app-logo-mark--dark'} ${className}`.trim()}
+      className={`app-logo-mark app-logo-mark--light ${className}`.trim()}
       width={size}
       height={size}
       viewBox="0 0 512 512"
@@ -19,16 +17,11 @@ export default function AppLogoMark({
     >
       <defs>
         <linearGradient id={`${uid}-bg`} x1="72" y1="56" x2="440" y2="456">
-          <stop offset="0" stopColor={light ? '#818cf8' : '#6366f1'} />
-          <stop offset="1" stopColor={light ? '#14b8a6' : '#0d9488'} />
+          <stop offset="0" stopColor="#818cf8" />
+          <stop offset="1" stopColor="#14b8a6" />
         </linearGradient>
       </defs>
-      <rect
-        width="512"
-        height="512"
-        rx="112"
-        fill={`url(#${uid}-bg)`}
-      />
+      <rect width="512" height="512" rx="112" fill={`url(#${uid}-bg)`} />
       <path
         d="M96 340 L176 260 L256 300 L336 180 L416 240"
         fill="none"

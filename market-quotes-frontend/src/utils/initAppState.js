@@ -33,7 +33,6 @@ export function resolveInitialAppState() {
     historyTimeframe: normalizeTimeframe(
       url.historyTimeframe ?? stored.historyTimeframe ?? defaults.historyTimeframe
     ),
-    theme: stored.theme ?? defaults.theme,
     analysisPanels,
     forecastPanels,
   };

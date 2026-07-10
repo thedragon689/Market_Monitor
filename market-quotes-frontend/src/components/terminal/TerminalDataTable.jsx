@@ -68,7 +68,6 @@ export default function TerminalDataTable({
                   <input
                     type="checkbox"
                     checked={checked}
-                    disabled={!q?.price}
                     aria-label={`Mostra ${item.name} nel grafico`}
                     onChange={() =>
                       onToggleChart?.({

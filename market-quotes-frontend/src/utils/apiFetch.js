@@ -7,7 +7,19 @@ export async function apiFetch(url, options = {}) {
   try {
     res = await fetch(url, init);
   } catch (err) {
-    if (optional) return { ok: false, data: null, res: null };
+    if (optional) {
+      const aborted =
+        err?.name === 'AbortError' ||
+        err?.name === 'TimeoutError' ||
+        init.signal?.aborted;
+      return {
+        ok: false,
+        data: null,
+        res: null,
+        aborted,
+        networkError: !aborted,
+      };
+    }
     throw new Error(
       err.message === 'Failed to fetch'
         ? 'Connessione al server non disponibile. Riprova tra poco.'
@@ -41,11 +53,25 @@ export async function apiFetch(url, options = {}) {
   }
 
   if (!res.ok && !optional) {
-    throw new Error(
+    const err = new Error(
       data?.error ||
         data?.errorMessage ||
         `Errore API (${res.status})`
     );
+    err.status = res.status;
+    throw err;
+  }
+
+  if (!res.ok && optional) {
+    const gatewayDown = res.status === 502 || res.status === 503 || res.status === 504;
+    return {
+      ok: false,
+      data,
+      res,
+      aborted: false,
+      networkError: gatewayDown,
+      serverBusy: res.status >= 500 && !gatewayDown,
+    };
   }
 
   return { ok: res.ok, data, res };

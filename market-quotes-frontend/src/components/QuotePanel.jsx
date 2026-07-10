@@ -236,6 +236,7 @@ export default function QuotePanel({
               Stream live
               {live.status === 'connecting' && ' · connessione…'}
               {live.status === 'live' && ' · WebSocket'}
+              {live.status === 'polling' && ' · aggiornamento via server (WebSocket non disponibile)'}
             </p>
             <ul className="quote-panel__live-list">
               {live.binance && (

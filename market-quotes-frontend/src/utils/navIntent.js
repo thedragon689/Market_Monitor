@@ -6,6 +6,12 @@ export function resolveMobileNavIntent({ view, type, navId } = {}) {
   if (view === 'info') {
     return { view: 'info', mobileTab: null, mobileSearchFocus: false };
   }
+  if (view === 'portfolio') {
+    return { view: 'portfolio', mobileTab: 'portfolio', mobileSearchFocus: false };
+  }
+  if (view === 'watchlist') {
+    return { view: 'watchlist', mobileTab: 'watchlist', mobileSearchFocus: false };
+  }
   if (view === 'forecast') {
     return { view: 'forecast', mobileTab: null, mobileSearchFocus: false };
   }
@@ -27,5 +33,7 @@ export function resolveMobileNavIntent({ view, type, navId } = {}) {
 /** Tab bottom bar → view */
 export function resolveMobileTabIntent(tab) {
   if (tab === 'info') return { view: 'info' };
+  if (tab === 'portfolio') return { view: 'portfolio', mobileTab: 'portfolio' };
+  if (tab === 'watchlist') return { view: 'watchlist', mobileTab: 'watchlist' };
   return { view: 'explore', mobileTab: tab, mobileSearchFocus: false };
 }

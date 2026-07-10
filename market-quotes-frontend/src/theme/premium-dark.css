@@ -1,0 +1,170 @@
+/**
+ * Dark Mode Premium — design system Market Monitor.
+ *
+ * Strategia: i token della palette premium vengono mappati sui NOMI DI VARIABILE
+ * già usati in tutta l'app (--bg, --bg-elevated, --border, --text, --up, --down…)
+ * così l'intera UI esistente risponde al tema senza doverla riscrivere.
+ *
+ * Token indipendenti dal tema (spacing / transizioni / glass) sono su :root.
+ * Palette specifica per tema sotto html[data-theme='dark' | 'light'].
+ */
+
+:root {
+  /* Spacing system — base unit 4px */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Transizioni */
+  --transition-hover: 200ms ease-out;
+  --transition-page: 300ms ease-out;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Typography: Inter per numeri/dati, SF Pro Display per titoli */
+  --font-data: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-title: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'Inter', system-ui, sans-serif;
+
+  /* Z-index scale */
+  --z-nav: 40;
+  --z-sheet: 60;
+  --z-modal: 70;
+  --z-tooltip: 80;
+}
+
+/* ── DARK (default / first) ─────────────────────────────────────────── */
+html[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Palette premium richiesta */
+  --bg: #0d1117;
+  --bg-elevated: #161b22;
+  --border: #30363d;
+  --text: #8b949e; /* testo secondario */
+  --text-h: #e6edf3; /* testo primario */
+  --code-bg: #161b22;
+
+  /* Accenti */
+  --accent: #58a6ff; /* blu info */
+  --accent-hover: #79b8ff;
+  --accent-soft: rgba(88, 166, 255, 0.12);
+  --accent-bg: rgba(88, 166, 255, 0.14);
+  --accent-border: rgba(88, 166, 255, 0.45);
+  --teal: #3fb950;
+  --teal-soft: rgba(63, 185, 80, 0.14);
+
+  /* Semantica mercato */
+  --up: #3fb950; /* verde rialzo */
+  --up-soft: rgba(63, 185, 80, 0.14);
+  --down: #f85149; /* rosso ribasso */
+  --down-soft: rgba(248, 81, 73, 0.14);
+  --info: #58a6ff; /* blu info */
+  --info-soft: rgba(88, 166, 255, 0.14);
+  --warning: #d29922; /* giallo warning */
+  --warning-soft: rgba(210, 153, 34, 0.16);
+
+  /* Glassmorphism */
+  --glass-bg: rgba(22, 27, 34, 0.7);
+  --glass-blur: 12px;
+  --glass-border: 1px solid rgba(48, 54, 61, 0.6);
+  --glass-shadow: 0 8px 32px rgba(1, 4, 9, 0.5);
+
+  /* Categorie (toni adatti al dark) */
+  --cat-stock: #58a6ff;
+  --cat-stock-soft: rgba(88, 166, 255, 0.14);
+  --cat-precious: #d29922;
+  --cat-precious-soft: rgba(210, 153, 34, 0.16);
+  --cat-commodity: #3fb950;
+  --cat-commodity-soft: rgba(63, 185, 80, 0.14);
+  --cat-national: #6cb6ff;
+  --cat-national-soft: rgba(108, 182, 255, 0.14);
+  --cat-crypto: #bc8cff;
+  --cat-crypto-soft: rgba(188, 140, 255, 0.16);
+  --cat-index: #56d4dd;
+  --cat-index-soft: rgba(86, 212, 221, 0.14);
+  --cat-forex: #3fb950;
+  --cat-forex-soft: rgba(63, 185, 80, 0.14);
+  --cat-etf: #bc8cff;
+  --cat-etf-soft: rgba(188, 140, 255, 0.16);
+  --cat-volatility: #f85149;
+  --cat-volatility-soft: rgba(248, 81, 73, 0.14);
+  --cat-rates: #8b949e;
+  --cat-rates-soft: rgba(139, 148, 158, 0.16);
+  --cat-macro: #e3b341;
+  --cat-macro-soft: rgba(227, 179, 65, 0.16);
+  --cat-sentiment: #f778ba;
+  --cat-sentiment-soft: rgba(247, 120, 186, 0.16);
+  --cat-internal: #8b949e;
+  --cat-internal-soft: rgba(139, 148, 158, 0.16);
+
+  /* CTA / gradienti */
+  --cta-from: #58a6ff;
+  --cta-to: #388bfd;
+
+  /* Radius (invariati) */
+  --radius-card: 14px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* Ombre profonde per il dark */
+  --shadow-card: 0 4px 14px rgba(1, 4, 9, 0.5);
+  --shadow-sm: 0 1px 2px rgba(1, 4, 9, 0.4);
+  --shadow-md: 0 8px 24px rgba(1, 4, 9, 0.5);
+  --shadow-lg: 0 20px 50px rgba(1, 4, 9, 0.6);
+  --shadow-cta: 0 8px 28px rgba(56, 139, 253, 0.4);
+
+  /* Choice controls */
+  --choice-track: #161b22;
+  --choice-track-border: #30363d;
+  --choice-idle-bg: #0d1117;
+  --choice-idle-border: #30363d;
+  --choice-active-bg: color-mix(in srgb, var(--accent) 18%, #161b22);
+  --choice-active-fg: #e6edf3;
+  --choice-muted-fg: #8b949e;
+  --choice-ring: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+html[data-theme='dark'] .app {
+  --chart-line: #58a6ff;
+  --chart-fill: #58a6ff;
+  --chart-sma: #3fb950;
+  --chart-linear: #d29922;
+  --chart-arima: #bc8cff;
+  --chart-lstm: #f778ba;
+  --chart-log: #56d4dd;
+  --chart-prophet: #6cb6ff;
+  --chart-ensemble: #38bdf8;
+  --chart-ensemble-band: color-mix(in srgb, var(--chart-ensemble) 18%, transparent);
+  --chart-ensemble-band-strong: color-mix(in srgb, var(--chart-ensemble) 30%, transparent);
+  --chart-sma-soft: color-mix(in srgb, var(--chart-sma) 20%, transparent);
+  --chart-linear-soft: color-mix(in srgb, var(--chart-linear) 20%, transparent);
+  --up: #3fb950;
+  --down: #f85149;
+}
+
+/* Aggiunge i token semantici anche al tema light (retro-compatibilità) */
+html[data-theme='light'] {
+  --info: #2563eb;
+  --info-soft: rgba(37, 99, 235, 0.1);
+  --warning: #d97706;
+  --warning-soft: rgba(217, 119, 6, 0.12);
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-blur: 12px;
+  --glass-border: 1px solid rgba(226, 232, 240, 0.8);
+  --glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+}
+
+/* Riduci le animazioni se richiesto dall'utente */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-hover: 0ms;
+    --transition-page: 0ms;
+  }
+}

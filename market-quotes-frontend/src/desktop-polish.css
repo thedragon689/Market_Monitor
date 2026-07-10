@@ -8,26 +8,32 @@
     --app-gutter: var(--gutter);
   }
 
-  /* ── Analysis hero: quote + chart affiancati, stats sotto ── */
+  /* ── Analysis hero: quote + chart affiancati, stats a tutta larghezza sotto ── */
   .asset-dashboard {
     grid-template-columns: minmax(280px, 0.95fr) minmax(0, 1.85fr);
     grid-template-areas:
       'quote chart'
-      'stats chart';
+      'stats stats';
     align-items: start;
   }
 
   .asset-dashboard > .quote-panel {
     grid-area: quote;
+    min-width: 0;
   }
 
   .asset-dashboard > .asset-stats {
     grid-area: stats;
+    grid-column: 1 / -1;
     margin-top: 0;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   }
 
   .asset-dashboard > .asset-dashboard__chart {
     grid-area: chart;
+    min-width: 0;
     min-height: 360px;
   }
 
@@ -98,9 +104,13 @@
     padding-inline: var(--gutter);
   }
 
-  /* Griglie contenuto */
-  .app__grid--duo {
+  /* Analisi: stack verticale (tecnica sopra, correlazioni sotto) */
+  .app__grid--analysis-stack {
     gap: 1rem;
+  }
+
+  .app__grid--analysis-stack > .app-card--correlations .market-corr__table-wrap {
+    overflow-x: auto;
   }
 
   .view-panel--analysis,
@@ -109,11 +119,27 @@
     flex-direction: column;
     gap: 1rem;
   }
+
+  .view-panel--forecast .app-card--forecast-wireframe {
+    gap: 0.85rem;
+  }
+
+  .forecast-controls--wireframe .forecast-method-picker__wireframe-grid {
+    max-width: 36rem;
+  }
+
+  .forecast-wireframe__chart .chart-card--forecast.chart-card--depth {
+    border-radius: var(--ds-radius-md, 12px);
+  }
 }
 
 @media (min-width: 1200px) {
   .asset-dashboard {
     grid-template-columns: minmax(300px, 0.85fr) minmax(0, 2fr);
+  }
+
+  .asset-dashboard > .asset-stats {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .asset-dashboard > .asset-dashboard__chart {
@@ -122,11 +148,5 @@
 
   :root {
     --chart-h: var(--chart-h-lg);
-  }
-}
-
-@media (min-width: 1400px) {
-  .asset-stats {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }

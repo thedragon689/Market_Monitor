@@ -52,7 +52,7 @@ export const FORECAST_METHOD_META = {
   log: {
     group: 'classic',
     label: 'Log-return',
-    hint: 'Media dei rendimenti percentuali giornalieri',
+    hint: 'Media dei rendimenti % sulla finestra N',
     detail: 'Utile quando le variazioni % sono simili nel tempo',
     minHistory: 2,
     chartKey: 'log',
@@ -104,10 +104,67 @@ export const FORECAST_METHOD_META = {
     badge: 'Analisi completa',
     output: '5 scenari',
   },
+  ensemble: {
+    group: 'all',
+    label: 'Ensemble pesato',
+    hint: 'Media pesata dei modelli con intervalli di confidenza',
+    detail: 'Linea ciano con bande 80% e 95% dalla volatilità storica',
+    minHistory: 30,
+    chartKey: 'ensemble',
+    badge: 'Consigliato',
+    output: 'Stima + IC',
+  },
 };
 
 export const CLASSIC_METHOD_IDS = ['both', 'sma', 'linear', 'log'];
 export const ML_METHOD_IDS = ['arima', 'lstm', 'ml'];
+
+/** Griglia desktop 2×2 (wireframe storico.drawio) */
+export const DESKTOP_FORECAST_TILES = [
+  {
+    id: 'linear',
+    methodId: 'linear',
+    label: 'Metodi classici',
+    hint: 'Regressione lineare',
+    chartKey: 'linear',
+  },
+  {
+    id: 'sma',
+    methodId: 'sma',
+    label: 'Media mobile semplice',
+    hint: 'SMA · finestra N',
+    chartKey: 'sma',
+  },
+  {
+    id: 'log',
+    methodId: 'log',
+    label: 'Log-return',
+    hint: 'Rendimenti composti',
+    chartKey: 'log',
+  },
+  {
+    id: 'ml',
+    methodId: 'ml',
+    label: 'Machine learning',
+    hint: 'ARIMA · LSTM',
+    chartKey: 'ml-combo',
+    isMlGroup: true,
+  },
+];
+
+export function methodToDesktopTile(method) {
+  if (method === 'sma') return 'sma';
+  if (method === 'log') return 'log';
+  if (method === 'linear' || method === 'both') return 'linear';
+  if (ML_METHOD_IDS.includes(method)) return 'ml';
+  return null;
+}
+
+export function isTileActive(tileId, method) {
+  if (tileId === 'ml') return ML_METHOD_IDS.includes(method);
+  if (tileId === 'linear') return method === 'linear' || method === 'both';
+  return method === tileId;
+}
 export const DESKTOP_METHOD_SECTIONS = [
   {
     id: 'classic',
@@ -125,7 +182,7 @@ export const DESKTOP_METHOD_SECTIONS = [
     id: 'all',
     title: 'Confronto completo',
     subtitle: 'Tutte le stime sullo stesso grafico',
-    ids: ['all'],
+    ids: ['all', 'ensemble'],
     wide: true,
   },
 ];
@@ -155,8 +212,8 @@ export function historyWarning(method, historyLength) {
   if (method === 'ml') {
     return `Per ARIMA + LSTM servono almeno 28 giorni di storico (disponibili: ${historyLength}).`;
   }
-  if (method === 'all') {
-    return `Per confrontare tutti i metodi servono almeno 30 giorni (disponibili: ${historyLength}).`;
+  if (method === 'all' || method === 'ensemble') {
+    return `Per l’analisi completa servono almeno 30 giorni (disponibili: ${historyLength}).`;
   }
   if (meta.engine === 'arima') {
     return `ARIMA richiede almeno 18 giorni di storico (disponibili: ${historyLength}).`;

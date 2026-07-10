@@ -38,9 +38,9 @@ const cases = [
     expect: { view: 'explore', mobileTab: 'markets' },
   },
   {
-    name: 'Bottom Preferiti tab',
-    input: resolveMobileTabIntent('favorites'),
-    expect: { view: 'explore', mobileTab: 'favorites' },
+    name: 'Bottom Portfolio tab',
+    input: resolveMobileTabIntent('portfolio'),
+    expect: { view: 'portfolio', mobileTab: 'portfolio' },
   },
 ];
 

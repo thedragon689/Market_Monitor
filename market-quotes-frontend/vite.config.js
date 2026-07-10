@@ -5,10 +5,14 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    // Evita flood "send was called before connect" quando HMR si riconnette.
+    forwardConsole: false,
     proxy: {
       '/api': {
         target: 'http://localhost:4000',
         changeOrigin: true,
+        timeout: 30_000,
+        proxyTimeout: 30_000,
       },
     },
   },

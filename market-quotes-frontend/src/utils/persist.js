@@ -8,9 +8,8 @@ const DEFAULTS = {
   horizonDays: 5,
   forecastMethod: 'both',
   historyTimeframe: '3M',
-  analysisPanels: ['indicators', 'forecast', 'correlations', 'geo'],
+  analysisPanels: ['indicators', 'forecast', 'correlations', 'geo', 'analytics'],
   forecastPanels: ['params', 'advanced', 'geo'],
-  theme: 'dark',
 };
 
 export function loadPersistedState() {

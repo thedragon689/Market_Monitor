@@ -25,8 +25,6 @@ export default function AppShell({
   loadingForecast,
   loadingMarket,
   isLoading,
-  themeToggle,
-  theme = 'dark',
   onQuickNav,
   onInternalSection,
   onSymbolChange,
@@ -42,9 +40,12 @@ export default function AppShell({
   children,
 }) {
   const isMobileExplore = isMobile && view === 'explore';
-  const isMobileHomeShell = isMobile && (view === 'explore' || view === 'info');
+  const isMobileHomeShell =
+    isMobile && (view === 'explore' || view === 'info' || view === 'portfolio' || view === 'watchlist');
   const mobileNavActive = getMobileTabActive(view, mobileTab);
   const isWorkflowView = view === 'analysis' || view === 'advice' || view === 'forecast';
+  const isPortfolioView = view === 'portfolio';
+  const isSecondaryView = view === 'portfolio' || view === 'watchlist';
   const headerRef = useRef(null);
 
   useEffect(() => {
@@ -90,8 +91,11 @@ export default function AppShell({
 
   return (
     <div
-      className={`app-shell ${isMobileExplore ? 'app-shell--mobile-explore' : ''} ${isMobileHomeShell ? 'app-shell--mobile-home' : ''} ${isMobile ? 'app-shell--mobile' : ''} ${isTerminalExplore ? 'app-shell--terminal' : ''} ${isWorkflowView ? 'app-shell--workflow' : ''}`}
+      className={`app-shell ${isMobileExplore ? 'app-shell--mobile-explore' : ''} ${isMobileHomeShell ? 'app-shell--mobile-home' : ''} ${isMobile ? 'app-shell--mobile' : ''} ${isTerminalExplore ? 'app-shell--terminal' : ''} ${isWorkflowView ? 'app-shell--workflow' : ''} ${isPortfolioView ? 'app-shell--portfolio' : ''} ${view === 'watchlist' ? 'app-shell--watchlist' : ''}`}
     >
+      <a href="#main-content" className="skip-link">
+        Salta al contenuto
+      </a>
       <header
         ref={headerRef}
         className="app-shell__header app-shell__header--sticky"
@@ -108,7 +112,7 @@ export default function AppShell({
                 aria-expanded={mobileMenuOpen}
                 onClick={() => setMobileMenuOpen(true)}
               >
-                <AppLogo size={30} theme={theme} title="" />
+                <AppLogo size={30} title="" />
               </button>
               <div className="app-shell__mobile-title-wrap">
                 <h1 className="app-shell__mobile-title">Market Monitor</h1>
@@ -123,19 +127,17 @@ export default function AppShell({
                 >
                   <SearchIcon size={20} />
                 </button>
-                <span className="app-shell__theme-wrap">{themeToggle}</span>
               </div>
             </>
           ) : (
             <>
               <span className="app-shell__logo-wrap">
-                <AppLogo className="app-shell__logo" size={56} theme={theme} />
+                <AppLogo className="app-shell__logo" size={56} />
               </span>
               <div>
                 <strong className="app-shell__title">Market Monitor</strong>
                 <span className="app-shell__tagline">Quotazioni · Analisi · Previsioni</span>
               </div>
-              {themeToggle}
             </>
           )}
         </div>
@@ -205,7 +207,7 @@ export default function AppShell({
 
       <ProNavbar view={view} type={type} onNavigate={handleQuickNav} />
 
-      {!isMobileExplore && !isTerminalExplore && view !== 'info' && (
+      {!isMobileExplore && !isTerminalExplore && view !== 'info' && !isSecondaryView && (
         <Breadcrumbs
           view={view}
           type={type}
@@ -215,7 +217,7 @@ export default function AppShell({
         />
       )}
 
-      {view !== 'info' && !isMobileExplore && !isWorkflowView && !isTerminalExplore && (
+      {view !== 'info' && !isMobileExplore && !isWorkflowView && !isTerminalExplore && !isSecondaryView && (
         <div className="app-shell__categories">
           <CategorySelector
             type={type}
@@ -232,7 +234,9 @@ export default function AppShell({
         aria-hidden={!isLoading}
       />
 
-      <main className="app-shell__main">{children}</main>
+      <main id="main-content" className="app-shell__main" tabIndex={-1}>
+        {children}
+      </main>
 
       <nav className="app-shell__bottom-nav" aria-label="Navigazione mobile">
         {(isMobile ? MOBILE_NAV_TABS : APP_VIEWS).map((v, i) => {

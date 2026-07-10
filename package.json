@@ -1,33 +1,54 @@
 {
   "name": "market-monitor-forecast-api",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "server.mjs",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server.mjs",
     "netlify:dev": "netlify dev",
     "dev": "node scripts/free-ports.js && npm run dev:all",
     "dev:stop": "node scripts/free-ports.js",
-    "dev:api": "node server.js",
-    "dev:web": "npm run dev --prefix market-quotes-frontend",
+    "dev:api": "node server.mjs",
+    "dev:web": "npm run dev:vite --prefix market-quotes-frontend",
     "dev:all": "node node_modules/concurrently/dist/bin/concurrently.js -n api,web -c cyan,magenta \"npm run dev:api\" \"npm run dev:web\"",
     "smoke": "node scripts/smoke-health.js",
     "smoke:prod": "node scripts/smoke-health.js https://valutazioniborsa.netlify.app",
     "verify:math": "node scripts/verify-math.js",
+    "verify:ratelimit": "node scripts/verify-ratelimit.js",
+    "verify:notify": "node scripts/verify-notify.js",
+    "verify:intent": "node scripts/verify-intent.js",
     "verify:data": "node scripts/verify-data-integrity.js",
     "verify:data:prod": "node scripts/verify-data-integrity.js https://valutazioniborsa.netlify.app",
     "verify:api": "node scripts/verify-api-ws.js",
-    "verify:api:prod": "node scripts/verify-api-ws.js https://valutazioniborsa.netlify.app"
+    "verify:api:prod": "node scripts/verify-api-ws.js https://valutazioniborsa.netlify.app",
+    "db:migrate": "node scripts/db-migrate.js",
+    "verify:portfolio": "node scripts/verify-portfolio-math.js",
+    "verify:concurrency": "node scripts/verify-concurrency.js",
+    "test": "node scripts/run-tests.mjs",
+    "verify:local-piper": "node scripts/verify-local-piper.js"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
     "ws": "^8.18.0"
   },
+  "optionalDependencies": {
+    "@sentry/node": "^9.27.0",
+    "@simplewebauthn/server": "^13.1.1",
+    "ioredis": "^5.6.1"
+  },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "axios": "^1.7.0",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
+    "dataloader": "^2.2.3",
     "dotenv": "^16.4.0",
     "express": "^4.19.0",
-    "serverless-http": "^3.2.0"
+    "express-oauth2-jwt-bearer": "^1.9.1",
+    "graphql": "^16.14.2",
+    "graphql-http": "^1.22.4",
+    "jsonwebtoken": "^9.0.3",
+    "serverless-http": "^3.2.0",
+    "web-push": "^3.6.7"
   }
 }

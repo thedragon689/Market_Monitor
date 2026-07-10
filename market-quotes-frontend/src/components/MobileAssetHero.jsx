@@ -1,6 +1,7 @@
 import { getSymbolMeta } from '../data/symbols';
 import { changeTone, formatChangeBadge, formatCurrentPrice } from '../utils/catalogPrice';
 import CategoryIcon from './icons/CategoryIcon';
+import { HeroPriceSkeleton } from './ui/DataWidgetSkeleton';
 
 export default function MobileAssetHero({
   type,
@@ -34,7 +35,7 @@ export default function MobileAssetHero({
         </p>
         <p className={`mobile-hero__price mobile-hero__price--${tone}`}>
           {loading && !q?.price ? (
-            <span className="mobile-hero__loading">Caricamento…</span>
+            <HeroPriceSkeleton className="mobile-hero__loading" />
           ) : (
             <>
               {price.primary}

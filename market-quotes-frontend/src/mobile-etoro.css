@@ -1,49 +1,16 @@
 /**
- * Mobile UI — stile eToro: bottom nav, pill filter, watchlist rows,
- * verde trading, card morbide, uso a una mano.
- * Attivo solo ≤899px; desktop invariato.
+ * Mobile UI — layout a una mano, bottom nav, card morbide (accent indigo da :root).
  */
 
 @media (max-width: 899px) {
   :root {
-    --etoro-green: #13c636;
-    --etoro-green-hover: #0fa82d;
-    --etoro-green-soft: rgba(19, 198, 54, 0.14);
-    --etoro-red: #ff3b30;
-    --etoro-red-soft: rgba(255, 59, 48, 0.12);
     --mobile-nav-h: 4.35rem;
-    --accent: var(--etoro-green);
-    --accent-hover: var(--etoro-green-hover);
-    --accent-soft: var(--etoro-green-soft);
-    --accent-bg: var(--etoro-green-soft);
-    --accent-border: rgba(19, 198, 54, 0.45);
-    --cta-from: var(--etoro-green);
-    --cta-to: #0d9488;
-    --up: var(--etoro-green);
-    --down: var(--etoro-red);
     --radius-sm: 10px;
     --radius-md: 14px;
     --radius-lg: 18px;
     --radius-xl: 22px;
     --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
     --shadow-md: 0 6px 20px rgba(15, 23, 42, 0.08);
-  }
-
-  html[data-theme='dark'] {
-    --etoro-green: #3ef163;
-    --etoro-green-hover: #5ef77e;
-    --etoro-green-soft: rgba(62, 241, 99, 0.18);
-    --etoro-red: #ff7b72;
-    --etoro-red-soft: rgba(255, 123, 114, 0.16);
-    --accent: var(--etoro-green);
-    --accent-hover: var(--etoro-green-hover);
-    --accent-soft: var(--etoro-green-soft);
-    --accent-bg: var(--etoro-green-soft);
-    --accent-border: rgba(62, 241, 99, 0.45);
-    --up: var(--etoro-green);
-    --down: var(--etoro-red);
-    --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.5);
   }
 
   /* ── App shell ── */
@@ -168,11 +135,11 @@
   }
 
   .app-shell__asset-actions .btn--cta {
-    background: var(--etoro-green);
+    background: var(--accent);
     color: #fff;
     border: none;
     font-weight: 700;
-    box-shadow: 0 4px 14px rgba(19, 198, 54, 0.35);
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.28);
   }
 
   .app-shell__asset-actions .btn--ghost {
@@ -229,11 +196,11 @@
   }
 
   .app-shell__bottom-tab.is-active {
-    color: var(--etoro-green);
+    color: var(--accent);
   }
 
   .app-shell__bottom-tab.is-done:not(.is-active) {
-    color: color-mix(in srgb, var(--etoro-green) 55%, var(--text-muted));
+    color: color-mix(in srgb, var(--accent) 55%, var(--text-muted));
   }
 
   .app-shell__bottom-icon {
@@ -324,10 +291,10 @@
   }
 
   .category-card.is-active {
-    background: var(--etoro-green);
-    border-color: var(--etoro-green);
+    background: var(--accent);
+    border-color: var(--accent);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(19, 198, 54, 0.3);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.22);
   }
 
   .category-card.is-active .category-card__label,
@@ -435,8 +402,8 @@
   }
 
   .panel-choices__chip.is-active {
-    background: var(--etoro-green);
-    border-color: var(--etoro-green);
+    background: var(--accent);
+    border-color: var(--accent);
     color: #fff;
   }
 
@@ -491,8 +458,8 @@
   .watchlist__avatar {
     width: 2.35rem;
     height: 2.35rem;
-    background: var(--etoro-green-soft);
-    color: var(--etoro-green);
+    background: var(--accent-soft);
+    color: var(--accent);
   }
 
   /* ── Discover hub (eToro) ── */
@@ -602,20 +569,20 @@
   }
 
   .mobile-hero__chg--up {
-    background: var(--etoro-green-soft);
-    color: var(--etoro-green);
+    background: var(--accent-soft);
+    color: var(--accent);
   }
 
   .mobile-hero__chg--down {
-    background: var(--etoro-red-soft);
-    color: var(--etoro-red);
+    background: var(--down-soft);
+    color: var(--down);
   }
 
   /* min-height gestito dal blocco "Touch target 44px" più sotto */
   .mobile-hero__cta {
     padding: 0.4rem 0.85rem !important;
     font-size: 0.82rem !important;
-    box-shadow: 0 4px 12px rgba(19, 198, 54, 0.3);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.22);
   }
 
   .mobile-explore__search-wrap {
@@ -694,8 +661,8 @@
   }
 
   .mobile-explore__filter.is-active {
-    background: var(--etoro-green);
-    border-color: var(--etoro-green);
+    background: var(--accent);
+    border-color: var(--accent);
     color: #fff;
   }
 
@@ -747,12 +714,12 @@
   }
 
   .mobile-asset-row.is-selected {
-    background: var(--etoro-green-soft);
-    box-shadow: inset 3px 0 0 var(--etoro-green);
+    background: var(--accent-soft);
+    box-shadow: inset 3px 0 0 var(--accent);
   }
 
   .mobile-asset-row:active {
-    background: color-mix(in srgb, var(--etoro-green) 8%, var(--bg-elevated));
+    background: color-mix(in srgb, var(--accent) 8%, var(--bg-elevated));
   }
 
   .mobile-asset-row__avatar {
@@ -820,13 +787,13 @@
   }
 
   .mobile-asset-row__chg--up {
-    background: var(--etoro-green-soft);
-    color: var(--etoro-green);
+    background: var(--accent-soft);
+    color: var(--accent);
   }
 
   .mobile-asset-row__chg--down {
-    background: var(--etoro-red-soft);
-    color: var(--etoro-red);
+    background: var(--down-soft);
+    color: var(--down);
   }
 
   .mobile-asset-row__chg--neutral {
@@ -874,8 +841,8 @@
 
   .symbol-picker__tab.is-active,
   .symbol-picker__filter.is-active {
-    background: var(--etoro-green);
-    border-color: var(--etoro-green);
+    background: var(--accent);
+    border-color: var(--accent);
     color: #fff;
   }
 
@@ -920,8 +887,8 @@
   }
 
   .symbol-chip.is-selected {
-    background: var(--etoro-green-soft);
-    box-shadow: inset 3px 0 0 var(--etoro-green);
+    background: var(--accent-soft);
+    box-shadow: inset 3px 0 0 var(--accent);
   }
 
   .symbol-chip__row {
@@ -968,13 +935,13 @@
   }
 
   .symbol-chip__chg--up {
-    background: var(--etoro-green-soft);
-    color: var(--etoro-green);
+    background: var(--accent-soft);
+    color: var(--accent);
   }
 
   .symbol-chip__chg--down {
-    background: var(--etoro-red-soft);
-    color: var(--etoro-red);
+    background: var(--down-soft);
+    color: var(--down);
   }
 
   /* ── Catalog cards → righe compatte ── */
@@ -1001,20 +968,20 @@
   }
 
   .catalog-card.is-selected {
-    background: var(--etoro-green-soft);
-    box-shadow: inset 3px 0 0 var(--etoro-green);
+    background: var(--accent-soft);
+    box-shadow: inset 3px 0 0 var(--accent);
   }
 
   .catalog-card__chg--up {
-    color: var(--etoro-green);
-    background: var(--etoro-green-soft);
+    color: var(--accent);
+    background: var(--accent-soft);
     padding: 0.2rem 0.45rem;
     border-radius: 6px;
   }
 
   .catalog-card__chg--down {
-    color: var(--etoro-red);
-    background: var(--etoro-red-soft);
+    color: var(--down);
+    background: var(--down-soft);
     padding: 0.2rem 0.45rem;
     border-radius: 6px;
   }
@@ -1031,13 +998,13 @@
   .quote-panel--up {
     box-shadow:
       var(--shadow-md),
-      inset 0 3px 0 var(--etoro-green);
+      inset 0 3px 0 var(--accent);
   }
 
   .quote-panel--down {
     box-shadow:
       var(--shadow-md),
-      inset 0 3px 0 var(--etoro-red);
+      inset 0 3px 0 var(--down);
   }
 
   .quote-panel__title {
@@ -1061,29 +1028,29 @@
   }
 
   .quote-trend--up {
-    background: var(--etoro-green-soft);
+    background: var(--accent-soft);
   }
 
   .quote-trend--down {
-    background: var(--etoro-red-soft);
+    background: var(--down-soft);
   }
 
-  /* ── Bottoni primari verdi ── */
+  /* ── Bottoni primari indigo ── */
   .btn--primary,
   .btn--cta:not(.btn--compact) {
-    background: var(--etoro-green);
-    border-color: var(--etoro-green);
+    background: var(--accent);
+    border-color: var(--accent);
     color: #fff;
     font-weight: 700;
     border-radius: 999px;
     min-height: var(--touch-min);
-    box-shadow: 0 4px 16px rgba(19, 198, 54, 0.28);
+    box-shadow: var(--shadow-cta);
   }
 
   .btn--primary:hover,
   .btn--cta:not(.btn--compact):hover {
-    background: var(--etoro-green-hover);
-    border-color: var(--etoro-green-hover);
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
   }
 
   /* ── Footer: solo CTA avanti (nav indietro = bottom bar) ── */
@@ -1145,14 +1112,14 @@
   .trade-advice__verdict--buy-soft {
     box-shadow:
       var(--shadow-md),
-      inset 0 3px 0 var(--etoro-green);
+      inset 0 3px 0 var(--accent);
   }
 
   .trade-advice__verdict--sell,
   .trade-advice__verdict--sell-soft {
     box-shadow:
       var(--shadow-md),
-      inset 0 3px 0 var(--etoro-red);
+      inset 0 3px 0 var(--down);
   }
 
   .trade-advice__strength {
@@ -1246,8 +1213,8 @@
   }
 
   .forecast-method-picker__group.is-active {
-    background: var(--etoro-green);
-    border-color: var(--etoro-green);
+    background: var(--accent);
+    border-color: var(--accent);
     box-shadow: none;
   }
 
@@ -1284,8 +1251,8 @@
   }
 
   .forecast-method-picker__chip.is-active {
-    background: var(--etoro-green);
-    border-color: var(--etoro-green);
+    background: var(--accent);
+    border-color: var(--accent);
   }
 
   .forecast-method-picker__chip.is-active .forecast-method-picker__chip-label {
@@ -1343,8 +1310,8 @@
   }
 
   .forecast-method-picker__combo.is-active {
-    border-color: var(--etoro-green);
-    background: var(--etoro-green-soft);
+    border-color: var(--accent);
+    background: var(--accent-soft);
   }
 
   .forecast-method-picker__all {
@@ -1434,8 +1401,8 @@
   .mobile-market-strip__pill {
     padding: 0.2rem 0.5rem;
     border-radius: 999px;
-    background: var(--etoro-green-soft);
-    color: var(--etoro-green);
+    background: var(--accent-soft);
+    color: var(--accent);
     font-weight: 800;
   }
 
@@ -1485,9 +1452,9 @@
   }
 
   .mobile-cat-bar__btn.is-active {
-    border-color: var(--etoro-green);
-    background: var(--etoro-green-soft);
-    color: var(--etoro-green);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
   }
 
   .mobile-cat-bar__icon {
@@ -1584,7 +1551,7 @@
   }
 
   .mobile-sticky-actions__btn--cta {
-    background: linear-gradient(135deg, var(--cta-from), var(--cta-to));
+    background: var(--accent);
     color: #fff;
   }
 
@@ -1731,8 +1698,8 @@
   }
 
   .mobile-overview-strip__card.is-active {
-    border-color: var(--etoro-green);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--etoro-green) 35%, transparent);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
   }
 
   .mobile-overview-strip__card:active {

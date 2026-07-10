@@ -8,20 +8,31 @@
 [build.environment]
   NODE_VERSION = "20"
   VITE_API_BASE = ""
+  REQUEST_TIMEOUT_MS = "9000"
+  HISTORY_BATCH_TIMEOUT_MS = "8000"
+  MARKET_LOAD_TIMEOUT_MS = "8000"
 
 [functions]
   node_bundler = "esbuild"
   external_node_modules = [
+    "@neondatabase/serverless",
     "axios",
+    "bcryptjs",
     "cors",
     "dotenv",
     "express",
+    "jsonwebtoken",
     "serverless-http",
+    "web-push",
   ]
-  included_files = ["server.js", "lib/**", "lib/trading/**"]
+  included_files = ["server.mjs", "lib/package.json", "lib/**", "lib/trading/**", "db/**"]
 
 [functions."api"]
   timeout = 10
+
+[functions."portfolio-monitor"]
+  schedule = "*/5 * * * *"
+  timeout = 26
 
 [[redirects]]
   from = "/api/*"
@@ -40,6 +51,9 @@
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: wss:; font-src 'self' data:; frame-ancestors 'none'"
 
 [[headers]]
   for = "/assets/*"

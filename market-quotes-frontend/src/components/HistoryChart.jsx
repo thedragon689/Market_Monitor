@@ -179,7 +179,7 @@ export default function HistoryChart({
 
   return (
     <div
-      className={`chart-card chart-card--history ${fullscreen ? 'chart-card--fullscreen' : ''} ${refreshing ? 'chart-card--refreshing' : ''}`}
+      className={`chart-card chart-card--history chart-card--depth ${fullscreen ? 'chart-card--fullscreen' : ''} ${refreshing ? 'chart-card--refreshing' : ''}`}
     >
       <div className="chart-card__head">
         <div>
@@ -223,6 +223,7 @@ export default function HistoryChart({
           )}
         </div>
       </div>
+      <div className="chart-card__stage chart-card__stage--3d">
       <ResponsiveContainer width="100%" height={chartHeight}>
         <ComposedChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}>
           <defs>
@@ -341,6 +342,7 @@ export default function HistoryChart({
           )}
         </ComposedChart>
       </ResponsiveContainer>
+      </div>
       {forecastLoading && (overlays.forecastArima || overlays.forecastLstm || overlays.forecastHybrid) && (
         <p className="chart-card__forecast-hint">Calcolo previsioni per overlay…</p>
       )}
