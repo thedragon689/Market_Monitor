@@ -16,6 +16,7 @@ import PortfolioAuth from './PortfolioAuth';
 import PortfolioAuthOnboarding from './PortfolioAuthOnboarding';
 import PortfolioDashboard from './PortfolioDashboard';
 import PortfolioNotifications from './PortfolioNotifications';
+import PortfolioTotpSetup from './PortfolioTotpSetup';
 import PortfolioInsights from './PortfolioInsights';
 import {
   clearPortfolioAuthQuery,
@@ -300,6 +301,14 @@ function PortfolioPageInner({ onSelectAsset }) {
     );
   }
 
+  if (subView === 'security') {
+    return (
+      <div className="portfolio-page">
+        <PortfolioTotpSetup auth={auth} onBack={() => setSubView('dashboard')} />
+      </div>
+    );
+  }
+
   if (subView === 'add') {
     return (
       <div className="portfolio-page">
@@ -384,6 +393,8 @@ function PortfolioPageInner({ onSelectAsset }) {
         refreshing={refreshing}
         onAdd={() => setSubView('add')}
         onNotify={() => setSubView('notify')}
+        onSecurity={auth.mode === 'legacy' ? () => setSubView('security') : null}
+        totpEnabled={Boolean(auth.user?.totpEnabled)}
         onSelectAsset={onSelectAsset}
         onOpenDetail={(symbol) => {
           setSelectedSymbol(symbol);

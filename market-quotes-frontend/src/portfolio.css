@@ -294,6 +294,106 @@
   padding: 0;
 }
 
+/* TOTP / 2FA */
+.portfolio-totp__lead {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.portfolio-totp__status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.portfolio-totp__badge {
+  display: inline-flex;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--positive, #16a34a);
+  background: color-mix(in srgb, var(--positive, #16a34a) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--positive, #16a34a) 35%, transparent);
+}
+
+.portfolio-totp__form {
+  margin-top: 0.5rem;
+}
+
+.portfolio-totp__step-title {
+  margin: 1rem 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--text-h);
+}
+
+.portfolio-totp__step-title:first-child {
+  margin-top: 0;
+}
+
+.portfolio-totp__qr-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--border);
+}
+
+.portfolio-totp__qr {
+  display: block;
+  border-radius: 8px;
+}
+
+.portfolio-totp__secret {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+}
+
+.portfolio-totp__secret-label {
+  width: 100%;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.portfolio-totp__secret-value {
+  flex: 1;
+  min-width: 12rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  word-break: break-all;
+  color: var(--text-h);
+}
+
+.portfolio-totp__start {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.portfolio-summary__security {
+  font-variant-numeric: tabular-nums;
+}
+
 .btn--block {
   width: 100%;
   min-height: var(--touch-min, 44px);

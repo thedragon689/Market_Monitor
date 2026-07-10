@@ -182,7 +182,11 @@ export async function resendEmailVerification() {
 }
 
 export async function fetchAuthConfig() {
-  return portfolioFetch('/api/auth/config', { method: 'GET' });
+  const { data } = await apiFetch(`${API_BASE}/api/auth/config`, {
+    method: 'GET',
+    optional: true,
+  });
+  return data;
 }
 
 export async function loginOAuth(provider, payload = {}) {
@@ -193,6 +197,24 @@ export async function loginOAuth(provider, payload = {}) {
   });
   setPortfolioTokens({ accessToken: data.token || data.accessToken });
   return data;
+}
+
+export async function setupTotp() {
+  return portfolioFetch('/api/auth/totp/setup', { method: 'POST' });
+}
+
+export async function enableTotp(code) {
+  return portfolioFetch('/api/auth/totp/enable', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
+}
+
+export async function disableTotp({ password, code } = {}) {
+  return portfolioFetch('/api/auth/totp/disable', {
+    method: 'POST',
+    body: JSON.stringify({ password, code }),
+  });
 }
 
 export async function fetchDashboardLayout() {

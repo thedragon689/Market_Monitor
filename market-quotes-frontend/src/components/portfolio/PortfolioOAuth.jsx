@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchAuthConfig } from '../../utils/portfolioApi';
+import { hasOAuthProviders, resolveOAuthConfig } from '../../utils/portfolioOAuthConfig';
 
 const GSI_SRC = 'https://accounts.google.com/gsi/client';
 const APPLE_SRC = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
@@ -35,7 +36,7 @@ function loadScript(src, id) {
  * Pulsanti OAuth (Google, GitHub, Apple) per login/registrazione portfolio.
  */
 export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
-  const [config, setConfig] = useState(null);
+  const [apiConfig, setApiConfig] = useState(undefined);
   const [busy, setBusy] = useState(null);
   const googleRef = useRef(null);
   const githubPopupRef = useRef(null);
@@ -44,13 +45,17 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
     let cancelled = false;
     fetchAuthConfig()
       .then((cfg) => {
-        if (!cancelled) setConfig(cfg);
+        if (!cancelled) setApiConfig(cfg ?? null);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setApiConfig(null);
+      });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const resolved = useMemo(() => resolveOAuthConfig(apiConfig), [apiConfig]);
 
   const finishOAuth = useCallback(
     async (provider, payload) => {
@@ -69,8 +74,8 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
 
   // Google Identity Services
   useEffect(() => {
-    const clientId = config?.oauthClientIds?.google;
-    if (!config?.oauth?.google || !clientId || !googleRef.current) return undefined;
+    const clientId = resolved?.oauthClientIds?.google;
+    if (!resolved?.oauth?.google || !clientId || !googleRef.current) return undefined;
 
     let cancelled = false;
     (async () => {
@@ -106,7 +111,7 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
     return () => {
       cancelled = true;
     };
-  }, [config, finishOAuth]);
+  }, [resolved, finishOAuth]);
 
   // GitHub OAuth popup (authorization code → backend exchange)
   useEffect(() => {
@@ -131,7 +136,7 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
   }, [finishOAuth, onError]);
 
   const loginGitHub = () => {
-    const clientId = config?.oauthClientIds?.github;
+    const clientId = resolved?.oauthClientIds?.github;
     if (!clientId || disabled || busy) return;
     const redirectUri = `${window.location.origin}/oauth/github-callback.html`;
     const url =
@@ -142,7 +147,7 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
   };
 
   const loginApple = async () => {
-    const clientId = config?.oauthClientIds?.apple;
+    const clientId = resolved?.oauthClientIds?.apple;
     if (!clientId || disabled || busy) return;
     setBusy('apple');
     try {
@@ -168,9 +173,7 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
     }
   };
 
-  const any =
-    config?.oauth?.google || config?.oauth?.github || config?.oauth?.apple;
-  if (!any) return null;
+  if (!hasOAuthProviders(resolved)) return null;
 
   return (
     <div className="portfolio-oauth">
@@ -178,14 +181,14 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
         <span>oppure continua con</span>
       </p>
       <div className="portfolio-oauth__buttons">
-        {config.oauth.google && (
+        {resolved.oauth.google && (
           <div
             className={`portfolio-oauth__gsi${busy === 'google' ? ' portfolio-oauth__btn--busy' : ''}`}
             ref={googleRef}
             aria-busy={busy === 'google'}
           />
         )}
-        {config.oauth.github && (
+        {resolved.oauth.github && (
           <button
             type="button"
             className="portfolio-oauth__btn portfolio-oauth__btn--github"
@@ -195,7 +198,7 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
             {busy === 'github' ? 'Attendere…' : 'GitHub'}
           </button>
         )}
-        {config.oauth.apple && (
+        {resolved.oauth.apple && (
           <button
             type="button"
             className="portfolio-oauth__btn portfolio-oauth__btn--apple"
