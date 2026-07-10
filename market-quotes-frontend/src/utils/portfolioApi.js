@@ -143,10 +143,10 @@ export async function registerPortfolio(email, password, options = {}) {
   return data;
 }
 
-export async function loginPortfolio(email, password, totpCode) {
+export async function loginPortfolio(email, password) {
   const data = await portfolioFetch('/api/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password, totpCode }),
+    body: JSON.stringify({ email, password }),
   });
   setPortfolioTokens({ accessToken: data.token || data.accessToken });
   return data;
@@ -166,6 +166,11 @@ export async function logoutPortfolio() {
     }
   }
   setPortfolioTokens({});
+  try {
+    window.google?.accounts?.id?.disableAutoSelect();
+  } catch {
+    /* ignore */
+  }
 }
 
 export async function verifyEmailToken(token) {
@@ -197,24 +202,6 @@ export async function loginOAuth(provider, payload = {}) {
   });
   setPortfolioTokens({ accessToken: data.token || data.accessToken });
   return data;
-}
-
-export async function setupTotp() {
-  return portfolioFetch('/api/auth/totp/setup', { method: 'POST' });
-}
-
-export async function enableTotp(code) {
-  return portfolioFetch('/api/auth/totp/enable', {
-    method: 'POST',
-    body: JSON.stringify({ code }),
-  });
-}
-
-export async function disableTotp({ password, code } = {}) {
-  return portfolioFetch('/api/auth/totp/disable', {
-    method: 'POST',
-    body: JSON.stringify({ password, code }),
-  });
 }
 
 export async function fetchDashboardLayout() {

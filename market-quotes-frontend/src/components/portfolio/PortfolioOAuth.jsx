@@ -70,14 +70,22 @@ function loadScript(src, id) {
   });
 }
 
+function disableGoogleAutoSelect() {
+  try {
+    window.google?.accounts?.id?.disableAutoSelect();
+  } catch {
+    /* ignore */
+  }
+}
+
 /**
  * Pulsanti OAuth (Google, GitHub) per login/registrazione portfolio.
- * I pulsanti sono sempre visibili; il login funziona solo se il provider è configurato sul server.
+ * Google usa authorization code + scelta account (no auto-login).
  */
 export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
   const [apiConfig, setApiConfig] = useState(undefined);
   const [busy, setBusy] = useState(null);
-  const googleRef = useRef(null);
+  const googleCodeClientRef = useRef(null);
   const githubPopupRef = useRef(null);
 
   useEffect(() => {
@@ -96,6 +104,7 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
 
   const resolved = useMemo(() => resolveOAuthConfig(apiConfig), [apiConfig]);
   const googleReady = Boolean(resolved.oauth.google && resolved.oauthClientIds.google);
+  const redirectUri = typeof window !== 'undefined' ? window.location.origin : '';
 
   const finishOAuth = useCallback(
     async (provider, payload) => {
@@ -117,7 +126,7 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
       if (disabled || busy) return;
       if (!clientId) {
         onError?.(
-          `Accesso ${PROVIDER_LABELS[provider]} non attivo. Configura le credenziali OAuth su Netlify (GOOGLE_CLIENT_ID, GITHUB_CLIENT_ID/SECRET).`
+          `Accesso ${PROVIDER_LABELS[provider]} non attivo. Configura le credenziali OAuth su Netlify (GOOGLE_CLIENT_ID/SECRET, GITHUB_CLIENT_ID/SECRET).`
         );
         return;
       }
@@ -128,43 +137,46 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
 
   useEffect(() => {
     const clientId = resolved.oauthClientIds?.google;
-    if (!googleReady || !clientId || !googleRef.current) return undefined;
+    if (!googleReady || !clientId) return undefined;
 
     let cancelled = false;
     (async () => {
       try {
         await loadScript(GSI_SRC, 'gsi-client');
-        if (cancelled || !window.google?.accounts?.id) return;
+        if (cancelled || !window.google?.accounts?.oauth2?.initCodeClient) return;
 
-        window.google.accounts.id.initialize({
+        disableGoogleAutoSelect();
+
+        googleCodeClientRef.current = window.google.accounts.oauth2.initCodeClient({
           client_id: clientId,
+          scope: 'openid email profile',
+          ux_mode: 'popup',
+          redirect_uri: redirectUri,
           callback: (response) => {
-            if (response?.credential) {
-              finishOAuth('google', { token: response.credential });
+            if (response?.code) {
+              finishOAuth('google', { code: response.code, redirectUri });
             }
           },
-          auto_select: false,
-          cancel_on_tap_outside: true,
-        });
-
-        googleRef.current.innerHTML = '';
-        window.google.accounts.id.renderButton(googleRef.current, {
-          type: 'standard',
-          theme: 'outline',
-          size: 'large',
-          text: 'continue_with',
-          width: 280,
-          locale: 'it',
+          error_callback: (err) => {
+            if (err?.type !== 'popup_closed') {
+              onError?.(err?.message || 'Accesso Google annullato');
+            }
+          },
         });
       } catch {
-        /* SDK non caricato — resta il pulsante fallback */
+        /* SDK non caricato */
       }
     })();
 
     return () => {
       cancelled = true;
+      googleCodeClientRef.current = null;
     };
-  }, [googleReady, resolved.oauthClientIds?.google, finishOAuth]);
+  }, [googleReady, resolved.oauthClientIds?.google, redirectUri, finishOAuth, onError]);
+
+  useEffect(() => {
+    disableGoogleAutoSelect();
+  }, []);
 
   useEffect(() => {
     const onMessage = (event) => {
@@ -187,13 +199,31 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
     return () => window.removeEventListener('message', onMessage);
   }, [finishOAuth, onError]);
 
+  const loginGoogle = () => {
+    const clientId = resolved.oauthClientIds?.google;
+    guardProvider('google', clientId, () => {
+      disableGoogleAutoSelect();
+      if (googleCodeClientRef.current?.requestCode) {
+        googleCodeClientRef.current.requestCode({ prompt: 'select_account' });
+        return;
+      }
+      const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+      url.searchParams.set('client_id', clientId);
+      url.searchParams.set('redirect_uri', redirectUri);
+      url.searchParams.set('response_type', 'code');
+      url.searchParams.set('scope', 'openid email profile');
+      url.searchParams.set('prompt', 'select_account');
+      window.location.href = url.toString();
+    });
+  };
+
   const loginGitHub = () => {
     const clientId = resolved.oauthClientIds?.github;
     guardProvider('github', clientId, () => {
-      const redirectUri = `${window.location.origin}/oauth/github-callback.html`;
+      const ghRedirect = `${window.location.origin}/oauth/github-callback.html`;
       const url =
         `https://github.com/login/oauth/authorize?client_id=${encodeURIComponent(clientId)}` +
-        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&redirect_uri=${encodeURIComponent(ghRedirect)}` +
         '&scope=user:email&state=mm';
       githubPopupRef.current = window.open(url, 'github-oauth', 'width=520,height=640');
     });
@@ -205,25 +235,16 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
         <span>oppure continua con</span>
       </p>
       <div className="portfolio-oauth__buttons">
-        {googleReady ? (
-          <div
-            className={`portfolio-oauth__gsi${busy === 'google' ? ' portfolio-oauth__btn--busy' : ''}`}
-            ref={googleRef}
-            aria-busy={busy === 'google'}
-            aria-label="Continua con Google"
-          />
-        ) : (
-          <button
-            type="button"
-            className="portfolio-oauth__btn portfolio-oauth__btn--google"
-            onClick={() => guardProvider('google', resolved.oauthClientIds?.google, () => {})}
-            disabled={disabled || Boolean(busy)}
-            aria-busy={busy === 'google'}
-          >
-            <GoogleIcon />
-            {busy === 'google' ? 'Attendere…' : 'Google'}
-          </button>
-        )}
+        <button
+          type="button"
+          className="portfolio-oauth__btn portfolio-oauth__btn--google"
+          onClick={loginGoogle}
+          disabled={disabled || Boolean(busy)}
+          aria-busy={busy === 'google'}
+        >
+          <GoogleIcon />
+          {busy === 'google' ? 'Attendere…' : 'Google'}
+        </button>
         <button
           type="button"
           className="portfolio-oauth__btn portfolio-oauth__btn--github"

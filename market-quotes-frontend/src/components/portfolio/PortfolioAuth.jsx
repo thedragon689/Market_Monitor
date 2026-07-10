@@ -75,7 +75,6 @@ export default function PortfolioAuth({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [totpCode, setTotpCode] = useState('');
   const [prefs, setPrefs] = useState(DEFAULT_PREFS);
   const [pushHint, setPushHint] = useState(null);
   const { supported: pushSupported, subscribe: subscribePush } = usePushNotifications({
@@ -91,7 +90,7 @@ export default function PortfolioAuth({
     setPushHint(null);
     try {
       if (mode === 'login') {
-        await auth.login(email, password, totpCode || undefined);
+        await auth.login(email, password);
       } else {
         await auth.register(email, password, {
           phoneNumber,
@@ -216,20 +215,6 @@ export default function PortfolioAuth({
                 </p>
                 <NotifyPrefsFieldset prefs={prefs} onToggle={togglePref} />
               </>
-            )}
-
-            {mode === 'login' && (
-              <label className="portfolio-field">
-                <span>Codice 2FA (se attivo)</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  value={totpCode}
-                  onChange={(e) => setTotpCode(e.target.value)}
-                  placeholder="6 cifre"
-                />
-              </label>
             )}
 
             {pushHint && <p className="portfolio-notify__ok">{pushHint}</p>}

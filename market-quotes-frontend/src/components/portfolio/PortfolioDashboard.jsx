@@ -14,8 +14,6 @@ export default function PortfolioDashboard({
   refreshing,
   onAdd,
   onNotify,
-  onSecurity,
-  totpEnabled = false,
   onSelectAsset,
   onOpenDetail,
 }) {
@@ -51,15 +49,6 @@ export default function PortfolioDashboard({
             <button type="button" className="btn btn--ghost btn--small" onClick={onNotify}>
               Notifiche
             </button>
-            {onSecurity && (
-              <button
-                type="button"
-                className="btn btn--ghost btn--small portfolio-summary__security"
-                onClick={onSecurity}
-              >
-                2FA{totpEnabled ? ' ✓' : ''}
-              </button>
-            )}
             <button type="button" className="btn btn--cta" onClick={onAdd}>
               + Aggiungi
             </button>
