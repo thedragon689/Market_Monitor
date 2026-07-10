@@ -5,6 +5,7 @@
 @media (max-width: 899px) {
   :root {
     --mobile-nav-h: 4.35rem;
+    --mobile-content-max: 44rem;
     --radius-sm: 10px;
     --radius-md: 14px;
     --radius-lg: 18px;
@@ -1813,6 +1814,59 @@
     background: var(--bg-elevated);
     font-size: 1rem;
     cursor: pointer;
+  }
+
+  /* Tablet / iPad portrait — contenuto centrato, bottom nav compatta */
+  @media (min-width: 640px) and (max-width: 899px) {
+    .app--mobile {
+      max-width: var(--mobile-content-max, 44rem);
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--border) 65%, transparent);
+    }
+
+    .app-shell__header {
+      margin-left: auto;
+      margin-right: auto;
+      max-width: var(--mobile-content-max, 44rem);
+      padding-left: 1.35rem;
+      padding-right: 1.35rem;
+    }
+
+    .app-shell__bottom-nav {
+      left: 50%;
+      right: auto;
+      width: min(100%, var(--mobile-content-max, 44rem));
+      transform: translateX(-50%);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-radius: 16px 16px 0 0;
+    }
+
+    .mobile-explore__list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.55rem;
+    }
+
+    .mobile-asset-row {
+      border-radius: var(--radius-md);
+      border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+      margin-bottom: 0;
+    }
+
+    .mobile-asset-row:last-child {
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+    }
+
+    .mobile-markets,
+    .mobile-explore {
+      max-width: 100%;
+    }
+
+    .chat-fab {
+      right: max(1rem, calc((100vw - var(--mobile-content-max, 44rem)) / 2 + 1rem));
+    }
   }
 }
 

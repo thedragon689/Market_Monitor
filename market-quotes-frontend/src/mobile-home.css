@@ -804,4 +804,56 @@
       max-width: 52%;
     }
   }
+
+  /* Tablet / iPad portrait (640–899px) */
+  @media (min-width: 640px) and (max-width: 899px) {
+    .app-shell--mobile-home .app-shell__main {
+      margin-left: auto;
+      margin-right: auto;
+      max-width: var(--mobile-content-max, 44rem);
+      padding-left: 1.35rem;
+      padding-right: 1.35rem;
+    }
+
+    .app-shell--mobile-home .app-shell__header {
+      margin-left: auto;
+      margin-right: auto;
+      max-width: var(--mobile-content-max, 44rem);
+      padding-left: 1.35rem;
+      padding-right: 1.35rem;
+    }
+
+    .mhome {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.15rem 1rem;
+      align-items: start;
+    }
+
+    .mhome__section:first-child {
+      grid-column: 1 / -1;
+    }
+
+    .mhome-index-card {
+      flex: 0 0 min(11.5rem, 28vw);
+      min-height: 8.5rem;
+      padding: 1rem 1rem 0.75rem;
+    }
+
+    .mhome-index-card__name {
+      font-size: 0.95rem;
+    }
+
+    .mhome__title {
+      font-size: 1rem;
+    }
+
+    .mhome-list-row__quote {
+      max-width: 48%;
+    }
+
+    .mobile-search-menu__panel {
+      max-width: min(28rem, var(--mobile-content-max, 44rem));
+    }
+  }
 }
