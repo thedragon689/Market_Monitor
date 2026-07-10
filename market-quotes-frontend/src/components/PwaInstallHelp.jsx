@@ -1,5 +1,5 @@
 import { isIos, isStandalonePwa } from '../utils/pwaPlatform';
-import { APP_VERSION } from '../config/version';
+import { APP_VERSION, PWA_CACHE_VERSION } from '../config/version';
 
 /** Istruzioni permanenti per installare/aggiornare la PWA (tab Info). */
 export default function PwaInstallHelp() {
@@ -30,8 +30,8 @@ export default function PwaInstallHelp() {
         </ol>
       )}
       <p className="info-page__hint">
-        Versione attuale: <strong>{APP_VERSION}</strong> · Push e offline richiedono l&apos;app
-        installata.
+        Versione <strong>{APP_VERSION}</strong> · build <strong>{PWA_CACHE_VERSION}</strong> · Push e
+        offline richiedono l&apos;app installata.
       </p>
     </article>
   );

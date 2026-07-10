@@ -1,7 +1,7 @@
 import ForecastDisclaimerInfo from './ForecastDisclaimerInfo';
 import DataSources from './DataSources';
 import PwaInstallHelp from './PwaInstallHelp';
-import { APP_VERSION } from '../config/version';
+import { APP_VERSION, PWA_CACHE_VERSION } from '../config/version';
 
 const SOURCES = [
   { name: 'Yahoo Finance', desc: 'Quotazioni, storici e metadati per azioni, ETF, indici e commodities.' },
@@ -68,7 +68,7 @@ export default function InfoPage({ type, marketMeta, categoryConfig }) {
       </section>
 
       <p className="info-page__copy">
-        © Market Monitor · Dati aggregati · Deploy Netlify · Versione {APP_VERSION}
+        © Market Monitor · Dati aggregati · Deploy Netlify · v{APP_VERSION} ({PWA_CACHE_VERSION})
       </p>
     </div>
   );

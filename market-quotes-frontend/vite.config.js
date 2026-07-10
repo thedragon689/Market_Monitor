@@ -1,11 +1,36 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+/** ID univoco per cache PWA — cambia ad ogni deploy Netlify. */
+const pwaCacheId =
+  process.env.COMMIT_REF?.slice(0, 8) ||
+  process.env.DEPLOY_ID ||
+  `dev-${Date.now().toString(36)}`
+
+function stampServiceWorker() {
+  return {
+    name: 'stamp-service-worker',
+    config() {
+      return {
+        define: {
+          'import.meta.env.VITE_PWA_CACHE_ID': JSON.stringify(pwaCacheId),
+        },
+      }
+    },
+    closeBundle() {
+      const swPath = resolve('dist/sw.js')
+      const src = readFileSync(swPath, 'utf8').replace(/__PWA_CACHE_VERSION__/g, pwaCacheId)
+      writeFileSync(swPath, src)
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), stampServiceWorker()],
   server: {
-    // Evita flood "send was called before connect" quando HMR si riconnette.
     forwardConsole: false,
     proxy: {
       '/api': {

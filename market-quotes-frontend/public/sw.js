@@ -1,19 +1,14 @@
 /**
  * Service Worker — Market Monitor PWA.
- *
- * Strategie:
- *  - Navigazioni (HTML): network-first → fallback alla shell in cache (offline).
- *  - /api/ GET: stale-while-revalidate (mostra cache, aggiorna in background).
- *  - Asset statici same-origin (/assets/, icone, font): cache-first (hash immutabili).
- *  - Push notifications: alert prezzo/portfolio/news.
+ * VERSION viene sostituito a build-time (commit Netlify) — vedi vite.config.js.
  */
-
-const VERSION = 'v3';
+const VERSION = '__PWA_CACHE_VERSION__';
 const SHELL_CACHE = `mm-shell-${VERSION}`;
 const ASSET_CACHE = `mm-assets-${VERSION}`;
 const API_CACHE = `mm-api-${VERSION}`;
 
 const SHELL_ASSETS = ['/', '/index.html', '/manifest.webmanifest', '/app-icon.svg'];
+const NETWORK_OPTS = { cache: 'no-store' };
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -41,46 +36,44 @@ self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });
 
-function isStaticAsset(url) {
-  return (
-    url.pathname.startsWith('/assets/') ||
-    /\.(?:js|css|woff2?|ttf|png|jpg|jpeg|svg|webp|ico)$/.test(url.pathname)
-  );
-}
-
 async function staleWhileRevalidate(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
-  const network = fetch(request)
+  const network = fetch(request, NETWORK_OPTS)
     .then((res) => {
-      if (res && res.ok) cache.put(request, res.clone());
+      if (res?.ok) cache.put(request, res.clone());
       return res;
     })
     .catch(() => null);
   return cached || (await network) || new Response('', { status: 504 });
 }
 
-async function cacheFirst(request, cacheName) {
+async function cacheFirstHashedAssets(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
-  const res = await fetch(request);
-  if (res && res.ok) cache.put(request, res.clone());
+  const res = await fetch(request, NETWORK_OPTS);
+  if (res?.ok) cache.put(request, res.clone());
   return res;
 }
 
+/** HTML/navigazione: sempre rete prima; aggiorna shell cache; offline → ultima shell. */
 async function networkFirstShell(request) {
+  const cache = await caches.open(SHELL_CACHE);
   try {
-    const res = await fetch(request);
-    return res;
+    const res = await fetch(request, NETWORK_OPTS);
+    if (res?.ok) {
+      cache.put(request, res.clone());
+      return res;
+    }
   } catch {
-    const cache = await caches.open(SHELL_CACHE);
-    return (
-      (await cache.match(request)) ||
-      (await cache.match('/index.html')) ||
-      new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } })
-    );
+    /* offline */
   }
+  return (
+    (await cache.match(request)) ||
+    (await cache.match('/index.html')) ||
+    new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } })
+  );
 }
 
 self.addEventListener('fetch', (event) => {
@@ -100,12 +93,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (sameOrigin && isStaticAsset(url)) {
-    event.respondWith(cacheFirst(request, ASSET_CACHE));
+  if (sameOrigin && url.pathname.startsWith('/assets/')) {
+    event.respondWith(cacheFirstHashedAssets(request, ASSET_CACHE));
   }
 });
 
-/* ── Push notifications (anche con app chiusa) ─────────────────────── */
+/* ── Push notifications ─────────────────────────────────────────────── */
 let vapidPublicKey = null;
 
 function urlBase64ToUint8Array(base64String) {

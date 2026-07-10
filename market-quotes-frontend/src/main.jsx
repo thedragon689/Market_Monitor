@@ -33,7 +33,19 @@ function AppTree() {
   const [swUpdate, setSwUpdate] = useState(false);
 
   useEffect(() => {
+    let reloaded = false;
+    const onControllerChange = () => {
+      if (reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    };
+
+    navigator.serviceWorker?.addEventListener('controllerchange', onControllerChange);
     registerSW({ onUpdate: () => setSwUpdate(true) });
+
+    return () => {
+      navigator.serviceWorker?.removeEventListener('controllerchange', onControllerChange);
+    };
   }, []);
 
   const reloadApp = () => {
