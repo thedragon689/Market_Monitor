@@ -1180,7 +1180,7 @@ function resolveTtsVoice(voice) {
   return voice;
 }
 
-/** Text-to-Speech: RapidAPI → Piper locale (Pied) → errore (fallback browser). */
+/** Text-to-Speech: Edge (RapidAPI) → Piper locale solo se Edge non configurato → 502 (fallback browser). */
 app.post('/api/chat/tts', async (req, res) => {
   try {
     const text = String(req.body?.text || '').slice(0, 800);
@@ -1190,8 +1190,9 @@ app.post('/api/chat/tts', async (req, res) => {
     const voice = resolveTtsVoice(rawVoice);
     const key = process.env.RAPIDAPI_KEY;
     const host = process.env.RAPIDAPI_TTS_HOST;
+    const rapidConfigured = Boolean(key && host);
 
-    if (key && host) {
+    if (rapidConfigured) {
       const pathName = process.env.RAPIDAPI_TTS_PATH || '/';
       const textField = process.env.RAPIDAPI_TTS_TEXT_FIELD || 'text';
       const voiceField = process.env.RAPIDAPI_TTS_VOICE_FIELD || 'voice';
@@ -1212,6 +1213,10 @@ app.post('/api/chat/tts', async (req, res) => {
 
       const r = await fetchWithTimeout(url, options, 25000);
 
+      if (r.status === 429) {
+        return res.status(429).json({ error: 'Quota TTS Edge esaurita', code: 'EDGE_TTS_RATE_LIMIT' });
+      }
+
       if (r.ok) {
         const ct = r.headers.get('content-type') || '';
         if (ct.includes('application/json')) {
@@ -1223,20 +1228,23 @@ app.post('/api/chat/tts', async (req, res) => {
             data?.link ||
             data?.result?.url ||
             (typeof data?.result === 'string' && data.result.startsWith('http') ? data.result : null);
-          if (audioUrl) return res.json({ audioUrl, source: 'rapidapi' });
+          if (audioUrl) return res.json({ audioUrl, source: 'rapidapi-edge' });
           const b64 = data?.audio || data?.audioContent || data?.base64;
           if (typeof b64 === 'string' && b64.length > 100) {
             const prefix = b64.startsWith('data:') ? '' : 'data:audio/mpeg;base64,';
-            return res.json({ audio: `${prefix}${b64}`, source: 'rapidapi' });
+            return res.json({ audio: `${prefix}${b64}`, source: 'rapidapi-edge' });
           }
         } else {
           const buf = Buffer.from(await r.arrayBuffer());
           if (buf.length >= 200) {
             const mime = ct.startsWith('audio/') ? ct : 'audio/mpeg';
-            return res.json({ audio: `data:${mime};base64,${buf.toString('base64')}`, source: 'rapidapi' });
+            return res.json({ audio: `data:${mime};base64,${buf.toString('base64')}`, source: 'rapidapi-edge' });
           }
         }
       }
+
+      // Edge configurato ma fallito: il client usa la voce browser (no Piper in mezzo).
+      return res.status(502).json({ error: 'TTS Edge non disponibile', code: 'EDGE_TTS_UNAVAILABLE' });
     }
 
     const localAudio = await synthesizeLocalPiper(text);

@@ -113,10 +113,35 @@ export default function ChatWidget({ getContext, onAction }) {
   const audioRef = useRef(null);
   const lastSpokenRef = useRef(null);
   const speakTokenRef = useRef(null);
+  const ttsFetchAbortRef = useRef(null);
   // Quando il TTS neurale fallisce (es. quota giornaliera esaurita) evitiamo di
   // ritentare per un po': si usa subito la voce del browser, restando nel gesto
   // del click (l'autoplay resta permesso) e senza attese inutili.
   const neuralBlockedUntilRef = useRef(0);
+
+  const stopNeuralAudio = useCallback(() => {
+    if (audioRef.current) {
+      try {
+        audioRef.current.pause();
+        audioRef.current.removeAttribute('src');
+        audioRef.current.load();
+      } catch {
+        /* ignore */
+      }
+      audioRef.current = null;
+    }
+  }, []);
+
+  const abortTtsFetches = useCallback(() => {
+    if (ttsFetchAbortRef.current) {
+      try {
+        ttsFetchAbortRef.current.abort();
+      } catch {
+        /* ignore */
+      }
+      ttsFetchAbortRef.current = null;
+    }
+  }, []);
 
   // Riproduce un audio (data URL/URL); risolve a fine riproduzione o 'error'.
   const playAudioChunk = useCallback(
@@ -128,58 +153,103 @@ export default function ChatWidget({ getContext, onAction }) {
         }
         const audio = new Audio(src);
         audioRef.current = audio;
-        audio.onended = () => resolve();
-        audio.onerror = () => resolve('error');
-        audio.play().catch(() => resolve('error'));
+        const finish = (result) => {
+          if (audioRef.current === audio) audioRef.current = null;
+          resolve(result);
+        };
+        audio.onended = () => finish();
+        audio.onerror = () => {
+          try {
+            audio.pause();
+          } catch {
+            /* ignore */
+          }
+          finish('error');
+        };
+        audio.play().catch(() => {
+          try {
+            audio.pause();
+          } catch {
+            /* ignore */
+          }
+          finish('error');
+        });
       }),
     []
   );
 
-  // Sintetizza un blocco via proxy TTS; ritorna la sorgente audio o null.
-  const fetchTtsChunk = useCallback(async (text, locale) => {
-    // Timeout breve: se il TTS neurale (RapidAPI) è lento o a quota,
-    // non blocchiamo la voce — si passa subito al fallback browser.
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 6000);
+  // Sintetizza un blocco via Edge TTS (RapidAPI); null se fallisce o annullato.
+  const fetchTtsChunk = useCallback(async (text, locale, signal) => {
     try {
-      const { data } = await apiFetch(`${API_BASE}/api/chat/tts`, {
+      const { ok, data, res } = await apiFetch(`${API_BASE}/api/chat/tts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, voice: locale, lang: locale }),
-        signal: controller.signal,
+        signal,
         optional: true,
       });
-      return data?.audio || data?.audioUrl || null;
+      if (!ok) {
+        if (res?.status === 429) return { audio: null, rateLimited: true };
+        return { audio: null, rateLimited: false };
+      }
+      return {
+        audio: data?.audio || data?.audioUrl || null,
+        rateLimited: false,
+      };
     } catch {
-      return null;
-    } finally {
-      clearTimeout(timer);
+      return { audio: null, rateLimited: false };
     }
   }, []);
 
   const stopSpeak = useCallback(() => {
     if (speakTokenRef.current) speakTokenRef.current.cancelled = true;
+    abortTtsFetches();
+    stopNeuralAudio();
     try {
       window.speechSynthesis?.cancel();
     } catch {
       /* ignore */
     }
-    if (audioRef.current) {
-      try {
-        audioRef.current.pause();
-      } catch {
-        /* ignore */
-      }
-      audioRef.current = null;
-    }
     setSpeaking(false);
-  }, []);
+  }, [abortTtsFetches, stopNeuralAudio]);
+
+  /** Edge TTS: un chunk alla volta, nessun prefetch finché il precedente non va a buon fine. */
+  const tryEdgeTts = useCallback(
+    async (chunks, locale, token) => {
+      const controller = new AbortController();
+      ttsFetchAbortRef.current = controller;
+      const timeout = setTimeout(() => controller.abort(), 20000);
+
+      try {
+        for (let i = 0; i < chunks.length; i++) {
+          if (token.cancelled) return 'cancelled';
+
+          const { audio, rateLimited } = await fetchTtsChunk(
+            chunks[i],
+            locale,
+            controller.signal
+          );
+          if (token.cancelled) return 'cancelled';
+
+          if (rateLimited) return 'rate_limited';
+          if (!audio) return 'failed';
+
+          const result = await playAudioChunk(audio, token);
+          if (token.cancelled) return 'cancelled';
+          if (result === 'error') return 'failed';
+        }
+        return 'ok';
+      } finally {
+        clearTimeout(timeout);
+        if (ttsFetchAbortRef.current === controller) ttsFetchAbortRef.current = null;
+      }
+    },
+    [fetchTtsChunk, playAudioChunk]
+  );
 
   const speak = useCallback(
     async (text, code) => {
       const locale = localeFor(code || lang);
-      // Neurale disponibile solo se configurato e non "bloccato" da un fallimento
-      // recente (es. quota giornaliera esaurita → 502).
       const neuralReady = Boolean(config?.hasTTS) && Date.now() >= neuralBlockedUntilRef.current;
       const firefox = isFirefox();
       const chunks = splitForBrowserSpeech(text, locale, {
@@ -187,54 +257,64 @@ export default function ChatWidget({ getContext, onAction }) {
         maxLen: neuralReady ? 320 : undefined,
       });
       if (!chunks.length) return;
+
       stopSpeak();
       const token = { cancelled: false };
       speakTokenRef.current = token;
       setSpeaking(true);
 
-      // Voce di sistema: chunk brevi, pause, testo preparato per eSpeak.
+      // Solo voce browser (Edge non configurato o bloccato per quota).
       if (!neuralReady) {
         setUseSystemVoice(true);
+        setNeuralDown(Date.now() < neuralBlockedUntilRef.current);
         await speakBrowserText(text, locale, token);
         if (!token.cancelled) setSpeaking(false);
         return;
       }
 
       setUseSystemVoice(false);
-      // Pipeline: precarica la frase successiva mentre parla quella corrente,
-      // così la voce parte subito (sincronizzata col testo) e prosegue fluida.
-      // Se il TTS neurale fallisce anche solo una volta (quota/timeout/autoplay),
-      // si passa definitivamente alla voce del browser per non lasciare muti.
-      let ttsFailed = false;
-      let nextAudio = fetchTtsChunk(chunks[0], locale);
-      for (let i = 0; i < chunks.length; i++) {
-        const src = ttsFailed ? null : await nextAudio;
-        if (token.cancelled) return;
-        nextAudio =
-          !ttsFailed && i + 1 < chunks.length
-            ? fetchTtsChunk(chunks[i + 1], locale)
-            : Promise.resolve(null);
-        const result = src ? await playAudioChunk(src, token) : 'error';
-        if (token.cancelled) return;
-        if (result === 'error') {
-          ttsFailed = true;
-          neuralBlockedUntilRef.current = Date.now() + 10 * 60 * 1000;
-          setNeuralDown(true);
-          setUseSystemVoice(true);
-          await speakBrowserText(chunks.slice(i).join(' '), locale, token);
-          break;
-        } else if (i === 0) {
-          neuralBlockedUntilRef.current = 0;
-          setNeuralDown(false);
-          setUseSystemVoice(false);
-        }
-      }
-      if (!token.cancelled) {
-        if (!ttsFailed) setUseSystemVoice(false);
+      setNeuralDown(false);
+
+      // Fase 1: Edge TTS sequenziale — niente fallback in parallelo.
+      const edgeResult = await tryEdgeTts(chunks, locale, token);
+      if (token.cancelled) return;
+
+      if (edgeResult === 'ok') {
+        neuralBlockedUntilRef.current = 0;
+        setNeuralDown(false);
+        setUseSystemVoice(false);
         setSpeaking(false);
+        return;
       }
+
+      // Fase 2: Edge fallito → ferma tutto il neurale, poi solo browser.
+      abortTtsFetches();
+      stopNeuralAudio();
+      try {
+        window.speechSynthesis?.cancel();
+      } catch {
+        /* ignore */
+      }
+
+      if (edgeResult === 'rate_limited') {
+        neuralBlockedUntilRef.current = Date.now() + 30 * 60 * 1000;
+      } else {
+        neuralBlockedUntilRef.current = Date.now() + 10 * 60 * 1000;
+      }
+      setNeuralDown(true);
+      setUseSystemVoice(true);
+
+      await speakBrowserText(text, locale, token);
+      if (!token.cancelled) setSpeaking(false);
     },
-    [config?.hasTTS, stopSpeak, playAudioChunk, fetchTtsChunk, lang]
+    [
+      config?.hasTTS,
+      stopSpeak,
+      abortTtsFetches,
+      stopNeuralAudio,
+      tryEdgeTts,
+      lang,
+    ]
   );
 
   const changeLang = (code) => {
@@ -352,14 +432,32 @@ export default function ChatWidget({ getContext, onAction }) {
           })
         }
       >
-        {open ? '×' : '💬'}
+        {open ? (
+          '×'
+        ) : (
+          <img
+            src="/chatbot-icon.png"
+            alt=""
+            className="chat-fab__icon"
+            width={128}
+            height={128}
+            decoding="async"
+          />
+        )}
       </button>
 
       {open && (
         <section className="chat-panel" role="dialog" aria-label="Assistente Market Monitor">
           <header className="chat-panel__head">
             <div className="chat-panel__title">
-              <span className="chat-panel__dot" aria-hidden="true" />
+              <img
+                src="/chatbot-icon-sm.png"
+                alt=""
+                className="chat-panel__avatar"
+                width={32}
+                height={32}
+                decoding="async"
+              />
               Assistente
             </div>
             <div className="chat-panel__head-actions">
