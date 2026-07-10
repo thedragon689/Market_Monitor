@@ -27,7 +27,6 @@ import { mountPortfolioRoutes } from './lib/portfolio/routes.js';
 import { rateLimit, defaultCostFor } from './lib/rateLimit.js';
 import { isLocalPiperAvailable, synthesizeLocalPiper } from './lib/localPiperTts.js';
 import { mountGraphQL } from './lib/graphql/handler.js';
-import { attachWebSocketServer } from './lib/wsHub.js';
 import { cacheHealth } from './lib/cacheStore.js';
 import { logger, initObservability } from './lib/logger.js';
 import { startPriceBridge } from './lib/wsPriceBridge.js';
@@ -1848,17 +1847,19 @@ if (isDirectRun) {
     process.exit(1);
   });
 
-  const wsHub = attachWebSocketServer(server);
-  globalThis.__wsHub = wsHub;
+  import('./lib/wsHub.js').then(({ attachWebSocketServer }) => {
+    const wsHub = attachWebSocketServer(server);
+    globalThis.__wsHub = wsHub;
 
-  const enableWsBridge =
-    process.env.ENABLE_WS_BRIDGE === 'true' ||
-    process.env.NODE_ENV === 'production';
-  if (enableWsBridge) {
-    stopPriceBridge = startPriceBridge(wsHub, getCachedMarket);
-  } else {
-    console.log('[ws] Price bridge disabilitato in dev (ENABLE_WS_BRIDGE=true per attivarlo)');
-  }
+    const enableWsBridge =
+      process.env.ENABLE_WS_BRIDGE === 'true' ||
+      process.env.NODE_ENV === 'production';
+    if (enableWsBridge) {
+      stopPriceBridge = startPriceBridge(wsHub, getCachedMarket);
+    } else {
+      console.log('[ws] Price bridge disabilitato in dev (ENABLE_WS_BRIDGE=true per attivarlo)');
+    }
+  });
 
   const warmChartSymbols = [
     { type: 'index', symbol: '^GSPC' },
