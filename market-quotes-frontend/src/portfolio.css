@@ -223,6 +223,28 @@
   font-weight: 600;
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+.portfolio-oauth__icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+}
+
+.portfolio-oauth__btn--google {
+  background: #fff;
+  border-color: #dadce0;
+  color: #1f1f1f;
+}
+
+html[data-theme='dark'] .portfolio-oauth__btn--google {
+  background: #131314;
+  border-color: #5f6368;
+  color: #e8eaed;
 }
 
 .portfolio-oauth__btn:hover:not(:disabled) {

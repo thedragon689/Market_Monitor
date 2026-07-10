@@ -1,17 +1,25 @@
 import { useCallback, useEffect, useState } from 'react';
-import { isIos, isStandalonePwa, supportsNativeInstall } from '../utils/pwaPlatform';
+import {
+  isAndroid,
+  isInAppBrowser,
+  isIos,
+  isStandalonePwa,
+  supportsNativeInstall,
+} from '../utils/pwaPlatform';
 
 const VISIT_KEY = 'mm:visits';
 const DISMISS_KEY = 'mm:install-dismissed';
 
 /**
  * Installazione PWA:
- * - Android/Chrome: cattura beforeinstallprompt
+ * - Android/Chrome: cattura beforeinstallprompt (+ guida manuale se assente)
  * - iOS: mostra guida manuale (Share → Aggiungi a Home)
  */
 export function useInstallPrompt() {
   const [deferred, setDeferred] = useState(null);
   const [iosGuide, setIosGuide] = useState(false);
+  const [androidGuide, setAndroidGuide] = useState(false);
+  const [inAppBrowser, setInAppBrowser] = useState(false);
   const [canInstall, setCanInstall] = useState(false);
 
   useEffect(() => {
@@ -32,10 +40,23 @@ export function useInstallPrompt() {
     }
     if (dismissed) return;
 
+    if (isInAppBrowser()) {
+      setInAppBrowser(true);
+      setCanInstall(true);
+      if (isIos()) setIosGuide(true);
+      else setAndroidGuide(true);
+      return undefined;
+    }
+
     if (isIos()) {
       setIosGuide(true);
       setCanInstall(true);
       return undefined;
+    }
+
+    if (isAndroid()) {
+      setAndroidGuide(true);
+      setCanInstall(true);
     }
 
     if (!supportsNativeInstall()) return undefined;
@@ -43,6 +64,7 @@ export function useInstallPrompt() {
     const onBeforeInstall = (e) => {
       e.preventDefault();
       setDeferred(e);
+      setAndroidGuide(false);
       setCanInstall(true);
     };
 
@@ -50,6 +72,8 @@ export function useInstallPrompt() {
       setCanInstall(false);
       setDeferred(null);
       setIosGuide(false);
+      setAndroidGuide(false);
+      setInAppBrowser(false);
     };
 
     window.addEventListener('beforeinstallprompt', onBeforeInstall);
@@ -74,6 +98,8 @@ export function useInstallPrompt() {
   const dismiss = useCallback(() => {
     setCanInstall(false);
     setIosGuide(false);
+    setAndroidGuide(false);
+    setInAppBrowser(false);
     try {
       localStorage.setItem(DISMISS_KEY, '1');
     } catch {
@@ -84,6 +110,8 @@ export function useInstallPrompt() {
   return {
     canInstall,
     iosGuide,
+    androidGuide,
+    inAppBrowser,
     hasNativePrompt: Boolean(deferred),
     promptInstall,
     dismiss,
