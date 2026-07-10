@@ -28,13 +28,6 @@
   --chart-h-xl: 360px;
 }
 
-@supports (padding: max(0px)) {
-  body {
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-  }
-}
-
 /* ── App container ── */
 .app {
   padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
@@ -494,8 +487,13 @@
     max-height: 46vh;
   }
 
-  .mobile-home__carousel {
+  .mhome-index-scroll {
     gap: 0.4rem;
+    scroll-padding-inline: 0.85rem;
+  }
+
+  .mhome-index-card {
+    min-height: 6.75rem;
   }
 }
 

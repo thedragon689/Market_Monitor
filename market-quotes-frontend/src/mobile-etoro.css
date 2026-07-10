@@ -1360,7 +1360,7 @@
 /* ── Mobile UX polish (categorie, movers, sticky) ── */
 @media (max-width: 899px) {
   .app--mobile {
-    padding-bottom: calc(var(--mobile-nav-h, 4.25rem) + 1rem);
+    padding-bottom: calc(var(--mobile-nav-h, 4.25rem) + 1rem + env(safe-area-inset-bottom, 0px));
   }
 
   .app--mobile .view-panel--analysis {
@@ -1628,7 +1628,9 @@
   .app-shell__asset-actions .btn,
   .mobile-explore__filter,
   .mobile-explore__refresh,
-  .panel-choices__chip {
+  .panel-choices__chip,
+  .mhome-list-row,
+  .mhome-index-card {
     min-height: var(--touch-min, 44px) !important;
   }
 

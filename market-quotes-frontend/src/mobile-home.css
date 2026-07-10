@@ -14,7 +14,7 @@
   .app-shell--mobile-home .app-shell__main {
     background: var(--mhome-bg);
     margin: 0 -0.85rem;
-    padding: 0.75rem max(0.85rem, env(safe-area-inset-left, 0px)) 1rem
+    padding: 0.75rem max(0.85rem, env(safe-area-inset-left, 0px)) calc(1rem + env(safe-area-inset-bottom, 0px) * 0.25)
       max(0.85rem, env(safe-area-inset-right, 0px));
   }
 
@@ -207,14 +207,17 @@
   .mobile-search-menu__field-clear {
     position: absolute;
     right: 0.35rem;
-    width: 2.25rem;
-    height: 2.25rem;
+    width: var(--touch-min, 44px);
+    height: var(--touch-min, 44px);
     border: none;
     border-radius: 8px;
     background: transparent;
     color: var(--text-muted);
     font-size: 1.2rem;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .mobile-search-menu__hint {
@@ -331,14 +334,17 @@
   }
 
   .mobile-search-menu__close {
-    width: 2rem;
-    height: 2rem;
+    width: var(--touch-min, 44px);
+    height: var(--touch-min, 44px);
     border: none;
     border-radius: 8px;
     background: transparent;
     color: var(--text-muted);
     font-size: 1.1rem;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .mobile-search-menu__list {
@@ -420,6 +426,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.15rem;
+    padding-bottom: 0.5rem;
   }
 
   .mhome--refreshing {
@@ -483,6 +490,7 @@
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
+    scroll-padding-inline: 0.85rem;
     padding: 0.15rem 0.1rem 0.35rem;
     margin: 0 -0.1rem;
     -webkit-overflow-scrolling: touch;
@@ -494,7 +502,7 @@
   }
 
   .mhome-index-card {
-    flex: 0 0 9.5rem;
+    flex: 0 0 min(9.5rem, 78vw);
     scroll-snap-align: start;
     display: flex;
     flex-direction: column;
@@ -524,7 +532,7 @@
   }
 
   .mhome-index-card__price {
-    font-size: 1.05rem;
+    font-size: clamp(0.95rem, 4.5vw, 1.05rem);
     font-weight: 800;
     color: var(--text-h);
     font-variant-numeric: tabular-nums;
@@ -549,6 +557,12 @@
     width: 100%;
     margin-top: auto;
     align-self: stretch;
+  }
+
+  .mhome-index-card__spark svg {
+    width: 100%;
+    height: auto;
+    display: block;
   }
 
   .mhome-index-card--up .mhome-index-card__spark {
@@ -590,8 +604,13 @@
     background: transparent;
     text-align: left;
     cursor: pointer;
-    min-height: 4.25rem;
+    min-height: var(--touch-min, 56px);
     -webkit-tap-highlight-color: transparent;
+    transition: background 0.12s ease;
+  }
+
+  .mhome-list-row:active {
+    background: color-mix(in srgb, var(--accent) 6%, var(--mhome-card));
   }
 
   .mhome-list-row--crypto {
@@ -600,6 +619,11 @@
   }
 
   .mhome-list-row--commodity {
+    grid-template-columns: auto 1fr auto auto;
+    grid-template-rows: auto auto;
+  }
+
+  .mhome-list-row--forex {
     grid-template-columns: auto 1fr auto auto;
     grid-template-rows: auto auto;
   }
@@ -626,10 +650,14 @@
 
   .mhome-list-row__label {
     grid-column: 2;
-    font-size: 0.92rem;
+    font-size: clamp(0.85rem, 3.8vw, 0.92rem);
     font-weight: 700;
     color: var(--text-h);
     align-self: end;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .mhome-list-row__dots {
@@ -651,6 +679,10 @@
     align-self: center;
   }
 
+  .mhome-list-row--forex .mhome-list-row__label {
+    align-self: center;
+  }
+
   .mhome-list-row__quote {
     grid-column: 3;
     grid-row: 1 / -1;
@@ -659,9 +691,16 @@
     align-items: flex-end;
     gap: 0.12rem;
     justify-self: end;
+    min-width: 0;
+    max-width: 42%;
   }
 
   .mhome-list-row--commodity .mhome-list-row__quote {
+    grid-column: 3;
+    grid-row: 1 / -1;
+  }
+
+  .mhome-list-row--forex .mhome-list-row__quote {
     grid-column: 3;
     grid-row: 1 / -1;
   }
@@ -671,14 +710,25 @@
     grid-row: 1 / -1;
     justify-self: end;
     align-self: center;
+    flex-shrink: 0;
+    width: clamp(44px, 14vw, 56px);
+  }
+
+  .mhome-list-row__spark svg {
+    width: 100%;
+    height: auto;
+    display: block;
   }
 
   .mhome-list-row__price {
-    font-size: 0.95rem;
+    font-size: clamp(0.88rem, 3.6vw, 0.95rem);
     font-weight: 800;
     color: var(--text-h);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .mhome-list-row__chg {
@@ -737,5 +787,21 @@
 
   .mobile-markets--refreshing {
     opacity: 0.97;
+  }
+
+  /* Schermi stretti: nascondi sparkline per evitare overflow */
+  @media (max-width: 360px) {
+    .mhome-list-row__spark {
+      display: none;
+    }
+
+    .mhome-list-row--commodity,
+    .mhome-list-row--forex {
+      grid-template-columns: auto 1fr auto;
+    }
+
+    .mhome-list-row__quote {
+      max-width: 52%;
+    }
   }
 }

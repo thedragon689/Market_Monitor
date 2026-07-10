@@ -44,7 +44,7 @@
 }
 
 /* Su mobile il FAB sta sopra la bottom nav. */
-@media (max-width: 900px) {
+@media (max-width: 899px) {
   .chat-fab {
     bottom: calc(var(--mobile-nav-h, 56px) + env(safe-area-inset-bottom, 0px) + 0.75rem);
   }
@@ -68,7 +68,7 @@
   animation: chat-pop 0.2s ease-out;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 899px) {
   .chat-panel {
     bottom: calc(var(--mobile-nav-h, 56px) + env(safe-area-inset-bottom, 0px) + 4.5rem);
     height: min(70vh, 560px);
