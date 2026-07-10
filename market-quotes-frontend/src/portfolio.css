@@ -188,6 +188,22 @@
   border-top: 1px solid var(--border);
 }
 
+.portfolio-notify__prefs,
+.portfolio-notify__form-prefs {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 0 0;
+  border: none;
+}
+
+.portfolio-notify__prefs legend,
+.portfolio-notify__form-prefs .portfolio-notify__channel {
+  margin-bottom: 0.5rem;
+}
+
+.portfolio-notify__form-prefs .portfolio-field--check {
+  margin-bottom: 0.35rem;
+}
+
 .portfolio-notify__push-actions {
   display: flex;
   flex-direction: column;

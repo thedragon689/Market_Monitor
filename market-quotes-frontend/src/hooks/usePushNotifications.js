@@ -98,8 +98,23 @@ export function usePushNotifications({ enabled = true } = {}) {
 
   const unsubscribe = useCallback(async () => {
     if (subscription) {
+      const endpoint = subscription.endpoint;
       await subscription.unsubscribe().catch(() => {});
       setSubscription(null);
+      try {
+        const token = (await resolveAccessToken()) || getPortfolioToken();
+        await fetch(`${API_BASE}/api/notifications/push/unsubscribe`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          credentials: 'include',
+          body: JSON.stringify({ endpoint }),
+        });
+      } catch {
+        /* server non raggiungibile */
+      }
     }
   }, [subscription]);
 

@@ -35,11 +35,11 @@ export default function useLegacyPortfolioAuth() {
     }
   }, []);
 
-  const register = useCallback(async (email, password) => {
+  const register = useCallback(async (email, password, options = {}) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await registerPortfolio(email, password);
+      const data = await registerPortfolio(email, password, options);
       setUser(data.user);
       setToken(data.token || data.accessToken);
       return data;

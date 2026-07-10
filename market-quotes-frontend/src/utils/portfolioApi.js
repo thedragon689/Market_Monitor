@@ -96,10 +96,11 @@ export async function portfolioFetch(path, options = {}, allowRefresh = true) {
   }
 }
 
-export async function registerPortfolio(email, password) {
+export async function registerPortfolio(email, password, options = {}) {
+  const { phoneNumber, notificationPrefs } = options;
   const data = await portfolioFetch('/api/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, phoneNumber, notificationPrefs }),
   });
   setPortfolioTokens({ accessToken: data.token || data.accessToken });
   return data;
@@ -227,4 +228,15 @@ export async function setPortfolioEmailAlerts(enabled) {
 
 export async function getNotificationsConfig() {
   return portfolioFetch('/api/notifications/config');
+}
+
+export async function getNotificationPreferences() {
+  return portfolioFetch('/api/notifications/preferences');
+}
+
+export async function updateNotificationPreferences(prefs) {
+  return portfolioFetch('/api/notifications/preferences', {
+    method: 'PATCH',
+    body: JSON.stringify(prefs),
+  });
 }

@@ -5,6 +5,8 @@ import {
   registerPortfolioSlack,
   setPortfolioEmailAlerts,
   getNotificationsConfig,
+  getNotificationPreferences,
+  updateNotificationPreferences,
 } from '../../utils/portfolioApi';
 import PushSubscribeButton from './PushSubscribeButton';
 
@@ -13,6 +15,13 @@ export default function PortfolioNotifications({ onBack }) {
   const [whatsapp, setWhatsapp] = useState('');
   const [slack, setSlack] = useState('');
   const [emailOn, setEmailOn] = useState(false);
+  const [prefs, setPrefs] = useState({
+    pushAlerts: true,
+    notifyGain: true,
+    notifyLoss: true,
+    notifyForecast: true,
+    notifyAdvice: true,
+  });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
@@ -20,9 +29,24 @@ export default function PortfolioNotifications({ onBack }) {
 
   useEffect(() => {
     let cancelled = false;
-    getNotificationsConfig()
-      .then((cfg) => {
-        if (!cancelled && cfg) setServerConfig(cfg);
+    Promise.all([getNotificationsConfig(), getNotificationPreferences()])
+      .then(([cfg, userPrefs]) => {
+        if (cancelled) return;
+        if (cfg) setServerConfig(cfg);
+        if (userPrefs) {
+          setPrefs({
+            pushAlerts: userPrefs.pushAlerts !== false,
+            notifyGain: userPrefs.notifyGain !== false,
+            notifyLoss: userPrefs.notifyLoss !== false,
+            notifyForecast: userPrefs.notifyForecast !== false,
+            notifyAdvice: userPrefs.notifyAdvice !== false,
+          });
+          if (userPrefs.whatsappNumber) setWhatsapp(userPrefs.whatsappNumber);
+          else if (userPrefs.phoneNumber) setWhatsapp(userPrefs.phoneNumber);
+          if (userPrefs.telegramChatId) setTelegramId(userPrefs.telegramChatId);
+          if (userPrefs.slackWebhookUrl) setSlack(userPrefs.slackWebhookUrl);
+          setEmailOn(userPrefs.emailAlerts === true);
+        }
       })
       .catch(() => {});
     return () => {
@@ -79,6 +103,15 @@ export default function PortfolioNotifications({ onBack }) {
     );
   };
 
+  const togglePref = (key) => {
+    const next = { ...prefs, [key]: !prefs[key] };
+    setPrefs(next);
+    runSave(
+      () => updateNotificationPreferences(next),
+      'Preferenze alert aggiornate.'
+    );
+  };
+
   return (
     <section className="portfolio-notify app-card">
       <header className="portfolio-add__head">
@@ -89,9 +122,61 @@ export default function PortfolioNotifications({ onBack }) {
       </header>
 
       <p className="portfolio-notify__lead">
-        Collega uno o più canali (Telegram, WhatsApp, Slack, email) per ricevere alert automatici
-        quando il P/L supera le soglie guadagno/perdita (controllo ogni 5 minuti).
+        Ricevi alert automatici sul portafoglio: aumenti, diminuzioni, previsioni di trend e
+        consigli operativi (controllo ogni 5 minuti).
       </p>
+
+      <div className="portfolio-add__form portfolio-notify__form-prefs">
+        <h3 className="portfolio-notify__channel">Tipi di alert</h3>
+        <p className="portfolio-notify__hint">
+          Scegli quali eventi inviare sui canali collegati (push, WhatsApp, Telegram, ecc.).
+        </p>
+        <label className="portfolio-field portfolio-field--check">
+          <input
+            type="checkbox"
+            checked={prefs.notifyGain}
+            onChange={() => togglePref('notifyGain')}
+            disabled={loading}
+          />
+          <span>Aumenti / soglie guadagno</span>
+        </label>
+        <label className="portfolio-field portfolio-field--check">
+          <input
+            type="checkbox"
+            checked={prefs.notifyLoss}
+            onChange={() => togglePref('notifyLoss')}
+            disabled={loading}
+          />
+          <span>Diminuzioni / soglie perdita</span>
+        </label>
+        <label className="portfolio-field portfolio-field--check">
+          <input
+            type="checkbox"
+            checked={prefs.notifyForecast}
+            onChange={() => togglePref('notifyForecast')}
+            disabled={loading}
+          />
+          <span>Previsioni di trend</span>
+        </label>
+        <label className="portfolio-field portfolio-field--check">
+          <input
+            type="checkbox"
+            checked={prefs.notifyAdvice}
+            onChange={() => togglePref('notifyAdvice')}
+            disabled={loading}
+          />
+          <span>Consigli vendita / riduzione</span>
+        </label>
+        <label className="portfolio-field portfolio-field--check">
+          <input
+            type="checkbox"
+            checked={prefs.pushAlerts}
+            onChange={() => togglePref('pushAlerts')}
+            disabled={loading}
+          />
+          <span>Invia notifiche push sull&apos;app</span>
+        </label>
+      </div>
 
       <form className="portfolio-add__form" onSubmit={saveTelegram}>
         <h3 className="portfolio-notify__channel">Telegram</h3>
