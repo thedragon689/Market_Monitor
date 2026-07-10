@@ -432,9 +432,19 @@ app.get('/api/health', (_req, res) => {
   res.json({
     ok: true,
     service: 'market-monitor-api',
-    version: '1.2.0',
+    version: '2.0.0',
     runtime: process.env.AWS_LAMBDA_FUNCTION_NAME ? 'netlify' : 'node',
-    features: ['multi-source', 'trade-advice', 'analysis-bundle', 'bootstrap', 'market-batch'],
+    features: [
+      'multi-source',
+      'trade-advice',
+      'analysis-bundle',
+      'bootstrap',
+      'market-batch',
+      'portfolio',
+      'watchlist',
+      'pwa-push',
+      'auth0-optional',
+    ],
     degraded: marketStats.overloaded,
     queues: { market: marketStats },
     memoryMb: {

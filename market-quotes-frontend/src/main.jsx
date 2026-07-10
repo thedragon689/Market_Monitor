@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Auth0Provider } from '@auth0/auth0-react'
 import './index.css'
@@ -8,7 +8,7 @@ import App from './App.jsx'
 import AuthCallback from './components/portfolio/AuthCallback.jsx'
 import { ThemeProvider, resolveInitialTheme } from './theme/ThemeProvider'
 import { applyDensity, loadDensity } from './hooks/useDensityPreset'
-import { OfflineBanner, InstallPrompt } from './components/ui'
+import { OfflineBanner, InstallPrompt, SwUpdatePrompt } from './components/ui'
 import { registerSW } from './pwa/registerSW'
 import { initWebVitals } from './utils/webVitals'
 
@@ -30,12 +30,26 @@ document.documentElement.style.colorScheme = initialTheme
 applyDensity(loadDensity())
 
 function AppTree() {
+  const [swUpdate, setSwUpdate] = useState(false);
+
+  useEffect(() => {
+    registerSW({ onUpdate: () => setSwUpdate(true) });
+  }, []);
+
+  const reloadApp = () => {
+    navigator.serviceWorker?.controller?.postMessage('SKIP_WAITING');
+    window.location.reload();
+  };
+
   if (IS_CALLBACK && AUTH0_ENABLED) return <AuthCallback />
   return (
     <>
       <OfflineBanner />
       <App />
       <InstallPrompt />
+      {swUpdate ? (
+        <SwUpdatePrompt onReload={reloadApp} onDismiss={() => setSwUpdate(false)} />
+      ) : null}
     </>
   )
 }
@@ -71,5 +85,4 @@ createRoot(document.getElementById('root')).render(
   ),
 )
 
-registerSW()
 initWebVitals()

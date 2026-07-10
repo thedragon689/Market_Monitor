@@ -8,7 +8,7 @@
  *  - Push notifications: alert prezzo/portfolio/news.
  */
 
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL_CACHE = `mm-shell-${VERSION}`;
 const ASSET_CACHE = `mm-assets-${VERSION}`;
 const API_CACHE = `mm-api-${VERSION}`;

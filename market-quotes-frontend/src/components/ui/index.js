@@ -18,3 +18,4 @@ export { default as ThemeToggle } from './ThemeToggle';
 export { default as BottomNav, DEFAULT_TABS } from './BottomNav';
 export { default as OfflineBanner } from './OfflineBanner';
 export { default as InstallPrompt } from './InstallPrompt';
+export { default as SwUpdatePrompt } from './SwUpdatePrompt';
