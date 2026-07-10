@@ -439,8 +439,8 @@ export default function ChatWidget({ getContext, onAction }) {
             src="/chatbot-icon.png"
             alt=""
             className="chat-fab__icon"
-            width={128}
-            height={128}
+            width={256}
+            height={256}
             decoding="async"
           />
         )}
@@ -454,8 +454,8 @@ export default function ChatWidget({ getContext, onAction }) {
                 src="/chatbot-icon-sm.png"
                 alt=""
                 className="chat-panel__avatar"
-                width={32}
-                height={32}
+                width={64}
+                height={64}
                 decoding="async"
               />
               Assistente
