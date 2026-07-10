@@ -35,6 +35,7 @@
   --z-sheet: 60;
   --z-modal: 70;
   --z-tooltip: 80;
+  --z-install-prompt: 90;
 }
 
 /* ── DARK (default / first) ─────────────────────────────────────────── */

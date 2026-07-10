@@ -474,9 +474,9 @@
 /* ── InstallPrompt ────────────────────────────────────────────────── */
 .ui-install-prompt {
   position: fixed;
-  z-index: var(--z-sheet);
+  z-index: var(--z-install-prompt, var(--z-sheet));
   left: 50%;
-  bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   width: min(420px, calc(100vw - var(--space-8)));
   display: flex;
@@ -485,6 +485,7 @@
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-lg);
   animation: ui-sheet-up var(--transition-page) var(--ease-out);
+  pointer-events: auto;
 }
 .ui-install-prompt__text {
   display: flex;
@@ -504,6 +505,25 @@
 .ui-install-prompt__actions {
   display: flex;
   gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+@media (max-width: 899px) {
+  .ui-install-prompt {
+    left: max(var(--space-3), env(safe-area-inset-left, 0px));
+    right: max(var(--space-3), env(safe-area-inset-right, 0px));
+    width: auto;
+    transform: none;
+    bottom: calc(
+      var(--mobile-nav-h, 4.35rem) + env(safe-area-inset-bottom, 0px) + var(--space-3)
+    );
+    box-shadow: var(--shadow-md);
+  }
+
+  .ui-install-prompt__text span {
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
 }
 
 /* ── Keyframes ────────────────────────────────────────────────────── */
