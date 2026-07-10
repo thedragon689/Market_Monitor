@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { API_BASE } from '../config/api';
-import { getPortfolioToken } from '../utils/portfolioApi';
+import { resolveAccessToken } from '../utils/portfolioApi';
 
 /**
  * Hook WebSocket prezzi live — subscribe:price con auth JWT opzionale.
@@ -12,39 +12,48 @@ export default function useLivePrice(symbol, type = 'stock', enabled = true) {
 
   const connect = useCallback(() => {
     if (!enabled || !symbol) return undefined;
-    const token = getPortfolioToken();
-    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const host = API_BASE ? new URL(API_BASE).host : window.location.host;
-    const qs = token ? `?token=${encodeURIComponent(token)}` : '';
-    const ws = new WebSocket(`${proto}://${host}/ws${qs}`);
-    wsRef.current = ws;
 
-    ws.onopen = () => {
-      setConnected(true);
-      ws.send(
-        JSON.stringify({
-          action: 'subscribe',
-          channel: 'price',
-          symbol: symbol.toUpperCase(),
-          type,
-        })
-      );
-    };
-    ws.onmessage = (ev) => {
-      try {
-        const msg = JSON.parse(ev.data);
-        if (msg.type === 'price' && msg.symbol?.toUpperCase() === symbol.toUpperCase()) {
-          setQuote(msg);
+    let cancelled = false;
+    let ws;
+
+    (async () => {
+      const token = await resolveAccessToken();
+      if (cancelled) return;
+
+      const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      const host = API_BASE ? new URL(API_BASE).host : window.location.host;
+      const qs = token ? `?token=${encodeURIComponent(token)}` : '';
+      ws = new WebSocket(`${proto}://${host}/ws${qs}`);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        setConnected(true);
+        ws.send(
+          JSON.stringify({
+            action: 'subscribe',
+            channel: 'price',
+            symbol: symbol.toUpperCase(),
+            type,
+          })
+        );
+      };
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg.type === 'price' && msg.symbol?.toUpperCase() === symbol.toUpperCase()) {
+            setQuote(msg);
+          }
+        } catch {
+          /* ignore */
         }
-      } catch {
-        /* ignore */
-      }
-    };
-    ws.onclose = () => setConnected(false);
-    ws.onerror = () => setConnected(false);
+      };
+      ws.onclose = () => setConnected(false);
+      ws.onerror = () => setConnected(false);
+    })();
 
     return () => {
-      ws.close();
+      cancelled = true;
+      ws?.close();
       wsRef.current = null;
     };
   }, [enabled, symbol, type]);

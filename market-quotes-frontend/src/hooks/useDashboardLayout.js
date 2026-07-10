@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchDashboardLayout, getPortfolioToken, saveDashboardLayoutRemote } from '../utils/portfolioApi';
+import { fetchDashboardLayout, hasPortfolioSessionSync, saveDashboardLayoutRemote } from '../utils/portfolioApi';
 import { WIDGET_REGISTRY } from '../components/dashboard/widgetRegistry';
 
 const STORAGE_KEY = 'mm:dashboard-layout';
@@ -58,7 +58,7 @@ export function resetDashboardLayout() {
 
 /** Carica layout: server se autenticato, altrimenti localStorage. */
 export async function resolveDashboardLayout() {
-  if (getPortfolioToken()) {
+  if (hasPortfolioSessionSync()) {
     try {
       const remote = await fetchDashboardLayout();
       if (Array.isArray(remote?.layout) && remote.layout.length) {
@@ -79,7 +79,7 @@ export function useDashboardPersistence(layout, setLayout) {
 
   useEffect(() => {
     saveDashboardLayout(layout);
-    if (!getPortfolioToken()) return undefined;
+    if (!hasPortfolioSessionSync()) return undefined;
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       saveDashboardLayoutRemote(layout).catch(() => {});

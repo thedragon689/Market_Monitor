@@ -2,6 +2,7 @@ import { API_BASE } from '../config/api';
 import { apiFetch } from './apiFetch';
 
 const TOKEN_KEY = 'market-monitor-portfolio-token';
+const SESSION_FLAG = 'mm:portfolio-session-active';
 
 let refreshInFlight = null;
 let tokenProvider = () => getPortfolioToken();
@@ -14,9 +15,11 @@ export function setPortfolioTokenProvider(fn) {
   if (!fn) {
     tokenProvider = () => getPortfolioToken();
     usingAuth0Tokens = false;
+    markPortfolioSessionActive(false);
   } else {
     tokenProvider = fn;
     usingAuth0Tokens = true;
+    markPortfolioSessionActive(true);
   }
 }
 
@@ -27,6 +30,18 @@ async function resolveAccessToken() {
 }
 
 export { resolveAccessToken };
+
+export function isUsingAuth0Tokens() {
+  return usingAuth0Tokens;
+}
+
+export async function hasPortfolioSession() {
+  try {
+    return Boolean(await resolveAccessToken());
+  } catch {
+    return false;
+  }
+}
 
 export function getPortfolioToken() {
   try {
@@ -44,10 +59,32 @@ export function getRefreshToken() {
 export function setPortfolioTokens({ accessToken }) {
   try {
     const token = accessToken || null;
-    if (token) localStorage.setItem(TOKEN_KEY, token);
-    else localStorage.removeItem(TOKEN_KEY);
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(SESSION_FLAG, '1');
+    } else {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(SESSION_FLAG);
+    }
   } catch {
     /* ignore */
+  }
+}
+
+export function markPortfolioSessionActive(active = true) {
+  try {
+    if (active) localStorage.setItem(SESSION_FLAG, '1');
+    else localStorage.removeItem(SESSION_FLAG);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function hasPortfolioSessionSync() {
+  try {
+    return localStorage.getItem(SESSION_FLAG) === '1' || Boolean(localStorage.getItem(TOKEN_KEY));
+  } catch {
+    return false;
   }
 }
 
@@ -115,8 +152,12 @@ export async function loginPortfolio(email, password, totpCode) {
   return data;
 }
 
+export async function fetchCurrentUser() {
+  return portfolioFetch('/api/auth/me');
+}
+
 export async function logoutPortfolio() {
-  const token = getPortfolioToken();
+  const token = await resolveAccessToken();
   if (token) {
     try {
       await portfolioFetch('/api/auth/logout', { method: 'POST' });

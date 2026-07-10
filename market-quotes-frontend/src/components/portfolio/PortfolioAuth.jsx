@@ -11,7 +11,66 @@ const DEFAULT_PREFS = {
   notifyAdvice: true,
 };
 
-export default function PortfolioAuth({ auth, onSuccess }) {
+const AUTH_FEATURES = [
+  'Salva posizioni e transazioni su cloud sicuro',
+  'Monitora P/L e performance in tempo reale',
+  'Alert push su guadagni, perdite e previsioni',
+];
+
+function NotifyPrefsFieldset({ prefs, onToggle }) {
+  return (
+    <fieldset className="portfolio-notify__prefs">
+      <legend className="portfolio-notify__channel">Alert portafoglio</legend>
+      <label className="portfolio-field portfolio-field--check">
+        <input
+          type="checkbox"
+          checked={prefs.pushAlerts}
+          onChange={() => onToggle('pushAlerts')}
+        />
+        <span>Notifiche push su questo dispositivo</span>
+      </label>
+      <label className="portfolio-field portfolio-field--check">
+        <input
+          type="checkbox"
+          checked={prefs.notifyGain}
+          onChange={() => onToggle('notifyGain')}
+        />
+        <span>Aumenti / soglie guadagno</span>
+      </label>
+      <label className="portfolio-field portfolio-field--check">
+        <input
+          type="checkbox"
+          checked={prefs.notifyLoss}
+          onChange={() => onToggle('notifyLoss')}
+        />
+        <span>Diminuzioni / soglie perdita</span>
+      </label>
+      <label className="portfolio-field portfolio-field--check">
+        <input
+          type="checkbox"
+          checked={prefs.notifyForecast}
+          onChange={() => onToggle('notifyForecast')}
+        />
+        <span>Previsioni di trend</span>
+      </label>
+      <label className="portfolio-field portfolio-field--check">
+        <input
+          type="checkbox"
+          checked={prefs.notifyAdvice}
+          onChange={() => onToggle('notifyAdvice')}
+        />
+        <span>Consigli vendita / riduzione</span>
+      </label>
+    </fieldset>
+  );
+}
+
+export default function PortfolioAuth({
+  auth,
+  onSuccess,
+  initialError = null,
+  mfaRequired = false,
+}) {
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,13 +100,11 @@ export default function PortfolioAuth({ auth, onSuccess }) {
         if (prefs.pushAlerts && pushSupported) {
           try {
             const sub = await subscribePush();
-            if (sub) {
-              setPushHint('Notifiche push attivate su questo dispositivo.');
-            } else {
-              setPushHint(
-                'Account creato. Attiva le notifiche push da Impostazioni → Notifiche se il browser le ha bloccate.'
-              );
-            }
+            setPushHint(
+              sub
+                ? 'Notifiche push attivate su questo dispositivo.'
+                : 'Account creato. Attiva le push da Notifiche se il browser le ha bloccate.'
+            );
           } catch {
             setPushHint('Account creato. Puoi attivare le push da Notifiche nel portfolio.');
           }
@@ -59,35 +116,60 @@ export default function PortfolioAuth({ auth, onSuccess }) {
     }
   };
 
+  const displayError = auth.error || initialError;
+
   return (
     <section className="portfolio-auth app-card">
       <header className="portfolio-auth__head">
-        <h2 className="portfolio-auth__title">
-          {AUTH0_ENABLED || mode === 'login' ? 'Accedi al Portfolio' : 'Crea account'}
-        </h2>
+        <div className="portfolio-auth__head-row">
+          <h2 className="portfolio-auth__title">
+            {AUTH0_ENABLED || mode === 'login' ? 'Accedi al Portfolio' : 'Crea account'}
+          </h2>
+          <span className={`portfolio-auth__mode portfolio-auth__mode--${AUTH0_ENABLED ? 'auth0' : 'legacy'}`}>
+            {AUTH0_ENABLED ? 'Auth0' : 'Account locale'}
+          </span>
+        </div>
         <p className="portfolio-auth__lead">
           {AUTH0_ENABLED
-            ? 'Accesso sicuro con Auth0 e verifica a 2 fattori (MFA) sul tuo account.'
+            ? 'Accesso centralizzato con MFA. Dopo il login potrai configurare telefono e alert.'
             : mode === 'register'
-              ? 'Registrati con telefono per ricevere alert sul portafoglio (push sull’app, anche mobile).'
-              : 'Salva le tue posizioni su NeonDB e monitora P/L in tempo reale.'}
+              ? 'Registrati con telefono per ricevere alert sul portafoglio.'
+              : 'Accedi per salvare posizioni e monitorare P/L in tempo reale.'}
         </p>
       </header>
 
+      <ul className="portfolio-auth__features" aria-label="Funzionalità portfolio">
+        {AUTH_FEATURES.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+
+      {mfaRequired && (
+        <p className="portfolio-auth__alert portfolio-auth__alert--info" role="status">
+          Autenticazione a 2 fattori richiesta. Completa la verifica Auth0 e riprova.
+        </p>
+      )}
+
+      {displayError && (
+        <p className="portfolio-auth__error" role="alert">
+          {displayError}
+        </p>
+      )}
+
       {AUTH0_ENABLED ? (
-        <>
+        <div className="portfolio-auth__auth0">
           <button
             type="button"
             className="btn btn--primary btn--block"
             disabled={auth.loading}
             onClick={() => auth.loginWithRedirect?.() || auth.login()}
           >
-            {auth.loading ? 'Attendere…' : 'Accedi con Auth0 (MFA)'}
+            {auth.loading ? 'Attendere…' : 'Continua con Auth0'}
           </button>
           <p className="portfolio-auth__hint">
-            Dopo il login verrai reindirizzato al portfolio. MFA gestito da Auth0 (email/TOTP).
+            Verrai reindirizzato al login sicuro Auth0. Al ritorno configurerai telefono e notifiche.
           </p>
-        </>
+        </div>
       ) : (
         <>
           <form className="portfolio-auth__form" onSubmit={handleSubmit}>
@@ -129,53 +211,10 @@ export default function PortfolioAuth({ auth, onSuccess }) {
                   />
                 </label>
                 <p className="portfolio-auth__hint">
-                  Il numero è usato per WhatsApp (se configurato) e come contatto. Le notifiche
-                  push arrivano direttamente sull&apos;app installata su questo dispositivo.
+                  Usato per WhatsApp (se configurato) e come contatto. Le push arrivano su questo
+                  dispositivo.
                 </p>
-
-                <fieldset className="portfolio-notify__prefs">
-                  <legend className="portfolio-notify__channel">Alert portafoglio</legend>
-                  <label className="portfolio-field portfolio-field--check">
-                    <input
-                      type="checkbox"
-                      checked={prefs.pushAlerts}
-                      onChange={() => togglePref('pushAlerts')}
-                    />
-                    <span>Notifiche push su questo dispositivo</span>
-                  </label>
-                  <label className="portfolio-field portfolio-field--check">
-                    <input
-                      type="checkbox"
-                      checked={prefs.notifyGain}
-                      onChange={() => togglePref('notifyGain')}
-                    />
-                    <span>Aumenti / soglie guadagno</span>
-                  </label>
-                  <label className="portfolio-field portfolio-field--check">
-                    <input
-                      type="checkbox"
-                      checked={prefs.notifyLoss}
-                      onChange={() => togglePref('notifyLoss')}
-                    />
-                    <span>Diminuzioni / soglie perdita</span>
-                  </label>
-                  <label className="portfolio-field portfolio-field--check">
-                    <input
-                      type="checkbox"
-                      checked={prefs.notifyForecast}
-                      onChange={() => togglePref('notifyForecast')}
-                    />
-                    <span>Previsioni di trend</span>
-                  </label>
-                  <label className="portfolio-field portfolio-field--check">
-                    <input
-                      type="checkbox"
-                      checked={prefs.notifyAdvice}
-                      onChange={() => togglePref('notifyAdvice')}
-                    />
-                    <span>Consigli vendita / riduzione</span>
-                  </label>
-                </fieldset>
+                <NotifyPrefsFieldset prefs={prefs} onToggle={togglePref} />
               </>
             )}
 
@@ -193,11 +232,6 @@ export default function PortfolioAuth({ auth, onSuccess }) {
               </label>
             )}
 
-            {auth.error && (
-              <p className="portfolio-auth__error" role="alert">
-                {auth.error}
-              </p>
-            )}
             {pushHint && <p className="portfolio-notify__ok">{pushHint}</p>}
 
             <button type="submit" className="btn btn--primary btn--block" disabled={auth.loading}>
@@ -238,3 +272,5 @@ export default function PortfolioAuth({ auth, onSuccess }) {
     </section>
   );
 }
+
+export { NotifyPrefsFieldset, DEFAULT_PREFS };

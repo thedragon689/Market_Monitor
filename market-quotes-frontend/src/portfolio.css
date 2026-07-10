@@ -41,8 +41,83 @@
 }
 
 /* Auth */
+.portfolio-auth {
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
 .portfolio-auth__head {
   margin-bottom: 1rem;
+}
+
+.portfolio-auth__head-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.portfolio-auth__mode {
+  flex-shrink: 0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.portfolio-auth__mode--auth0 {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.portfolio-auth__features {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.75rem 0.75rem 1.15rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-elevated));
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  font-size: 0.84rem;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.portfolio-auth__features li + li {
+  margin-top: 0.35rem;
+}
+
+.portfolio-auth__alert {
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+}
+
+.portfolio-auth__alert--info {
+  background: color-mix(in srgb, var(--info, var(--accent)) 12%, transparent);
+  color: var(--text-h);
+  border: 1px solid color-mix(in srgb, var(--info, var(--accent)) 30%, transparent);
+}
+
+.portfolio-auth__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.portfolio-auth--loading,
+.portfolio-auth--onboarding {
+  padding: 1.25rem;
+}
+
+.portfolio-auth__auth0 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
 }
 
 .portfolio-auth__title {
@@ -786,6 +861,24 @@
 
   .portfolio-row__spark {
     display: none;
+  }
+
+  .portfolio-page {
+    padding-left: 0.15rem;
+    padding-right: 0.15rem;
+  }
+
+  .portfolio-auth {
+    max-width: none;
+  }
+
+  .portfolio-auth__head-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .portfolio-oauth__buttons {
+    flex-direction: column;
   }
 }
 

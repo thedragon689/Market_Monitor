@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  fetchCurrentUser,
   getPortfolioToken,
   loginPortfolio,
   loginOAuth,
@@ -12,11 +13,36 @@ export default function useLegacyPortfolioAuth() {
   const [token, setToken] = useState(getPortfolioToken);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(() => Boolean(getPortfolioToken()));
   const [error, setError] = useState(null);
 
   useEffect(() => {
     setPortfolioTokenProvider(() => getPortfolioToken());
-    setToken(getPortfolioToken());
+    const stored = getPortfolioToken();
+    setToken(stored);
+    if (!stored) {
+      setInitializing(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await fetchCurrentUser();
+        if (!cancelled) setUser(data.user);
+      } catch {
+        if (!cancelled) {
+          setToken(null);
+          setUser(null);
+        }
+      } finally {
+        if (!cancelled) setInitializing(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = useCallback(async (email, password, totpCode) => {
@@ -76,13 +102,21 @@ export default function useLegacyPortfolioAuth() {
     }
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const data = await fetchCurrentUser();
+    setUser(data.user);
+    return data.user;
+  }, []);
+
   return {
     mode: 'legacy',
     token,
     user,
     setUser,
+    refreshUser,
     setError,
-    loading,
+    loading: loading || initializing,
+    initializing,
     error,
     isAuthenticated: Boolean(token),
     login,

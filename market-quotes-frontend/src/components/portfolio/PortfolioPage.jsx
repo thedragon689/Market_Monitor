@@ -13,9 +13,20 @@ import {
 import PortfolioAddAsset from './PortfolioAddAsset';
 import PortfolioAssetDetail from './PortfolioAssetDetail';
 import PortfolioAuth from './PortfolioAuth';
+import PortfolioAuthOnboarding from './PortfolioAuthOnboarding';
 import PortfolioDashboard from './PortfolioDashboard';
 import PortfolioNotifications from './PortfolioNotifications';
 import PortfolioInsights from './PortfolioInsights';
+import {
+  clearPortfolioAuthQuery,
+  formatPortfolioAuthError,
+  needsPortfolioOnboarding,
+  readPortfolioAuthQuery,
+} from '../../utils/portfolioAuthUtils';
+
+function onboardingDismissKey(userId) {
+  return `mm:portfolio-onboarding:${userId || 'anon'}`;
+}
 
 export default function PortfolioPage(props) {
   return (
@@ -42,6 +53,12 @@ function PortfolioPageInner({ onSelectAsset }) {
   const [error, setError] = useState(null);
   const [txError, setTxError] = useState(null);
   const [verifyNotice, setVerifyNotice] = useState(null);
+  const [authQuery] = useState(() => readPortfolioAuthQuery());
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+
+  useEffect(() => {
+    clearPortfolioAuthQuery();
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -69,7 +86,7 @@ function PortfolioPageInner({ onSelectAsset }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [auth]);
 
   const loadHistory = useCallback(async (range = historyRange, { silent = false } = {}) => {
     if (!auth.token) return;
@@ -220,10 +237,57 @@ function PortfolioPageInner({ onSelectAsset }) {
     }
   };
 
-  if (!auth.isAuthenticated) {
+  if (auth.initializing) {
     return (
       <div className="portfolio-page">
-        <PortfolioAuth auth={auth} onSuccess={() => setSubView('dashboard')} />
+        <section className="portfolio-auth portfolio-auth--loading app-card" aria-busy="true">
+          <p className="portfolio-auth__lead">Verifica sessione portfolio…</p>
+        </section>
+      </div>
+    );
+  }
+
+  if (!auth.isAuthenticated) {
+    const initialError = authQuery.authError
+      ? formatPortfolioAuthError(decodeURIComponent(authQuery.authError))
+      : null;
+    return (
+      <div className="portfolio-page">
+        <PortfolioAuth
+          auth={auth}
+          initialError={initialError}
+          mfaRequired={authQuery.mfaRequired}
+          onSuccess={() => setSubView('dashboard')}
+        />
+      </div>
+    );
+  }
+
+  const onboardingSkipped =
+    onboardingDismissed ||
+    (() => {
+      try {
+        return localStorage.getItem(onboardingDismissKey(auth.user?.id)) === '1';
+      } catch {
+        return false;
+      }
+    })();
+
+  if (!onboardingSkipped && needsPortfolioOnboarding(auth.user)) {
+    return (
+      <div className="portfolio-page">
+        <PortfolioAuthOnboarding
+          auth={auth}
+          onDone={() => setOnboardingDismissed(true)}
+          onSkip={() => {
+            try {
+              localStorage.setItem(onboardingDismissKey(auth.user?.id), '1');
+            } catch {
+              /* ignore */
+            }
+            setOnboardingDismissed(true);
+          }}
+        />
       </div>
     );
   }

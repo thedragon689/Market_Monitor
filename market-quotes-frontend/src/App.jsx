@@ -60,6 +60,7 @@ import { savePersistedState } from './utils/persist';
 import { syncUrlState } from './utils/urlState';
 import { resolveMobileNavIntent, resolveMobileTabIntent } from './utils/navIntent';
 import { resolveInitialAppState } from './utils/initAppState';
+import { hasPortfolioSessionSync } from './utils/portfolioApi';
 import { useMobileLayout } from './hooks/useMobileLayout';
 import {
   getSymbolMeta,
@@ -1557,7 +1558,7 @@ export default function App() {
             /* ignore */
           }
           try {
-            hasPortfolio = Boolean(localStorage.getItem('market-monitor-portfolio-token'));
+            hasPortfolio = hasPortfolioSessionSync();
           } catch {
             /* ignore */
           }
