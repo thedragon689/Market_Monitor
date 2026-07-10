@@ -11,25 +11,19 @@ export function resolveOAuthConfig(apiConfig) {
     apiConfig?.oauthClientIds?.github?.trim() ||
     import.meta.env.VITE_GITHUB_CLIENT_ID?.trim() ||
     '';
-  const appleId =
-    apiConfig?.oauthClientIds?.apple?.trim() ||
-    import.meta.env.VITE_APPLE_CLIENT_ID?.trim() ||
-    '';
 
   return {
     oauth: {
       google: Boolean(googleId),
       github: Boolean(githubId),
-      apple: Boolean(appleId),
     },
     oauthClientIds: {
       google: googleId || null,
       github: githubId || null,
-      apple: appleId || null,
     },
   };
 }
 
 export function hasOAuthProviders(config) {
-  return Boolean(config?.oauth?.google || config?.oauth?.github || config?.oauth?.apple);
+  return Boolean(config?.oauth?.google || config?.oauth?.github);
 }

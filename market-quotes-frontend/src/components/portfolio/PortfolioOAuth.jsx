@@ -3,12 +3,10 @@ import { fetchAuthConfig } from '../../utils/portfolioApi';
 import { resolveOAuthConfig } from '../../utils/portfolioOAuthConfig';
 
 const GSI_SRC = 'https://accounts.google.com/gsi/client';
-const APPLE_SRC = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
 
 const PROVIDER_LABELS = {
   google: 'Google',
   github: 'GitHub',
-  apple: 'Apple',
 };
 
 function GoogleIcon() {
@@ -45,17 +43,6 @@ function GitHubIcon() {
   );
 }
 
-function AppleIcon() {
-  return (
-    <svg className="portfolio-oauth__icon" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M16.365 1.43c0 1.14-.42 2.19-1.193 2.985-.853.89-2.042 1.41-3.247 1.33-.15-1.1.45-2.26 1.23-3.01.84-.81 2.28-1.39 3.21-1.305zm1.17 3.08c-2.9-.17-5.36 1.64-6.75 1.64-1.4 0-3.56-1.59-5.87-1.55-3.02.05-5.8 1.76-7.35 4.48-3.14 5.45-.81 13.52 2.25 17.95 1.5 2.17 3.29 4.6 5.64 4.51 2.27-.09 3.13-1.47 5.87-1.47 2.73 0 3.5 1.47 5.89 1.42 2.43-.05 3.97-2.19 5.46-4.37 1.72-2.51 2.43-4.95 2.47-5.07-.05-.02-4.75-1.82-4.8-7.23-.04-4.53 3.7-6.7 3.86-6.83-2.1-3.08-5.37-3.41-6.51-3.48z"
-      />
-    </svg>
-  );
-}
-
 function loadScript(src, id) {
   if (document.getElementById(id)) {
     return document.getElementById(id).dataset.loaded === '1'
@@ -84,7 +71,7 @@ function loadScript(src, id) {
 }
 
 /**
- * Pulsanti OAuth (Google, GitHub, Apple) per login/registrazione portfolio.
+ * Pulsanti OAuth (Google, GitHub) per login/registrazione portfolio.
  * I pulsanti sono sempre visibili; il login funziona solo se il provider è configurato sul server.
  */
 export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
@@ -130,7 +117,7 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
       if (disabled || busy) return;
       if (!clientId) {
         onError?.(
-          `Accesso ${PROVIDER_LABELS[provider]} non attivo. Configura le credenziali OAuth su Netlify (GOOGLE_CLIENT_ID, GITHUB_CLIENT_ID/SECRET, APPLE_CLIENT_ID).`
+          `Accesso ${PROVIDER_LABELS[provider]} non attivo. Configura le credenziali OAuth su Netlify (GOOGLE_CLIENT_ID, GITHUB_CLIENT_ID/SECRET).`
         );
         return;
       }
@@ -212,34 +199,6 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
     });
   };
 
-  const loginApple = async () => {
-    const clientId = resolved.oauthClientIds?.apple;
-    guardProvider('apple', clientId, async () => {
-      setBusy('apple');
-      try {
-        await loadScript(APPLE_SRC, 'apple-auth');
-        if (!window.AppleID?.auth) throw new Error('Apple Sign In non disponibile');
-
-        window.AppleID.auth.init({
-          clientId,
-          scope: 'name email',
-          redirectURI: window.location.origin,
-          usePopup: true,
-        });
-
-        const res = await window.AppleID.auth.signIn();
-        const idToken = res?.authorization?.id_token;
-        if (!idToken) throw new Error('Token Apple mancante');
-        await finishOAuth('apple', { token: idToken });
-      } catch (err) {
-        if (err?.error !== 'popup_closed_by_user') {
-          onError?.(err?.message || err?.error || 'Accesso Apple fallito');
-        }
-        setBusy(null);
-      }
-    });
-  };
-
   return (
     <div className="portfolio-oauth">
       <p className="portfolio-oauth__divider">
@@ -274,16 +233,6 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
         >
           <GitHubIcon />
           {busy === 'github' ? 'Attendere…' : 'GitHub'}
-        </button>
-        <button
-          type="button"
-          className="portfolio-oauth__btn portfolio-oauth__btn--apple"
-          onClick={loginApple}
-          disabled={disabled || Boolean(busy)}
-          aria-busy={busy === 'apple'}
-        >
-          <AppleIcon />
-          {busy === 'apple' ? 'Attendere…' : 'Apple'}
         </button>
       </div>
     </div>
