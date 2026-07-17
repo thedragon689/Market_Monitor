@@ -122,9 +122,9 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
   );
 
   const guardProvider = useCallback(
-    (provider, clientId, action) => {
+    (provider, configured, clientId, action) => {
       if (disabled || busy) return;
-      if (!clientId) {
+      if (!configured || !clientId) {
         onError?.(
           `Accesso ${PROVIDER_LABELS[provider]} non attivo. Configura le credenziali OAuth su Netlify (GOOGLE_CLIENT_ID/SECRET, GITHUB_CLIENT_ID/SECRET).`
         );
@@ -201,7 +201,7 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
 
   const loginGoogle = () => {
     const clientId = resolved.oauthClientIds?.google;
-    guardProvider('google', clientId, () => {
+    guardProvider('google', resolved.oauth.google, clientId, () => {
       disableGoogleAutoSelect();
       if (googleCodeClientRef.current?.requestCode) {
         googleCodeClientRef.current.requestCode({ prompt: 'select_account' });
@@ -219,7 +219,7 @@ export default function PortfolioOAuth({ onOAuth, onError, disabled = false }) {
 
   const loginGitHub = () => {
     const clientId = resolved.oauthClientIds?.github;
-    guardProvider('github', clientId, () => {
+    guardProvider('github', resolved.oauth.github, clientId, () => {
       const ghRedirect = `${window.location.origin}/oauth/github-callback.html`;
       const url =
         `https://github.com/login/oauth/authorize?client_id=${encodeURIComponent(clientId)}` +

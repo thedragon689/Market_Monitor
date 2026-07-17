@@ -14,6 +14,7 @@ import PortfolioAddAsset from './PortfolioAddAsset';
 import PortfolioAssetDetail from './PortfolioAssetDetail';
 import PortfolioAuth from './PortfolioAuth';
 import PortfolioAuthOnboarding from './PortfolioAuthOnboarding';
+import PostRegisterTelegramPrompt from './PostRegisterTelegramPrompt';
 import PortfolioDashboard from './PortfolioDashboard';
 import PortfolioNotifications from './PortfolioNotifications';
 import PortfolioInsights from './PortfolioInsights';
@@ -55,6 +56,7 @@ function PortfolioPageInner({ onSelectAsset }) {
   const [verifyNotice, setVerifyNotice] = useState(null);
   const [authQuery] = useState(() => readPortfolioAuthQuery());
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const [postRegisterTelegram, setPostRegisterTelegram] = useState(false);
 
   useEffect(() => {
     clearPortfolioAuthQuery();
@@ -257,7 +259,19 @@ function PortfolioPageInner({ onSelectAsset }) {
           auth={auth}
           initialError={initialError}
           mfaRequired={authQuery.mfaRequired}
-          onSuccess={() => setSubView('dashboard')}
+          onSuccess={({ justRegistered } = {}) => {
+            if (justRegistered) setPostRegisterTelegram(true);
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (postRegisterTelegram) {
+    return (
+      <div className="portfolio-page">
+        <PostRegisterTelegramPrompt
+          onContinue={() => setPostRegisterTelegram(false)}
         />
       </div>
     );

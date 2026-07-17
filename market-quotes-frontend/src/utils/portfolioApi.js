@@ -255,11 +255,21 @@ export async function registerPortfolioTelegram(chatId) {
   });
 }
 
+/** Deep link t.me?start=<userId> per collegare Telegram via /start. */
+export async function createTelegramLink() {
+  return portfolioFetch('/api/notifications/telegram/link', { method: 'POST' });
+}
+
 export async function registerPortfolioWhatsApp(phoneNumber) {
   return portfolioFetch('/api/notifications/registerWhatsApp', {
     method: 'POST',
-    body: JSON.stringify({ phoneNumber }),
+    body: JSON.stringify({ phone: phoneNumber, phoneNumber }),
   });
+}
+
+/** Deep link wa.me con /start <userId> per collegare WhatsApp. */
+export async function createWhatsAppLink() {
+  return portfolioFetch('/api/notifications/whatsapp/link', { method: 'POST' });
 }
 
 export async function registerPortfolioSlack(webhookUrl) {
@@ -289,4 +299,38 @@ export async function updateNotificationPreferences(prefs) {
     method: 'PATCH',
     body: JSON.stringify(prefs),
   });
+}
+
+/** Feed notifiche da DB (sort: importance_desc|importance_asc|time_desc|time_asc). */
+export async function getNotificationFeed({ sort = 'importance_desc', limit = 40, unreadOnly = false } = {}) {
+  const params = new URLSearchParams({
+    sort,
+    limit: String(limit),
+  });
+  if (unreadOnly) params.set('unreadOnly', '1');
+  return portfolioFetch(`/api/notifications/feed?${params}`);
+}
+
+export async function markNotificationsRead(ids = null) {
+  return portfolioFetch('/api/notifications/read', {
+    method: 'POST',
+    body: JSON.stringify(ids ? { ids } : {}),
+  });
+}
+
+/** Variazioni portfolio ordinate per importanza o tempo. */
+export async function fetchPortfolioVariations({
+  sort = 'importance_desc',
+  direction = null,
+  limit = 50,
+} = {}) {
+  const params = new URLSearchParams({ sort, limit: String(limit) });
+  if (direction) params.set('direction', direction);
+  return portfolioFetch(`/api/portfolio/variations?${params}`);
+}
+
+/** Timeline progressiva (registrazione, inserimenti, variazioni). */
+export async function fetchPortfolioTimeline({ order = 'asc', limit = 100 } = {}) {
+  const params = new URLSearchParams({ order, limit: String(limit) });
+  return portfolioFetch(`/api/portfolio/timeline?${params}`);
 }

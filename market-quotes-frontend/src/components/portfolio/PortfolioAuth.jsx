@@ -108,6 +108,8 @@ export default function PortfolioAuth({
             setPushHint('Account creato. Puoi attivare le push da Notifiche nel portfolio.');
           }
         }
+        onSuccess?.({ justRegistered: true });
+        return;
       }
       onSuccess?.();
     } catch {

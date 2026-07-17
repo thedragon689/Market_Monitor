@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   registerPortfolioTelegram,
   registerPortfolioWhatsApp,
@@ -7,8 +7,56 @@ import {
   getNotificationsConfig,
   getNotificationPreferences,
   updateNotificationPreferences,
+  getNotificationFeed,
+  markNotificationsRead,
 } from '../../utils/portfolioApi';
 import PushSubscribeButton from './PushSubscribeButton';
+import ActivateTelegramButton from './ActivateTelegramButton';
+import ActivateWhatsAppButton from './ActivateWhatsAppButton';
+
+const SORT_OPTIONS = [
+  { value: 'importance_desc', label: 'Importanza ↓' },
+  { value: 'importance_asc', label: 'Importanza ↑' },
+  { value: 'time_desc', label: 'Più recenti' },
+  { value: 'time_asc', label: 'Più vecchie' },
+];
+
+function formatWhen(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleString('it-IT', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return String(iso);
+  }
+}
+
+function kindLabel(kind) {
+  switch (kind) {
+    case 'increase':
+      return 'Aumento';
+    case 'decrease':
+      return 'Diminuzione';
+    case 'gain':
+      return 'Guadagno';
+    case 'loss':
+      return 'Perdita';
+    case 'forecast':
+      return 'Previsione';
+    case 'advice':
+      return 'Consiglio';
+    case 'insert':
+      return 'Inserimento';
+    case 'register':
+      return 'Registrazione';
+    default:
+      return kind || 'Evento';
+  }
+}
 
 export default function PortfolioNotifications({ onBack }) {
   const [telegramId, setTelegramId] = useState('');
@@ -26,6 +74,26 @@ export default function PortfolioNotifications({ onBack }) {
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
   const [serverConfig, setServerConfig] = useState(null);
+
+  const [sort, setSort] = useState('importance_desc');
+  const [feed, setFeed] = useState([]);
+  const [insights, setInsights] = useState(null);
+  const [feedLoading, setFeedLoading] = useState(true);
+  const [feedError, setFeedError] = useState(null);
+
+  const loadFeed = useCallback(async (nextSort = sort) => {
+    setFeedLoading(true);
+    setFeedError(null);
+    try {
+      const data = await getNotificationFeed({ sort: nextSort, limit: 40 });
+      setFeed(Array.isArray(data?.items) ? data.items : []);
+      setInsights(data?.insights ?? null);
+    } catch (err) {
+      setFeedError(err.message || 'Impossibile caricare le notifiche');
+    } finally {
+      setFeedLoading(false);
+    }
+  }, [sort]);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,6 +121,10 @@ export default function PortfolioNotifications({ onBack }) {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    loadFeed(sort);
+  }, [sort, loadFeed]);
 
   const runSave = async (fn, okMsg) => {
     setLoading(true);
@@ -112,6 +184,13 @@ export default function PortfolioNotifications({ onBack }) {
     );
   };
 
+  const markAllRead = () => {
+    runSave(async () => {
+      await markNotificationsRead();
+      await loadFeed(sort);
+    }, 'Notifiche segnate come lette.');
+  };
+
   return (
     <section className="portfolio-notify app-card">
       <header className="portfolio-add__head">
@@ -122,9 +201,133 @@ export default function PortfolioNotifications({ onBack }) {
       </header>
 
       <p className="portfolio-notify__lead">
-        Ricevi alert automatici sul portafoglio: aumenti, diminuzioni, previsioni di trend e
-        consigli operativi (controllo ogni 5 minuti).
+        Il database rileva aumenti e diminuzioni del portafoglio, li ordina per importanza e
+        conserva data/ora di registrazione, inserimenti e variazioni. Qui vedi i valori dalle
+        query (aggiornamento ogni 5 minuti dal monitor).
       </p>
+
+      <div className="portfolio-notify__feed">
+        <div className="portfolio-notify__feed-head">
+          <h3 className="portfolio-notify__channel">
+            Eventi
+            {insights?.unreadCount > 0 ? (
+              <span className="portfolio-notify__badge">{insights.unreadCount}</span>
+            ) : null}
+          </h3>
+          <div className="portfolio-notify__feed-actions">
+            <label className="portfolio-notify__sort">
+              <span className="visually-hidden">Ordina</span>
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                disabled={feedLoading}
+              >
+                {SORT_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="btn btn--ghost btn--small"
+              onClick={() => loadFeed(sort)}
+              disabled={feedLoading}
+            >
+              Aggiorna
+            </button>
+            <button
+              type="button"
+              className="btn btn--ghost btn--small"
+              onClick={markAllRead}
+              disabled={loading || !insights?.unreadCount}
+            >
+              Segna lette
+            </button>
+          </div>
+        </div>
+
+        {(insights?.topIncreases?.length > 0 || insights?.topDecreases?.length > 0) && (
+          <div className="portfolio-notify__insights">
+            {insights.topIncreases?.length > 0 && (
+              <div className="portfolio-notify__insight portfolio-notify__insight--up">
+                <strong>Top aumenti</strong>
+                <ul>
+                  {insights.topIncreases.slice(0, 3).map((v) => (
+                    <li key={v.id}>
+                      {v.symbol || 'Portafoglio'}{' '}
+                      <span>
+                        {v.deltaPercent != null
+                          ? `+${Number(v.deltaPercent).toFixed(2)}%`
+                          : '—'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {insights.topDecreases?.length > 0 && (
+              <div className="portfolio-notify__insight portfolio-notify__insight--down">
+                <strong>Top diminuzioni</strong>
+                <ul>
+                  {insights.topDecreases.slice(0, 3).map((v) => (
+                    <li key={v.id}>
+                      {v.symbol || 'Portafoglio'}{' '}
+                      <span>
+                        {v.deltaPercent != null
+                          ? `${Number(v.deltaPercent).toFixed(2)}%`
+                          : '—'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        {feedLoading && <p className="portfolio-notify__hint">Caricamento eventi…</p>}
+        {feedError && (
+          <p className="portfolio-auth__error" role="alert">
+            {feedError}
+          </p>
+        )}
+        {!feedLoading && !feedError && feed.length === 0 && (
+          <p className="portfolio-notify__hint">
+            Nessun evento ancora. Aggiungi asset o attendi il prossimo ciclo del monitor.
+          </p>
+        )}
+        {!feedLoading && feed.length > 0 && (
+          <ul className="portfolio-notify__list">
+            {feed.map((item) => (
+              <li
+                key={item.id}
+                className={`portfolio-notify__item${item.readAt ? '' : ' portfolio-notify__item--unread'}${
+                  item.direction === 'increase'
+                    ? ' portfolio-notify__item--up'
+                    : item.direction === 'decrease'
+                      ? ' portfolio-notify__item--down'
+                      : ''
+                }`}
+              >
+                <div className="portfolio-notify__item-meta">
+                  <span className="portfolio-notify__kind">{kindLabel(item.kind)}</span>
+                  <time dateTime={item.createdAt}>{formatWhen(item.createdAt)}</time>
+                </div>
+                <strong className="portfolio-notify__item-title">{item.title}</strong>
+                {item.body && <p className="portfolio-notify__item-body">{item.body}</p>}
+                <div className="portfolio-notify__item-foot">
+                  {item.symbol && <span>{item.symbol}</span>}
+                  <span title="Importanza ( |Δ%| )">
+                    Imp. {Number(item.importance ?? 0).toFixed(2)}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <div className="portfolio-add__form portfolio-notify__form-prefs">
         <h3 className="portfolio-notify__channel">Tipi di alert</h3>
@@ -181,7 +384,21 @@ export default function PortfolioNotifications({ onBack }) {
       <form className="portfolio-add__form" onSubmit={saveTelegram}>
         <h3 className="portfolio-notify__channel">Telegram</h3>
         <p className="portfolio-notify__hint">
-          Crea un bot con @BotFather, avvialo e invia /start. Inserisci il tuo Chat ID.
+          Crea un bot con @BotFather. Poi collega automaticamente oppure inserisci manualmente il Chat ID.
+          {serverConfig?.telegramBotUsername && (
+            <>
+              {' '}
+              Bot: <strong>@{serverConfig.telegramBotUsername}</strong>
+            </>
+          )}
+        </p>
+        <ActivateTelegramButton
+          label="Attiva notifiche Telegram"
+          className="btn btn--cta btn--block portfolio-notify__tg-link"
+          disabled={loading}
+        />
+        <p className="portfolio-notify__hint portfolio-notify__hint--sub">
+          Oppure scrivi /start al bot per ottenere il Chat ID e incollalo qui sotto.
         </p>
         <label className="portfolio-field">
           <span>Chat ID Telegram</span>
@@ -202,8 +419,17 @@ export default function PortfolioNotifications({ onBack }) {
         <p className="portfolio-notify__hint">
           Numero internazionale con prefisso (es. +39…). Richiede Twilio o Meta Cloud API sul server.
         </p>
+        <ActivateWhatsAppButton
+          label="Attiva notifiche WhatsApp"
+          defaultPhone={whatsapp}
+          onSaved={(result) => {
+            const saved = result?.whatsapp || result?.whatsapp_number;
+            if (saved) setWhatsapp(saved);
+            setMessage('WhatsApp collegato. Riceverai alert sulle soglie impostate.');
+          }}
+        />
         <label className="portfolio-field">
-          <span>Numero WhatsApp</span>
+          <span>Numero WhatsApp (manuale)</span>
           <input
             type="tel"
             value={whatsapp}

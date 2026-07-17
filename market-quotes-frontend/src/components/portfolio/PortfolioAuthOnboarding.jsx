@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
 import { updateNotificationPreferences } from '../../utils/portfolioApi';
 import { DEFAULT_PREFS, NotifyPrefsFieldset } from './PortfolioAuth';
+import ActivateTelegramButton from './ActivateTelegramButton';
+import ActivateWhatsAppButton from './ActivateWhatsAppButton';
 
 export default function PortfolioAuthOnboarding({ auth, onDone, onSkip }) {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -71,6 +73,22 @@ export default function PortfolioAuthOnboarding({ auth, onDone, onSkip }) {
         </label>
 
         <NotifyPrefsFieldset prefs={prefs} onToggle={togglePref} />
+
+        <div className="portfolio-auth__telegram-block">
+          <h3 className="portfolio-notify__channel">Telegram</h3>
+          <p className="portfolio-notify__hint">
+            Collega il bot per ricevere alert automatici sul portafoglio.
+          </p>
+          <ActivateTelegramButton label="Attiva notifiche Telegram" />
+        </div>
+
+        <div className="portfolio-auth__telegram-block">
+          <h3 className="portfolio-notify__channel">WhatsApp</h3>
+          <p className="portfolio-notify__hint">
+            Salva il numero o apri la chat con il messaggio precompilato <strong>/start</strong>.
+          </p>
+          <ActivateWhatsAppButton label="Attiva notifiche WhatsApp" defaultPhone={phoneNumber} />
+        </div>
 
         {error && (
           <p className="portfolio-auth__error" role="alert">
